@@ -1,18 +1,26 @@
 import "./App.css";
+import { useState } from "react";
+
+import { useWebSocket } from "./WebSocketContext";
 
 function App() {
-    let message = 'Do not have anything yet'
+    const { sendMessage, isConnected } = useWebSocket();
+    const [text, setText] = useState("");
 
-    function serverConnection() {
-        
-    }
+    const handleSend = () => {
+        sendMessage(text);
+        setText("");
+    };
 
-    
     return (
         <div>
-            <p>Hello!</p>
-            <button>Socket connection</button>
-            <p>{ message }</p>
+            <input value={text} onChange={(e) => setText(e.target.value)} />
+            <button
+                onClick={handleSend}
+                disabled={!isConnected || !text.trim()}
+            >
+                Send
+            </button>
         </div>
     );
 }
