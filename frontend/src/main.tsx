@@ -4,6 +4,8 @@ import "./index.css";
 import App from "./App.tsx";
 import { Buffer } from "buffer";
 import { WebSocketProvider } from "./WebSocketContext.tsx";
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 (window as any).global = window;
 (window as any).process = {
