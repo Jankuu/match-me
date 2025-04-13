@@ -1,7 +1,6 @@
-package com.example.demo;
+package com.example.demo.WebSocket;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.demo.ActiveUserManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -22,28 +21,12 @@ public class WebSocketEventListener {
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        String username = accessor.getFirstNativeHeader("username");
-
-        if (username != null) {
-            activeUserManager.add(username);
-            broadcastUserList();
-            System.out.println("✅ Connected: " + username);
-        }
+        System.out.println("✅ Connected: " + accessor.getSessionId());
     }
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        String username = (String) accessor.getSessionAttributes().get("username");
-
-        if (username != null) {
-            activeUserManager.remove(username);
-            broadcastUserList();
-            System.out.println("❌ Disconnected: " + username);
-        }
-    }
-
-    private void broadcastUserList() {
-        messagingTemplate.convertAndSend("/topic/online-users", activeUserManager.getAll());
+        System.out.println("❌ Disconnected: " + accessor.getSessionId());
     }
 }
