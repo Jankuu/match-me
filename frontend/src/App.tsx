@@ -2,7 +2,7 @@ import "./App.css";
 import { useEffect, useState } from "react";
 
 import { useWebSocket } from "./WebSocketContext";
-import { Client } from "@stomp/stompjs";
+import CreateUserForm from "./Components/CreateUserForm";
 
 function App() {
     const { client, isConnected } = useWebSocket();
@@ -30,15 +30,13 @@ function App() {
             console.warn("WebSocket not connected");
         }
         setText("");
-        if (client && isConnected) {
-            client.publish({
-                destination: "/app/send",
-                body: "11",
-            });
-            console.log("📤 Sent to server:", "11");
-        } else {
-            console.warn("WebSocket not connected");
-        }
+    };
+
+    const getAllUsersInDB = async () => {
+        const res = await fetch("http://localhost:8080/users/users");
+        const data = await res.json();
+        console.log("Got all users: ");
+        console.log(data);
     };
 
     return (
@@ -50,9 +48,12 @@ function App() {
             >
                 Send
             </button>
+            <br />
+            <button onClick={getAllUsersInDB}>Get Online Users</button>
+            <br />
+            <CreateUserForm />
         </div>
     );
 }
-
 
 export default App;

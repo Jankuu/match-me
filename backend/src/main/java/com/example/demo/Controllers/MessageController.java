@@ -17,11 +17,15 @@ public class MessageController {
 
     @MessageMapping("/send") // Maps to /app/send
     @SendTo("/topic/messages") // Optional: echo back to frontend
-    public String receiveMessage(@Payload String message) {
-        System.out.println("📩 Received from React: " + message);
-        System.out.println("📥 Received: " + message);
+    public String receiveMessage(@Payload String message,SimpMessageHeaderAccessor headerAccessor) {
+        if ("pass".equals(message)) {
 
-        if ("11".equals(message)) {
+            // messagingTemplate.convertAndSendToUser(
+            //            accessor.getSessionId(),
+            //            "/queue/online-users",
+            //            payload
+            //        );
+
             // 👇 Broadcast to all clients
             messagingTemplate.convertAndSend("/topic/broadcast", "🚨 Someone sent '11'!");
         }
@@ -32,6 +36,4 @@ public class MessageController {
     public void registerUser(@Payload String username, SimpMessageHeaderAccessor headerAccessor) {
         Objects.requireNonNull(headerAccessor.getSessionAttributes()).put("username", username);
     }
-
-
 }
