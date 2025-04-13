@@ -1,0 +1,19 @@
+src/
+├── assets/
+├── components/
+│   ├── ChatInput.jsx
+│   └── Message.jsx
+├── pages/
+│   ├── Home.jsx
+│   ├── Chat.jsx
+│   └── Login.jsx
+├── services/
+│   └── chatService.js
+├── hooks/
+│   └── useChat.js
+├── context/
+│   └── AuthContext.js
+├── styles/
+│   └── global.css
+├── App.jsx
+└── main.jsx
