@@ -1,0 +1,30 @@
+.nav-wrapper {
+    position: fixed;
+    width: 100%;
+    background-color: white;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.nav-icons {
+    padding: 0.5rem 1rem;
+}
+
+@media (max-width: 767px) {
+    .nav-wrapper {
+        bottom: 0; /* Mobile: bottom fixed */
+    }
+    .nav-icons {
+        flex-direction: row;
+    }
+}
+
+@media (min-width: 768px) {
+    .nav-wrapper {
+        top: 0; /* Desktop: top fixed */
+        border-bottom: 1px solid #ddd;
+    }
+    .nav-icons {
+        flex-direction: row;
+    }
+}

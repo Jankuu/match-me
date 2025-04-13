@@ -1,108 +1,79 @@
-// LoginPage.tsx
-import React, { useState } from "react";
-import { Form, Button, Container, Alert } from "react-bootstrap";
+import { useState } from "react";
+import { Button, Form, Container, Spinner, Alert } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
-interface Props {
-    onLogin: () => void;
-}
-
-const LoginPage: React.FC<Props> = ({ onLogin }) => {
+const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [error, setError] = useState<string | null>(null);
-    const [isRegistering, setIsRegistering] = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false); //loading icon 
+    const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError("");
+        // setLoading(true);
 
-        if (isRegistering) {
-            if (password !== confirmPassword) {
-                setError('Wrong password!');
-                return;
-            }
-            // TODO: request for registration
-            console.log('Registering: ', { email, password});
-            onLogin();
-        } else {
-            // TODO: request for login
-            console.log('Logging in: ', { email, password });
-        
-            // Here will be real request
-            if (email === "test@example.com" && password === "123456") {
-                onLogin(); // 👈 inform App that client is authorized
-                setError(null);
-            } else {
-                setError("Wrong login or password");
-            }
-        }
-    };
+        //JWT handeling
+        // try {
+        //     const response = await fetch("/api/auth/login", {
+        //         method: "POST",
+        //         headers: {
+        //             "Content-Type": "application/json",
+        //         },
+        //         body: JSON.stringify({ email, password }),
+        //     });
 
-    const toggleForm = () => {
-        setIsRegistering(!isRegistering);
-        setError(null);
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
+        //     const data = await response.json();
+
+        //     if (!response.ok) {
+        //         throw new Error(data.message || "Login failed");
+        //     }
+
+        //     localStorage.setItem("token", data.token);
+            navigate("/chat"); // can be home page
+        // } catch (err: any) {
+        //     setError(err.message);
+        // } finally {
+            setLoading(false);
+        // }
     };
 
     return (
-        <Container style={{ maxWidth: "400px", marginTop: "100px" }}>
-            <h2 className="mb-4">
-                {isRegistering ? "Registration" : "Log in"}
-            </h2>
-
+        <Container className="mt-5" style={{ maxWidth: "400px" }}>
+            <h2 className="mb-4">Login</h2>
             {error && <Alert variant="danger">{error}</Alert>}
-            <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3" controlId="formEmail">
+            <Form onSubmit={handleLogin}>
+                <Form.Group className="mb-3">
                     <Form.Label>Email</Form.Label>
                     <Form.Control
                         type="email"
-                        placeholder="example@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        disabled={loading}
                     />
                 </Form.Group>
-
-                <Form.Group className="mb-3" controlId="formPassword">
+                <Form.Group className="mb-3">
                     <Form.Label>Password</Form.Label>
                     <Form.Control
                         type="password"
-                        placeholder="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        disabled={loading}
                     />
                 </Form.Group>
-
-                {isRegistering && (
-                    // TODO: make a separate registartion page
-                    <Form.Group className="mb-3" controlId="formConfirmPassword">
-                        <Form.Label>Confirm password</Form.Label>
-                        <Form.Control
-                            type="password"
-                            placeholder="your password again please"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
-                    </Form.Group>
-
-                )}
-
-                <Button variant="primary" type="submit" className="w-100">
-                    {isRegistering ? "Register an account" : "Log in"}
+                <Button variant="primary" type="submit" disabled={loading}>
+                    {loading ? (<><Spinner animation="border" size="sm" /> Logging in...</>) : "Login"}
                 </Button>
                 <Button
                     variant="link"
-                    onClick={toggleForm}
-                    className="w-100"
-                    style={{ textDecoration: "none" }}
+                    onClick={() => navigate("/register")}
+                    className="ms-2"
+                    disabled={loading}
                 >
-                    {isRegistering
-                        ? "Already hav an account? Login"
-                        : "A new one? Register here"}
+                    Sign up
                 </Button>
             </Form>
         </Container>
