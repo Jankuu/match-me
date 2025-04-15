@@ -1,4 +1,4 @@
-package com.example.demo.WebSocket;
+package com.example.demo.webSocket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

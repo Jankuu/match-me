@@ -1,4 +1,4 @@
-package com.example.demo.WebSocket;
+package com.example.demo.webSocket;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;

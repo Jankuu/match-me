@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState } from "react";
 import { Button, Form, Container, Alert, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -19,25 +20,30 @@ const RegisterPage = () => {
 
         try {
             const formData = new FormData();
-            formData.append("email", email);
-            formData.append("password", password);
-            formData.append("username", username);
-            if (image) formData.append("image", image);
+            const userPayload = {
+                name: username,
+                email: email,
+                password: password,
+            };
 
-            const response = await fetch("/api/auth/register", {  //TODO: type right path
-                method: "POST",
-                body: formData,
+            formData.append("user", new Blob([JSON.stringify(userPayload)], { type: "application/json" }));
+            if (image) {
+                formData.append("image", image);
+            }
+
+            const response = await axios.post("http://localhost:8080/api/auth/register", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Registration failed");
+            if (response.status !== 200 && response.status !== 201) {
+                throw new Error("Registration failed");
             }
 
             navigate("/login");
         } catch (err: any) {
-            setError(err.message);
+            setError(err.response?.data?.message || err.message || "Something went wrong");
         } finally {
             setLoading(false);
         }
