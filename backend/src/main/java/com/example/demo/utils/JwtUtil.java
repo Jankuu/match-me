@@ -11,7 +11,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
     private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(
-    "supersecretkeysupersecretkey123456".getBytes() // минимум 32 байта!
+    "supersecretkeysupersecretkey123456".getBytes() // min 32 bites
 );
     private final long EXPIRATION = 86400000; // 1 day
 
