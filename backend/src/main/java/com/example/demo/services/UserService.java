@@ -23,15 +23,26 @@ public class UserService {
     public User registerUser(UserRegistrationDTO dto, MultipartFile image) throws IOException {
         // bcrypt password
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
-        User user = new User(dto.getName(), dto.getEmail(), encodedPassword);
 
-        // optionally save image
-        if (image != null && !image.isEmpty()) {
-            System.out.println("Image uploaded: " + image.getOriginalFilename());
-        }
+        User user = new User(
+        dto.getName(), 
+        dto.getEmail(), 
+        encodedPassword,
+        dto.getPreferredGender(),
+        dto.getLocation(),
+        dto.getMinAge(),  
+        dto.getMaxAge(),
+        dto.getBirthDate()
+        );
 
-        User savedUser = userRepository.save(user);
-        System.out.println("Saved user ID: " + savedUser.getId());
-        return savedUser;
+    // if (image != null && !image.isEmpty()) {
+    //     String imagePath = saveImage(image);
+    //     user.setImageUrl(imagePath);
+    // }
+
+    User savedUser = userRepository.save(user);
+    System.out.println("Saved user ID: " + savedUser.getId());
+    
+    return savedUser;
     }
 }

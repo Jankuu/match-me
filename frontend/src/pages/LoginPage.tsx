@@ -33,7 +33,7 @@ const LoginPage = () => {
             localStorage.setItem("token", data.token);
             navigate("/chat"); // can be home page
         } catch (err: any) {
-            setError(err.message);
+            setError("Login failed!");
         } finally {
             setLoading(false);
         }
