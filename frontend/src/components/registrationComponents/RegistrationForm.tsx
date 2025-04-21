@@ -24,7 +24,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const [preferredGender, setPreferredGender] = useState<string>("any");
     const [location, setLocation] = useState("");
     const [age, setAge] = useState<number | null>(null);
-    const [ages, setAges] = useState<[number, number] | null>(null);
+    const [ages, setAges] = useState<[number, number]>([18, 120]);
 
     const [usernameValid, setUsernameValid] = useState(false);
     const isPasswordValid = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password);
@@ -51,31 +51,43 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const passwordMatch = password.length > 0 && repeatedPassword === password;
 
     const isFormValid = usernameValid &&
-                    isEmailValid &&
-                    emailMatch &&
-                    isPasswordValid &&
-                    passwordMatch &&
-                    birthDate &&
-                    age !== null &&
-                    age >= 18;
+        isEmailValid &&
+        emailMatch &&
+        isPasswordValid &&
+        passwordMatch &&
+        birthDate &&
+        age !== null &&
+        age >= 18;
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const userPayload = {
-            name: username,
-            email,
-            password,
-            birthDate,
-            preferredGender,
-            location
+        const handleSubmit = (e: React.FormEvent) => {
+            e.preventDefault();
+        
+            if (!ages) return; // защита от пустого диапазона
+        
+            const userPayload = {
+                name: username,
+                email,
+                password,
+                birthDate,
+                preferredGender,
+                location,
+                preferredAgeMin: ages[0],
+                preferredAgeMax: ages[1],
+            };
+        
+            const formData = new FormData();
+            formData.append(
+                "user",
+                new Blob([JSON.stringify(userPayload)], { type: "application/json" })
+            );
+        
+            if (image) {
+                formData.append("image", image);
+            }
+        
+            onSubmit(formData);
         };
-
-        const formData = new FormData();
-        formData.append("user", new Blob([JSON.stringify(userPayload)], { type: "application/json" }));
-        if (image) formData.append("image", image);
-
-        onSubmit(formData);
-    };
+                    
 
     return (
         <Form onSubmit={handleSubmit}>
@@ -123,7 +135,9 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 onChange={setLocation}
                 disabled={loading}
             />
-            <ImageUpload image={image} setImage={setImage} loading={loading} />
+            <PreferredGenderSelector 
+                onChange={setPreferredGender} 
+                selected={preferredGender}            />
             <Button
                 variant="success"
                 type="submit"
