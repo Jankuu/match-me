@@ -1,7 +1,7 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 
-import { useWebSocket } from "./WebSocketContext";
+import { useWebSocket } from "./context/WebSocketContext";
 import { Client } from "@stomp/stompjs";
 import {
     BrowserRouter as Router,
@@ -15,6 +15,7 @@ import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import NavBar from "./components/NavBar";
 import { useMediaQuery } from "react-responsive";
+import { randomInt } from "crypto";
 
 function App() {
     // DEBUGGING AND TEMPLATES:
@@ -51,6 +52,25 @@ function App() {
         console.log("Got all users: ");
         console.log(data);
     };
+    const [imageUrl, setImageUrl] = useState<string>("");
+
+    const fetchImage = async () => {
+        try {
+            const response = await fetch(
+                `http://localhost:8080/auth/user/${1}/image`
+            );
+            if (response.ok) {
+                const imageBlob = await response.blob();
+                const imageObjectUrl = URL.createObjectURL(imageBlob); // Create Blob URL
+                setImageUrl(imageObjectUrl);
+            } else {
+                console.error("Failed to fetch image");
+            }
+        } catch (error) {
+            console.error("Error fetching image:", error);
+        }
+    };
+
     // DEBUGGING END
 
     // ше get it with first login
@@ -65,6 +85,11 @@ function App() {
     return (
         <Router>
             <div style={paddingStyle}>
+                {imageUrl !== "" ? (
+                    <img src={imageUrl} alt="User Profile" />
+                ) : (
+                    <button onClick={fetchImage}>Get image</button>
+                )}
                 <Routes>
                     {/* Default route — redirect based on login status, chat is used as an example */}
                     <Route

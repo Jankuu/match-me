@@ -1,32 +1,50 @@
 package com.example.demo.Entities;
 
+import com.example.demo.Constraints.ValidInterestedAge;
+import com.example.demo.Constraints.ValidInterestedGenders;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "users")  // Ensure this matches your table name
+@Table(name = "users")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String name;
+    @Column(unique = true)
+    private String username;
+    @Email
+    @Column(unique = true)
     private String email;
+    @NotNull(message = "User password must not be null!")
+    @NotBlank(message = "User password must not be blank!")
+    private String password;
 
-    // Constructors
-    public User() {}
-    public User(String name, String email) {
-        this.name = name;
-        this.email = email;
-    }
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "profile_id")
+    private UserProfile profile;
 
-    // Getters & Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @ValidInterestedAge
+    private Integer interestedMinAge;
+    @ValidInterestedAge
+    private Integer interestedMaxAge;
+    @ValidInterestedGenders
+    private String[] interestedGenders;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "user_id")
+    private UserInterestVector interestVector;
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserConnections connections;
 }

@@ -24,10 +24,14 @@ const RegisterPage = () => {
             formData.append("username", username);
             if (image) formData.append("image", image);
 
-            const response = await fetch("/api/auth/register", {  //TODO: type right path
-                method: "POST",
-                body: formData,
-            });
+            const response = await fetch(
+                "http://localhost:8080/auth/register",
+                {
+                    //TODO: type right path
+                    method: "POST",
+                    body: formData,
+                }
+            );
 
             const data = await response.json();
 
@@ -86,12 +90,19 @@ const RegisterPage = () => {
                         onChange={(e) => {
                             const target = e.target as HTMLInputElement; // need for TS to point that here we have files
                             setImage(target.files?.[0] || null);
-                          }}
+                            console.log(image);
+                        }}
                         disabled={loading}
                     />
                 </Form.Group>
                 <Button variant="success" type="submit" disabled={loading}>
-                    {loading ? (<><Spinner animation="border" size="sm" /> Creating...</>) : "Create Account"}
+                    {loading ? (
+                        <>
+                            <Spinner animation="border" size="sm" /> Creating...
+                        </>
+                    ) : (
+                        "Create Account"
+                    )}
                 </Button>
                 <Button
                     variant="link"

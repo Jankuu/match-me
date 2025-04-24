@@ -1,0 +1,18 @@
+package com.example.demo.DTOs;
+
+import com.example.demo.Constraints.EmailOrUsername;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@EmailOrUsername
+public class MessageDTO {
+    private Long id;
+    private Long senderId;
+    private Long receiverId;
+    private String content;
+    //private LocalDateTime timestamp;
+}
