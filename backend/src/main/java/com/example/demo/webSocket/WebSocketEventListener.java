@@ -1,4 +1,4 @@
-package com.example.demo.WebSocket;
+package com.example.demo.webSocket;
 
 import com.example.demo.ActiveUserManager;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,3 @@
-// Page with picture and all data
 // ProfilePage.tsx
 import { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Spinner, Button } from "react-bootstrap";
@@ -16,17 +15,19 @@ const ProfilePage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("authToken");
 
         if (!token) {
+            // If no token found, redirect to login page
             navigate("/login");
             return;
         }
 
-        // Simulate an API call
+        // Fetch user profile from the server
         const fetchUserProfile = async () => {
             try {
-                const response = await fetch("/api/user/profile", {
+                const response = await fetch("/api/profile", {
+                    method: "GET",
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -45,6 +46,7 @@ const ProfilePage = () => {
                 });
             } catch (err) {
                 console.error(err);
+                alert("Failed to load profile.");
             } finally {
                 setLoading(false);
             }

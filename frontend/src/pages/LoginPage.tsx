@@ -12,31 +12,31 @@ const LoginPage = () => {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
-        // setLoading(true);
+        setLoading(true);
 
         //JWT handeling
-        // try {
-        //     const response = await fetch("/api/auth/login", {
-        //         method: "POST",
-        //         headers: {
-        //             "Content-Type": "application/json",
-        //         },
-        //         body: JSON.stringify({ email, password }),
-        //     });
+        try {
+            const response = await fetch("http://localhost:8080/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+            });
 
-        //     const data = await response.json();
+            const data = await response.json();
 
-        //     if (!response.ok) {
-        //         throw new Error(data.message || "Login failed");
-        //     }
+            if (!response.ok) {
+                throw new Error(data.message || "Login failed");
+            }
 
-        //     localStorage.setItem("token", data.token);
+            localStorage.setItem("token", data.token);
             navigate("/chat"); // can be home page
-        // } catch (err: any) {
-        //     setError(err.message);
-        // } finally {
+        } catch (err: any) {
+            setError("Login failed!");
+        } finally {
             setLoading(false);
-        // }
+        }
     };
 
     return (

@@ -1,8 +1,4 @@
 import "./App.css";
-import { useEffect, useState } from "react";
-
-import { useWebSocket } from "./WebSocketContext";
-import { Client } from "@stomp/stompjs";
 import {
     BrowserRouter as Router,
     Routes,
@@ -18,39 +14,29 @@ import { useMediaQuery } from "react-responsive";
 
 function App() {
     // DEBUGGING AND TEMPLATES:
-    const { client, isConnected } = useWebSocket();
+    // const { client, isConnected } = useWebSocket();
 
-    useEffect(() => {
-        if (!client || !isConnected) return;
+    // useEffect(() => {
+    //     if (!client || !isConnected) return;
 
-        const subscription = client.subscribe(
-            "/topic/my-custom-topic",
-            (msg) => {
-                console.log("📥 Received:", msg.body);
-            }
-        );
+    //     const subscription = client.subscribe(
+    //         "/topic/my-custom-topic",
+    //         (msg) => {
+    //             console.log("📥 Received:", msg.body);
+    //         }
+    //     );
 
-        return () => subscription.unsubscribe();
-    }, [client, isConnected]);
+    //     return () => subscription.unsubscribe();
+    // }, [client, isConnected]);
 
-    const [text, setText] = useState("");
+    // const [text, setText] = useState("");
 
-    const handleSend = () => {
-        if (client && isConnected) {
-            client.publish({ destination: "/app/send", body: text });
-            console.log("📤 Sent to server:", text);
-        } else {
-            console.warn("WebSocket not connected");
-        }
-        setText("");
-    };
 
-    const getAllUsersInDB = async () => {
-        const res = await fetch("http://localhost:8080/users/users");
-        const data = await res.json();
-        console.log("Got all users: ");
-        console.log(data);
-    };
+    // const getAllUsersInDB = async () => {
+    //     const res = await fetch("http://localhost:8080/users/users");
+    //     const data = await res.json();
+    //     console.log("Got all users: ");
+    //     console.log(data);
     // DEBUGGING END
 
     // ше get it with first login

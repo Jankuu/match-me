@@ -1,4 +1,4 @@
-package com.example.demo.WebSocket;
+package com.example.demo;       // ➜ укажи фактический пакет
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -7,28 +7,35 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import com.example.demo.webSocket.WebSocketMessageInterceptor;   // если класс лежит здесь же
+// ↑ поправь путь, если interceptor в другом пакете
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
     private final WebSocketMessageInterceptor messageInterceptor;
 
     public WebSocketConfig(WebSocketMessageInterceptor messageInterceptor) {
         this.messageInterceptor = messageInterceptor;
     }
 
+    /** добавляем перехватчик входящих сообщений */
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(messageInterceptor);
     }
 
+    /** точка подключения STOMP + SockJS */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:5173") // ✅ Use your frontend's origin
-                .withSockJS()
-                .setSessionCookieNeeded(false); // optional: disables cookies if not needed
+        registry.addEndpoint("/ws")                                 // native WS
+                .setAllowedOriginPatterns("http://localhost:5173")  // фронт
+                .withSockJS()                                       // /ws/info и т.д.
+                .setSessionCookieNeeded(false);
     }
 
+    /** префиксы приложений и simple‑broker */
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app");
