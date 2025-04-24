@@ -12,11 +12,11 @@ import com.example.demo.webSocket.WebSocketMessageInterceptor;   // если к�
 
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+public class WebSocketConfigOld implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketMessageInterceptor messageInterceptor;
 
-    public WebSocketConfig(WebSocketMessageInterceptor messageInterceptor) {
+    public WebSocketConfigOld(WebSocketMessageInterceptor messageInterceptor) {
         this.messageInterceptor = messageInterceptor;
     }
 
