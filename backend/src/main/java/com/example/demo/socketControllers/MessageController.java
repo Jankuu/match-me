@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:backend/src/main/java/com/example/demo/controllers/MessageController.java
 package com.example.demo.controllers;
+========
+package com.example.demo.socketControllers;
+>>>>>>>> sten:backend/src/main/java/com/example/demo/socketControllers/MessageController.java
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;

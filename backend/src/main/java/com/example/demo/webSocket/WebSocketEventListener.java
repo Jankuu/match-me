@@ -1,6 +1,5 @@
 package com.example.demo.webSocket;
 
-import com.example.demo.ActiveUserManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -14,9 +13,6 @@ public class WebSocketEventListener {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
-
-    @Autowired
-    private ActiveUserManager activeUserManager;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {

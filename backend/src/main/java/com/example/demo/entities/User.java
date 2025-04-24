@@ -1,85 +1,54 @@
 package com.example.demo.entities;
 
+import com.example.demo.constraints.EmailOrUsername;
+import com.example.demo.constraints.ValidInterestedAge;
+import com.example.demo.constraints.ValidInterestedGenders;
+import com.example.demo.utilities.EmailOrUsernameCarrier;
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@EmailOrUsername
 @Table(name = "users")
-public class User {
-
+public class User implements EmailOrUsernameCarrier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String name;
+    @Column(unique = true)
+    private String username;
+    @Email
+    @Column(unique = true)
     private String email;
+    @NotNull(message = "User password must not be null!")
+    @NotBlank(message = "User password must not be blank!")
     private String password;
 
-    @Column(name = "birth_date")
-    private String birthDate;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "profile_id")
+    private UserProfile profile;
 
-    @Column(name = "preferred_gender")
-    private String preferredGender;
+    @ValidInterestedAge
+    private Integer interestedMinAge;
+    @ValidInterestedAge
+    private Integer interestedMaxAge;
+    @ValidInterestedGenders
+    private String[] interestedGenders;
 
-    private String location;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "user_id")
+    private UserInterestVector interestVector;
 
-    @Column(name = "min_age")
-    private Integer minAge;
-
-    @Column(name = "max_age")
-    private Integer maxAge;
-
-    @Column(name = "image_url")
-    private String imageUrl;
-
-    @Column(name = "is_online")
-    private boolean isOnline;
-
-    public User() {}
-
-    public User(String name, String email, String password, String preferredGender, String location, Integer minAge, Integer maxAge, String birthDate) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.preferredGender = preferredGender;
-        this.location = location;
-        this.minAge = minAge;
-        this.maxAge = maxAge;
-        this.isOnline = false;
-        this.birthDate = birthDate;
-    }
-
-    // Getters & Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-
-    public String getBirthDate() { return birthDate; }
-    public void setBirthDate(String birthDate) { this.birthDate = birthDate; }
-
-    public String getPreferredGender() { return preferredGender; }
-    public void setPreferredGender(String preferredGender) { this.preferredGender = preferredGender; }
-
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
-
-    public Integer getMinAge() { return minAge; }
-    public void setMinAge(Integer minAge) { this.minAge = minAge; }
-
-    public Integer getMaxAge() { return maxAge; }
-    public void setMaxAge(Integer maxAge) { this.maxAge = maxAge; }
-
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-
-    public boolean isOnline() { return isOnline; }
-    public void setOnline(boolean online) { isOnline = online; }
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+   // @JsonManagedReference
+    private UserConnections userConnections;
 }
