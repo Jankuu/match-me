@@ -1,4 +1,4 @@
-package com.example.demo.cTOs;
+package com.example.demo.dTOs;
 
 import com.example.demo.constraints.ValidInterestVectorAxis;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,6 @@
 package com.example.demo.services;
 
-import com.example.demo.cTOs.UserConnectionDTO;
+import com.example.demo.dTOs.UserConnectionDTO;
 import com.example.demo.entities.*;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;

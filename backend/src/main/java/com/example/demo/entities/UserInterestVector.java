@@ -1,7 +1,7 @@
 package com.example.demo.entities;
 
 import com.example.demo.constraints.ValidInterestVectorAxis;
-import com.example.demo.cTOs.UserInterestVectorDTO;
+import com.example.demo.dTOs.UserInterestVectorDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

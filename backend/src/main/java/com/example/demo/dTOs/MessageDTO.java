@@ -1,4 +1,4 @@
-package com.example.demo.cTOs;
+package com.example.demo.dTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

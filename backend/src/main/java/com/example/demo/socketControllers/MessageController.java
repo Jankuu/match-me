@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:backend/src/main/java/com/example/demo/controllers/MessageController.java
-package com.example.demo.controllers;
-========
 package com.example.demo.socketControllers;
->>>>>>>> sten:backend/src/main/java/com/example/demo/socketControllers/MessageController.java
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -21,7 +17,7 @@ public class MessageController {
 
     @MessageMapping("/send") // Maps to /app/send
     @SendTo("/topic/messages") // Optional: echo back to frontend
-    public String receiveMessage(@Payload String message,SimpMessageHeaderAccessor headerAccessor) {
+    public String receiveMessage(@Payload String message, SimpMessageHeaderAccessor headerAccessor) {
         if ("pass".equals(message)) {
 
             // messagingTemplate.convertAndSendToUser(

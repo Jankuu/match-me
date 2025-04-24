@@ -1,6 +1,6 @@
 package com.example.demo.restControllers;
 
-import com.example.demo.cTOs.UserConnectionDTO;
+import com.example.demo.dTOs.UserConnectionDTO;
 import com.example.demo.entities.Connection;
 import com.example.demo.entities.ConnectionRequest;
 import com.example.demo.entities.UserConnections;

@@ -1,13 +1,7 @@
-package com.example.demo.cTOs;
+package com.example.demo.dTOs;
 
-import com.example.demo.constraints.EmailOrUsername;
 import com.example.demo.constraints.ValidInterestedAge;
 import com.example.demo.constraints.ValidInterestedGenders;
-import com.example.demo.utilities.EmailOrUsernameCarrier;
-import jakarta.persistence.Column;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,15 +9,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@EmailOrUsername
-public class UserRegistrationDTO implements EmailOrUsernameCarrier {
-    @Column(unique = true)
+public class UserDTO {
+    private Long id;
     private String username;
-    @Email
-    @Column(unique = true)
     private String email;
-    @NotNull(message = "User password must not be null!")
-    @NotBlank(message = "User password must not be blank!")
     private String password;
     private UserProfileDTO profile;
 
@@ -35,4 +24,5 @@ public class UserRegistrationDTO implements EmailOrUsernameCarrier {
     private String[] interestedGenders;
 
     private UserInterestVectorDTO interestVector;
+    private UserConnectionDTO connections;
 }

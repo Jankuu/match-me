@@ -1,9 +1,9 @@
 package com.example.demo.restControllers;
 
-import com.example.demo.cTOs.UserDTO;
-import com.example.demo.cTOs.UserInterestVectorDTO;
-import com.example.demo.cTOs.UserProfileDTO;
-import com.example.demo.cTOs.UserRegistrationDTO;
+import com.example.demo.dTOs.UserDTO;
+import com.example.demo.dTOs.UserInterestVectorDTO;
+import com.example.demo.dTOs.UserProfileDTO;
+import com.example.demo.dTOs.UserRegistrationDTO;
 import com.example.demo.entities.User;
 import com.example.demo.entities.UserInterestVector;
 import com.example.demo.entities.UserProfile;
