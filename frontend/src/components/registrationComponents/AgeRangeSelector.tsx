@@ -48,11 +48,15 @@ const AgeRangeSlider: React.FC<AgeRangeSliderProps> = ({ userAge, onChange }) =>
                         min={MIN}
                         max={MAX}
                         onChange={handleChange}
-                        renderTrack={({ props, children }) => (
+                        renderTrack={({ props, children }) => {
+                            const { key, ...rest } = props as any;  
+                            return (
                             <div
-                                {...props}
+                                key = {key}
+                                {...rest}
+                                // Can make it separetaly
                                 style={{
-                                    ...props.style,
+                                    ...rest.style,
                                     height: "6px",
                                     width: "100%",
                                     background: getTrackBackground({
@@ -66,10 +70,13 @@ const AgeRangeSlider: React.FC<AgeRangeSliderProps> = ({ userAge, onChange }) =>
                             >
                                 {children}
                             </div>
-                        )}
-                        renderThumb={({ props, index }) => (
+                        )}}
+                        renderThumb={({ props, index }) => {
+                            const { key, ...rest } = props as any;  
+                            return (
                             <div
-                                {...props}
+                                key={key}
+                                {...rest}
                                 style={{
                                     height: "20px",
                                     width: "20px",
@@ -86,7 +93,7 @@ const AgeRangeSlider: React.FC<AgeRangeSliderProps> = ({ userAge, onChange }) =>
                                     {values[index]}
                                 </span>
                             </div>
-                        )}
+                        )}}
                     />
                 </div>
             </Form.Group>

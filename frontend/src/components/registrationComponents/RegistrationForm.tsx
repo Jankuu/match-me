@@ -62,8 +62,9 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         const handleSubmit = (e: React.FormEvent) => {
             e.preventDefault();
         
-            if (!ages) return; // защита от пустого диапазона
+            // if (!ages) return; // protection
         
+            // 
             const userPayload = {
                 name: username,
                 email,
@@ -71,8 +72,8 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 birthDate,
                 preferredGender,
                 location,
-                preferredAgeMin: ages[0],
-                preferredAgeMax: ages[1],
+                minAge: ages[0],
+                maxAge: ages[1],
             };
         
             const formData = new FormData();
@@ -137,7 +138,14 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
             />
             <PreferredGenderSelector 
                 onChange={setPreferredGender} 
-                selected={preferredGender}            />
+                selected={preferredGender}            
+            />
+
+            <ImageUpload image={null} setImage={function (file: File | null): void {
+                throw new Error("Function not implemented.");
+            } } loading={false} 
+            />
+
             <Button
                 variant="success"
                 type="submit"

@@ -14,7 +14,7 @@ const NavBar = () => {
         <div className="nav-wrapper">
             <Container>
                 <Nav className="justify-content-between nav-icons">
-                    <Nav.Link href="/home">
+                    <Nav.Link href="/login">
                         <FaHome size={24} />
                     </Nav.Link>
                     <Nav.Link href="/profile">
