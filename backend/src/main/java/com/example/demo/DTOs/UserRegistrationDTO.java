@@ -3,7 +3,7 @@ package com.example.demo.DTOs;
 import com.example.demo.Constraints.EmailOrUsername;
 import com.example.demo.Constraints.ValidInterestedAge;
 import com.example.demo.Constraints.ValidInterestedGenders;
-import com.example.demo.ValidatorsAndFormaters.EmailOrUsernameCarrier;
+import com.example.demo.Utilities.EmailOrUsernameCarrier;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

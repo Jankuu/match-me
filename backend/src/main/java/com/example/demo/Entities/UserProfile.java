@@ -4,7 +4,6 @@ import com.example.demo.Constraints.ValidBirthDate;
 import com.example.demo.Constraints.ValidGender;
 import com.example.demo.Constraints.ValidHeight;
 import com.example.demo.Constraints.ValidName;
-import com.example.demo.DTOs.UserProfileDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

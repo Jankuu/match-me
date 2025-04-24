@@ -31,16 +31,6 @@ public class UserProfileDTO {
     private Integer height;
     private String description;
 
-    public UserProfileDTO(UserProfile userProfile) {
-        this.name = userProfile.getName();
-        this.profilePicture = userProfile.getProfilePicture();
-        this.birthDate = userProfile.getBirthDate();
-        this.gender = userProfile.getGender();
-        this.height = userProfile.getHeight();
-        this.description = userProfile.getDescription();
-    }
-
-
     // GETTERS AND SETTER
     public String getName() {
         return FormatName.getFormatedName(name);

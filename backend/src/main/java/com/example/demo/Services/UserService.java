@@ -110,9 +110,25 @@ public class UserService {
     }
 
     // DELETE
+    public User deleteUser(Long id, String username, String email) {
+        User currentUser = getUser(id, username, email);
+        userRepository.deleteById(currentUser.getId());
+        return currentUser;
+    }
+
+    public User deleteUserProfile(Long id, String username, String email) {
+        User currentUser = getUser(id, username, email);
+        currentUser.setProfile(null);
+        return userRepository.save(currentUser);
+    }
+
+    public User deleteUserInterestsVector(Long id, String username, String email) {
+        User currentUser = getUser(id, username, email);
+        currentUser.setInterestVector(null);
+        return userRepository.save(currentUser);
+    }
 
     // HELPER METHODS
-
     private static User assignUserValues(UserRegistrationDTO dto) {
         User user = new User();
         if (dto.getUsername() != null && !dto.getUsername().isBlank()) user.setUsername(dto.getUsername());
@@ -141,13 +157,13 @@ public class UserService {
         if (profile == null) {
             profile = new UserProfile();
         }
-        if (profileDTO.getName() != null && !profileDTO.getName().isBlank()) profile.setName(profileDTO.getName());
+        if (profileDTO.getName() != null) profile.setName(profileDTO.getName());
         if (profileDTO.getProfilePicture() != null) profile.setProfilePicture(profileDTO.getProfilePicture());
         if (profileDTO.getBirthDate() != null) profile.setBirthDate(profileDTO.getBirthDate());
         if (profileDTO.getGender() != null && !profileDTO.getGender().isBlank())
             profile.setGender(profileDTO.getGender());
         if (profileDTO.getHeight() != null) profile.setHeight(profileDTO.getHeight());
-        if (profileDTO.getDescription() != null && !profileDTO.getDescription().isBlank())
+        if (profileDTO.getDescription() != null)
             profile.setDescription(profileDTO.getDescription());
 
         return profile;

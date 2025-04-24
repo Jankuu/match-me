@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@EmailOrUsername
 public class MessageDTO {
     private Long id;
     private Long senderId;

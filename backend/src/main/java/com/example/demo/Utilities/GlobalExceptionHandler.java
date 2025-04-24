@@ -1,6 +1,8 @@
-package com.example.demo.Exeptions;
+package com.example.demo.Utilities;
 
-import com.example.demo.DTOs.ApiError;
+import com.example.demo.Exeptions.EmailAlreadyExistsException;
+import com.example.demo.Exeptions.ResourceNotFoundException;
+import com.example.demo.Exeptions.UsernameAlreadyExistsException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

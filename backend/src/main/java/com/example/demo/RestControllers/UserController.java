@@ -5,7 +5,6 @@ import com.example.demo.DTOs.UserInterestVectorDTO;
 import com.example.demo.DTOs.UserProfileDTO;
 import com.example.demo.DTOs.UserRegistrationDTO;
 import com.example.demo.Entities.User;
-import com.example.demo.Entities.UserConnections;
 import com.example.demo.Entities.UserInterestVector;
 import com.example.demo.Entities.UserProfile;
 import com.example.demo.Repositories.UserRepository;
@@ -14,22 +13,15 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
-    private final UserConnectionsService connectionsService;
 
-    public UserController(UserService userService, UserConnectionsService connectionsService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.connectionsService = connectionsService;
     }
 
     @Autowired
@@ -59,28 +51,6 @@ public class UserController {
         return userService.getUserProfile(id, username, email);
     }
 
-    @GetMapping("/connections")
-    public ResponseEntity<Map<String, Page<UserProfileDTO>>> getUserConnections(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        User user = userService.getUser(id, username, email);
-        UserConnections connections = user.getConnections();
-
-        Page<UserProfileDTO> confirmed = connectionsService.getConnections(connections, pageable);
-        Page<UserProfileDTO> pending = connectionsService.getPendingRequests(connections, pageable);
-
-        Map<String, Page<UserProfileDTO>> result = new HashMap<>();
-        result.put("connections", confirmed);
-        result.put("pendingRequests", pending);
-
-        return ResponseEntity.ok(result);
-    }
-
     @GetMapping("/interestsVector")
     public UserInterestVector getUserInterestsVector(
             @RequestParam(required = false) Long id,
@@ -90,7 +60,7 @@ public class UserController {
     }
 
     // POST
-    @PostMapping("/register")
+    @PostMapping
     public User registerUser(
             @Valid @RequestBody UserRegistrationDTO userRegistrationDTO) {
         return userService.registerNewUser(userRegistrationDTO);
@@ -103,7 +73,7 @@ public class UserController {
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
             @Valid @RequestBody UserDTO userDTO) {
-        return userService.patchUser(id, username, email,userDTO);
+        return userService.patchUser(id, username, email, userDTO);
     }
 
     @PatchMapping("/profile")
@@ -127,13 +97,28 @@ public class UserController {
 
     // DELETE
 
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public User deleteUser(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email) {
-        User user = userService.getUser(id, username, email);
-        userRepository.deleteById(user.getId());
-        return user;
+        return userService.deleteUser(id, username, email);
+    }
+
+    @DeleteMapping("/profile")
+    public User deleteUserProfile(
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email) {
+        return userService.deleteUserProfile(id, username, email);
+    }
+
+    @DeleteMapping("/interestsVector")
+    public User deleteUserInterestsVector(
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email
+    ) {
+        return userService.deleteUserInterestsVector(id, username, email);
     }
 }

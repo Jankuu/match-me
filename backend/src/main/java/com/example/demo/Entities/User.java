@@ -1,7 +1,10 @@
 package com.example.demo.Entities;
 
+import com.example.demo.Constraints.EmailOrUsername;
 import com.example.demo.Constraints.ValidInterestedAge;
 import com.example.demo.Constraints.ValidInterestedGenders;
+import com.example.demo.Utilities.EmailOrUsernameCarrier;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -16,8 +19,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@EmailOrUsername
 @Table(name = "users")
-public class User {
+public class User implements EmailOrUsernameCarrier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -45,6 +49,7 @@ public class User {
     @JoinColumn(name = "user_id")
     private UserInterestVector interestVector;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private UserConnections connections;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+   // @JsonManagedReference
+    private UserConnections userConnections;
 }

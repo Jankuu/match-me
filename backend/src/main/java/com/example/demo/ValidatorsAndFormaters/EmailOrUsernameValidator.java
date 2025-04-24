@@ -1,7 +1,7 @@
 package com.example.demo.ValidatorsAndFormaters;
 
 import com.example.demo.Constraints.EmailOrUsername;
-import com.example.demo.DTOs.UserRegistrationDTO;
+import com.example.demo.Utilities.EmailOrUsernameCarrier;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
