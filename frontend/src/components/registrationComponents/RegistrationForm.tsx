@@ -7,6 +7,9 @@ import AgeRangeSelector from "./AgeRangeSelector";
 import PreferredGenderSelector from "./PreferredGenderSelector";
 import ImageUpload from "./ImageUpload";
 import LocationSelector from "./LocationSelector";
+import GenderSelector from "./GenderSelection";
+import HeightSet from "./HeightSet";
+import Description from "./Description";
 
 type Props = {
     onSubmit: (data: FormData) => void;
@@ -20,11 +23,15 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const [repeatedPassword, setRepeatedPassword] = useState("");
     const [username, setUsername] = useState("");
     const [image, setImage] = useState<File | null>(null);
-    const [birthDate, setBirthDate] = useState<string>("");
-    const [preferredGender, setPreferredGender] = useState<string>("any");
+    const [gender, setGender] = useState("");
+    const [birthDateUi, setBirthDateUi] = useState<string>("");
+    const [height, setHeight] = useState<number>(150);
+    const [preferredGendersArray, setPreferredGender] = useState<string[]>(["man", "woman"]);
     const [location, setLocation] = useState("");
     const [age, setAge] = useState<number | null>(null);
     const [ages, setAges] = useState<[number, number]>([18, 120]);
+    const [description, setDescription] = useState<string>("");
+
 
     const [usernameValid, setUsernameValid] = useState(false);
     const isPasswordValid = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password);
@@ -32,8 +39,8 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
 
 
     useEffect(() => {
-        if (birthDate) {
-            const birth = new Date(birthDate);
+        if (birthDateUi) {
+            const birth = new Date(birthDateUi);
             const today = new Date();
             let userAge = today.getFullYear() - birth.getFullYear();
             const monthDiff = today.getMonth() - birth.getMonth();
@@ -44,7 +51,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         } else {
             setAge(null);
         }
-    }, [birthDate]);
+    }, [birthDateUi]);
 
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const emailMatch = email.length > 0 && repeatedEmail === email;
@@ -55,25 +62,66 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         emailMatch &&
         isPasswordValid &&
         passwordMatch &&
-        birthDate &&
+        birthDateUi &&
         age !== null &&
         age >= 18;
 
         const handleSubmit = (e: React.FormEvent) => {
             e.preventDefault();
         
-            // if (!ages) return; // protection
+            if (!ages) return; // protection
         
-            // 
-            const userPayload = {
-                name: username,
+            // Need to be organized according to the backend
+            interface Interest {
+                fantasy: number;
+                competitive: number;
+                action: number;
+                story: number;
+                complex: number;
+            }
+            
+            interface Profile {
+                name: string;
+                profilePicture: number[]; // массив чисел
+                birthDate: string; // в формате '1993-02-01'
+                gender: string;
+                height: number;
+                description: string;
+            }
+            
+            interface UserPayload {
+                username: string;
+                email: string;
+                password: string;
+                profile: Profile;
+                interestedMinAge: number;
+                interestedMaxAge: number;
+                interestedGenders: string[];
+                interest: Interest;
+            }
+
+            const userPayload: UserPayload = {
+                username,
                 email,
                 password,
-                birthDate,
-                preferredGender,
-                location,
-                minAge: ages[0],
-                maxAge: ages[1],
+                profile: {
+                    name: username,
+                    profilePicture: [1], // например, [1]
+                    birthDate: birthDateUi, // обязательно в формате "1993-02-01"
+                    gender,
+                    height,
+                    description,
+                },
+                interestedMinAge: ages[0],
+                interestedMaxAge: ages[1],
+                interestedGenders: preferredGendersArray, // например ["man"]
+                interest: {
+                    fantasy,
+                    competitive,
+                    action,
+                    story,
+                    complex,
+                },
             };
         
             const formData = new FormData();
@@ -116,8 +164,8 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 <Form.Label>Date of Birth <span style={{ color: "red" }}>*</span></Form.Label>
                 <Form.Control
                     type="date"
-                    value={birthDate}
-                    onChange={(e) => setBirthDate(e.target.value)}
+                    value={birthDateUi}
+                    onChange={(e) => setBirthDateUi(e.target.value)}
                     required
                     disabled={loading}
                     min={new Date(new Date().setFullYear(new Date().getFullYear() - 120)).toISOString().split("T")[0]}
@@ -131,6 +179,14 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 userAge={age}
                 onChange={setAges}
             />
+            <GenderSelector 
+                onChange={setGender} 
+                selected={gender}            
+            />
+            <HeightSet 
+                height={height} 
+                setHeight={setHeight}          
+            />
             <LocationSelector
                 value={location}
                 onChange={setLocation}
@@ -138,7 +194,11 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
             />
             <PreferredGenderSelector 
                 onChange={setPreferredGender} 
-                selected={preferredGender}            
+                selected={preferredGendersArray}            
+            />
+            <Description 
+                description={description} 
+                setDescription={setDescription} 
             />
 
             <ImageUpload image={null} setImage={function (file: File | null): void {

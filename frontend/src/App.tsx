@@ -13,33 +13,7 @@ import NavBar from "./components/NavBar";
 import { useMediaQuery } from "react-responsive";
 
 function App() {
-    // DEBUGGING AND TEMPLATES:
-    // const { client, isConnected } = useWebSocket();
-
-    // useEffect(() => {
-    //     if (!client || !isConnected) return;
-
-    //     const subscription = client.subscribe(
-    //         "/topic/my-custom-topic",
-    //         (msg) => {
-    //             console.log("📥 Received:", msg.body);
-    //         }
-    //     );
-
-    //     return () => subscription.unsubscribe();
-    // }, [client, isConnected]);
-
-    // const [text, setText] = useState("");
-
-
-    // const getAllUsersInDB = async () => {
-    //     const res = await fetch("http://localhost:8080/users/users");
-    //     const data = await res.json();
-    //     console.log("Got all users: ");
-    //     console.log(data);
-    // DEBUGGING END
-
-    // ше get it with first login
+   
     const token = localStorage.getItem("token");
     const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -69,7 +43,3 @@ function App() {
 }
 
 export default App;
-
-// {(token && window.location.pathname !== "/login" && window.location.pathname !== "/register") && (
-//     <NavBar />
-// )}

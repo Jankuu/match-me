@@ -14,7 +14,7 @@ const RegisterPage = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post("http://localhost:8080/api/auth/register", formData, {
+            const response = await axios.post("http://localhost:8080/users/reg", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
