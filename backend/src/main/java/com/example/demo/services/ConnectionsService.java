@@ -3,42 +3,41 @@ package com.example.demo.services;
 import com.example.demo.dTOs.UserConnectionDTO;
 import com.example.demo.entities.Connection;
 import com.example.demo.entities.User;
-import com.example.demo.entities.UserConnections;
-import com.example.demo.entities.UserProfile;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;
-import com.example.demo.repositories.UserConnectionsRepository;
+import com.example.demo.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class ConnectionsService {
-    private final UserConnectionsRepository userConnectionRepository;
     private final ConnectionRepository connectionRepository;
+    private final UserRepository userRepository;
     private final UserService userService;
 
-    public ConnectionsService(UserConnectionsRepository connectionRepository, ConnectionRepository connectionRepository1, UserService userService) {
-        this.userConnectionRepository = connectionRepository;
+    public ConnectionsService(ConnectionRepository connectionRepository1, UserRepository userRepository, UserService userService) {
         this.connectionRepository = connectionRepository1;
+        this.userRepository = userRepository;
         this.userService = userService;
     }
 
     // GET
-    public UserConnections getUserConnections(Long id, String username, String email) {
-        User user = userService.getUser(id, username, email);
-        return user.getUserConnections();
+    public Connection getConnection(UserConnectionDTO connectionDTO) {
+        User sender = userService.getUser(connectionDTO.getSenderID(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
+        User receiver = userService.getUser(connectionDTO.getReceiverID(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
+
+        return connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find the connection between users", connectionDTO));
     }
 
     public List<Connection> getConnectionRequests(Long id, String username, String email) {
         User user = userService.getUser(id, username, email);
-        return user.getUserConnections().getConnectionRequests();
+        return user.getConnectionRequests();
     }
 
     public List<Connection> getConnections(Long id, String username, String email) {
         User user = userService.getUser(id, username, email);
-        return user.getUserConnections().getConnections();
+        return user.getConnections();
     }
 
     // POST
@@ -46,61 +45,47 @@ public class ConnectionsService {
         User sender = userService.getUser(connectionDTO.getSenderID(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
         User receiver = userService.getUser(connectionDTO.getReceiverID(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
 
-        if (receiver.getUserConnections() == null) {
-            receiver.setUserConnections(new UserConnections());
-        }
+        Connection request = new Connection();
+        request.setSender(sender.getProfile());
+        request.setReceiver(receiver.getProfile());
+        connectionRepository.save(request);
 
-        UserConnections receiverConnections = receiver.getUserConnections();
-        List<Connection> receiverPendingRequests = receiverConnections.getConnectionRequests();
-        Connection newRequest = new Connection();
-
-        newRequest.setReceiver(receiver.getProfile());
-        newRequest.setSender(sender.getProfile());
-        //newRequest = connectionRepository.save(newRequest);
-
-        receiverPendingRequests.add(newRequest);
-        receiverConnections.setConnectionRequests(receiverPendingRequests);
-        receiver.setUserConnections(receiverConnections);
-
-        userConnectionRepository.save(receiverConnections);
-        return newRequest;
+        receiver.getConnectionRequests().add(request);
+        userRepository.save(receiver);
+        return request;
     }
 
     public Connection acceptRequest(UserConnectionDTO connectionDTO) {
         User sender = userService.getUser(connectionDTO.getSenderID(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
         User receiver = userService.getUser(connectionDTO.getReceiverID(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
 
-        if (sender.getUserConnections() == null) {
-            sender.setUserConnections(new UserConnections());
-        }
+        Connection request = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find the connection between users", connectionDTO));
 
-        Connection currentRequest = getConnectionRequest(receiver.getProfile(), sender.getProfile());
-        receiver.getUserConnections().getConnectionRequests().remove(currentRequest);
+        receiver.getConnectionRequests().remove(request);
+        receiver.getConnections().add(request);
+        sender.getConnections().add(request);
 
-        Connection newConnection = new Connection();
-        newConnection.setReceiver(receiver.getProfile());
-        newConnection.setSender(sender.getProfile());
-        //newConnection = connectionRepository.save(newConnection);
-
-        receiver.getUserConnections().getConnections().add(newConnection);
-        sender.getUserConnections().getConnections().add(newConnection);
-        userConnectionRepository.save(receiver.getUserConnections());
-
-        return newConnection;
+        return connectionRepository.save(request);
     }
 
     // DELETE
-    public Connection deleteRequest(UserConnectionDTO connectionDTO) {
-        return null;
-    }
-
     public Connection deleteConnection(UserConnectionDTO connectionDTO) {
-        return null;
+        Connection connection = getConnection(connectionDTO);
+        return deleteConnection(connection);
     }
 
-    // HELPER METHODS
-    private Connection getConnectionRequest(UserProfile receiver, UserProfile sender) {
-        List<UserProfile> output = Arrays.asList(receiver, sender);
-        return connectionRepository.findRequestByReceiverAndSender(receiver, sender).orElseThrow(() -> new ResourceNotFoundException("Could not find a connection request", output));
+    public Connection deleteConnection(Connection connection) {
+        User sender = userRepository.findByProfile(connection.getSender()).orElseThrow(() -> new ResourceNotFoundException("Could not find sender in connection", connection));
+        User receiver = userRepository.findByProfile(connection.getReceiver()).orElseThrow(() -> new ResourceNotFoundException("Could not find receiver in connection", connection));
+
+        sender.getConnections().remove(connection);
+        receiver.getConnections().remove(connection);
+
+        sender.getConnectionRequests().remove(connection);
+        receiver.getConnectionRequests().remove(connection);
+
+        connectionRepository.delete(connection);
+        return connection;
     }
+    // HELPER METHODS
 }

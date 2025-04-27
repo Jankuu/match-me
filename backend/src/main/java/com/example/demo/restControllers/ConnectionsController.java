@@ -2,7 +2,6 @@ package com.example.demo.restControllers;
 
 import com.example.demo.dTOs.UserConnectionDTO;
 import com.example.demo.entities.Connection;
-import com.example.demo.entities.UserConnections;
 import com.example.demo.services.ConnectionsService;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,14 +17,6 @@ public class ConnectionsController {
     }
 
     // GET
-    @GetMapping
-    public UserConnections getUserConnections(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email) {
-        return connectionsService.getUserConnections(id, username, email);
-    }
-
     @GetMapping("/connectionRequests")
     public List<Connection> getConnectionRequests(
             @RequestParam(required = false) Long id,
@@ -54,11 +45,6 @@ public class ConnectionsController {
     }
 
     // DELETE
-    @DeleteMapping("/connectionRequest")
-    public Connection deleteRequest(@RequestBody UserConnectionDTO connectionDTO) {
-        return connectionsService.deleteRequest(connectionDTO);
-    }
-
     @DeleteMapping("/connection")
     public Connection deleteConnection(@RequestBody UserConnectionDTO connectionDTO) {
         return connectionsService.deleteConnection(connectionDTO);

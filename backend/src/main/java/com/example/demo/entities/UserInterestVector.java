@@ -13,7 +13,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "userInterestVectors")
 public class UserInterestVector {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

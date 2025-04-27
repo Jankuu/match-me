@@ -13,6 +13,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 @NoArgsConstructor
@@ -51,7 +54,9 @@ public class User implements EmailOrUsernameCarrier {
     @JoinColumn(name = "interestVector_id")
     private UserInterestVector interestVector;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "userConnections_id")
-    private UserConnections userConnections;
+    @ManyToMany(cascade = CascadeType.ALL)
+    private List<Connection> connections = new ArrayList<>();
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    private List<Connection> connectionRequests = new ArrayList<>();
 }

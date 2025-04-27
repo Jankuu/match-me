@@ -4,7 +4,6 @@ import com.example.demo.entities.User;
 import com.example.demo.entities.UserInterestVector;
 import com.example.demo.entities.UserProfile;
 import com.example.demo.repositories.ConnectionRepository;
-import com.example.demo.repositories.UserConnectionsRepository;
 import com.example.demo.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -21,7 +20,6 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
-    private final UserConnectionsRepository userConnectionsRepository;
     private final ConnectionRepository connectionRepository;
 
     @Override

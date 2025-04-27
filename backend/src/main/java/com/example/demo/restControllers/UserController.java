@@ -104,7 +104,6 @@ public class UserController {
     }
 
     // DELETE
-
     @DeleteMapping
     public User deleteUser(
             @RequestParam(required = false) Long id,

@@ -4,24 +4,32 @@ import com.example.demo.dTOs.UserDTO;
 import com.example.demo.dTOs.UserInterestVectorDTO;
 import com.example.demo.dTOs.UserProfileDTO;
 import com.example.demo.dTOs.UserRegistrationDTO;
+import com.example.demo.entities.Connection;
 import com.example.demo.entities.User;
 import com.example.demo.entities.UserInterestVector;
 import com.example.demo.entities.UserProfile;
 import com.example.demo.exceptions.DuplicateResourceException;
 import com.example.demo.exceptions.ResourceNotFoundException;
+import com.example.demo.repositories.ConnectionRepository;
 import com.example.demo.repositories.UserRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
+import java.util.List;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final ConnectionRepository connectionRepository;
+    private final ConnectionsService connectionsService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, ConnectionRepository connectionRepository, @Lazy ConnectionsService connectionsService) {
         this.userRepository = userRepository;
+        this.connectionRepository = connectionRepository;
+        this.connectionsService = connectionsService;
     }
 
     // GET
@@ -44,7 +52,7 @@ public class UserService {
 
     public String getUserProfilePicture(Long id, String username, String email) {
         UserProfile userProfile = getUser(id, username, email).getProfile();
-        if (userProfile.getProfilePicture() == null){
+        if (userProfile.getProfilePicture() == null) {
             return null;
         }
         return Base64.getEncoder().encodeToString(userProfile.getProfilePicture());
@@ -79,9 +87,13 @@ public class UserService {
         User newUser = assignUserValues(dto);
         if (dto.getProfile() != null) {
             newUser.setProfile(assignUserProfileValues(null, dto.getProfile()));
+        } else {
+            newUser.setProfile(new UserProfile());
         }
         if (dto.getInterestVector() != null) {
             newUser.setInterestVector(assignUserInterestVectorValues(null, dto.getInterestVector()));
+        } else {
+            newUser.setInterestVector(new UserInterestVector());
         }
         return userRepository.save(newUser);
     }
@@ -122,6 +134,10 @@ public class UserService {
     // DELETE
     public User deleteUser(Long id, String username, String email) {
         User currentUser = getUser(id, username, email);
+
+        List<Connection> connections = connectionRepository.findByReceiverOrSender(currentUser.getProfile());
+        connections.forEach(connectionsService::deleteConnection);
+
         userRepository.deleteById(currentUser.getId());
         return currentUser;
     }
