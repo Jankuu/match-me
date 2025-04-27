@@ -14,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -38,6 +40,14 @@ public class UserService {
             return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Could not find user by email: ", email));
         }
         throw new ResourceNotFoundException("Could not find user by id, username or email: ", null);
+    }
+
+    public String getUserProfilePicture(Long id, String username, String email) {
+        UserProfile userProfile = getUser(id, username, email).getProfile();
+        if (userProfile.getProfilePicture() == null){
+            return null;
+        }
+        return Base64.getEncoder().encodeToString(userProfile.getProfilePicture());
     }
 
     public UserProfile getUserProfile(Long id, String username, String email) {
@@ -158,7 +168,12 @@ public class UserService {
             profile = new UserProfile();
         }
         if (profileDTO.getName() != null) profile.setName(profileDTO.getName());
-        if (profileDTO.getProfilePicture() != null) profile.setProfilePicture(profileDTO.getProfilePicture());
+
+        if (profileDTO.getProfilePicture() != null) {
+            byte[] decodedPicture = Base64.getDecoder().decode(profileDTO.getProfilePicture());
+            profile.setProfilePicture(decodedPicture);
+        }
+
         if (profileDTO.getBirthDate() != null) profile.setBirthDate(profileDTO.getBirthDate());
         if (profileDTO.getGender() != null && !profileDTO.getGender().isBlank())
             profile.setGender(profileDTO.getGender());

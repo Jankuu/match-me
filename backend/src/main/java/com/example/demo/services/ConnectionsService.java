@@ -1,10 +1,12 @@
 package com.example.demo.services;
 
 import com.example.demo.dTOs.UserConnectionDTO;
-import com.example.demo.entities.*;
+import com.example.demo.entities.Connection;
+import com.example.demo.entities.User;
+import com.example.demo.entities.UserConnections;
+import com.example.demo.entities.UserProfile;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;
-import com.example.demo.repositories.ConnectionRequestRepository;
 import com.example.demo.repositories.UserConnectionsRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,32 +16,33 @@ import java.util.List;
 @Service
 public class ConnectionsService {
     private final UserConnectionsRepository userConnectionRepository;
-    private final ConnectionRequestRepository connectionRequestRepository;
     private final ConnectionRepository connectionRepository;
     private final UserService userService;
 
-    public ConnectionsService(UserConnectionsRepository connectionRepository, ConnectionRequestRepository connectionRequestRepository, ConnectionRepository connectionRepository1, UserService userService) {
+    public ConnectionsService(UserConnectionsRepository connectionRepository, ConnectionRepository connectionRepository1, UserService userService) {
         this.userConnectionRepository = connectionRepository;
-        this.connectionRequestRepository = connectionRequestRepository;
         this.connectionRepository = connectionRepository1;
         this.userService = userService;
     }
 
     // GET
     public UserConnections getUserConnections(Long id, String username, String email) {
-        return null;
+        User user = userService.getUser(id, username, email);
+        return user.getUserConnections();
     }
 
-    public List<ConnectionRequest> getConnectionRequests(Long id, String username, String email) {
-        return null;
+    public List<Connection> getConnectionRequests(Long id, String username, String email) {
+        User user = userService.getUser(id, username, email);
+        return user.getUserConnections().getConnectionRequests();
     }
 
     public List<Connection> getConnections(Long id, String username, String email) {
-        return null;
+        User user = userService.getUser(id, username, email);
+        return user.getUserConnections().getConnections();
     }
 
     // POST
-    public ConnectionRequest sendRequest(UserConnectionDTO connectionDTO) {
+    public Connection sendRequest(UserConnectionDTO connectionDTO) {
         User sender = userService.getUser(connectionDTO.getSenderID(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
         User receiver = userService.getUser(connectionDTO.getReceiverID(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
 
@@ -48,11 +51,12 @@ public class ConnectionsService {
         }
 
         UserConnections receiverConnections = receiver.getUserConnections();
-        List<ConnectionRequest> receiverPendingRequests = receiverConnections.getConnectionRequests();
-        ConnectionRequest newRequest = new ConnectionRequest();
+        List<Connection> receiverPendingRequests = receiverConnections.getConnectionRequests();
+        Connection newRequest = new Connection();
 
         newRequest.setReceiver(receiver.getProfile());
         newRequest.setSender(sender.getProfile());
+        //newRequest = connectionRepository.save(newRequest);
 
         receiverPendingRequests.add(newRequest);
         receiverConnections.setConnectionRequests(receiverPendingRequests);
@@ -69,12 +73,14 @@ public class ConnectionsService {
         if (sender.getUserConnections() == null) {
             sender.setUserConnections(new UserConnections());
         }
-        ConnectionRequest currentRequest = getConnectionRequest(receiver.getProfile(), sender.getProfile());
+
+        Connection currentRequest = getConnectionRequest(receiver.getProfile(), sender.getProfile());
         receiver.getUserConnections().getConnectionRequests().remove(currentRequest);
 
         Connection newConnection = new Connection();
         newConnection.setReceiver(receiver.getProfile());
         newConnection.setSender(sender.getProfile());
+        //newConnection = connectionRepository.save(newConnection);
 
         receiver.getUserConnections().getConnections().add(newConnection);
         sender.getUserConnections().getConnections().add(newConnection);
@@ -84,7 +90,7 @@ public class ConnectionsService {
     }
 
     // DELETE
-    public ConnectionRequest deleteRequest(UserConnectionDTO connectionDTO) {
+    public Connection deleteRequest(UserConnectionDTO connectionDTO) {
         return null;
     }
 
@@ -93,8 +99,8 @@ public class ConnectionsService {
     }
 
     // HELPER METHODS
-    private ConnectionRequest getConnectionRequest(UserProfile receiver, UserProfile sender) {
+    private Connection getConnectionRequest(UserProfile receiver, UserProfile sender) {
         List<UserProfile> output = Arrays.asList(receiver, sender);
-        return connectionRequestRepository.findByReceiverAndSender(receiver, sender).orElseThrow(() -> new ResourceNotFoundException("Could not find a connection request", output));
+        return connectionRepository.findRequestByReceiverAndSender(receiver, sender).orElseThrow(() -> new ResourceNotFoundException("Could not find a connection request", output));
     }
 }

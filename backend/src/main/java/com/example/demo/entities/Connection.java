@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "connection")
 public class Connection {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

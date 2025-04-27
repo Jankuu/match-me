@@ -1,8 +1,10 @@
 package com.example.demo.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +20,9 @@ public class UserConnections {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    @JsonBackReference
-    private User user;
-
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Connection> connections = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ConnectionRequest> connectionRequests = new ArrayList<>();
+    private List<Connection> connectionRequests = new ArrayList<>();
 }

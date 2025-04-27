@@ -43,6 +43,14 @@ public class UserController {
         return userService.getUser(id, username, email);
     }
 
+    @GetMapping("/profilePicture")
+    public String getUserProfilePicture(
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email){
+        return userService.getUserProfilePicture(id, username, email);
+    }
+
     @GetMapping("/profile")
     public UserProfile getUserProfile(
             @RequestParam(required = false) Long id,

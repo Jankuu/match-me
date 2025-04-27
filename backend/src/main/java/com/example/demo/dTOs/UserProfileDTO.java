@@ -18,7 +18,7 @@ import java.time.LocalDate;
 public class UserProfileDTO {
     @ValidName
     private String name;
-    private byte[] profilePicture;
+    private String profilePicture;
     @ValidBirthDate
     private LocalDate birthDate;
     @ValidGender

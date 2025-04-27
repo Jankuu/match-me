@@ -17,18 +17,21 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 @EmailOrUsername
+@Entity
 @Table(name = "users")
 public class User implements EmailOrUsernameCarrier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(unique = true)
     private String username;
+
     @Email
     @Column(unique = true)
     private String email;
+
     @NotNull(message = "User password must not be null!")
     @NotBlank(message = "User password must not be blank!")
     private String password;
@@ -45,10 +48,10 @@ public class User implements EmailOrUsernameCarrier {
     private String[] interestedGenders;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "interestVector_id")
     private UserInterestVector interestVector;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-   // @JsonManagedReference
+    @JoinColumn(name = "userConnections_id")
     private UserConnections userConnections;
 }
