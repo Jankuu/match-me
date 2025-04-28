@@ -11,6 +11,7 @@ import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import NavBar from "./components/NavBar";
 import { useMediaQuery } from "react-responsive";
+import GoogleAPIPage from "./pages/GoogleAPIPage";
 
 function App() {
     // DEBUGGING AND TEMPLATES:
@@ -61,6 +62,7 @@ function App() {
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/chat" element={<ChatPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/google" element={<GoogleAPIPage/>}/>
                 </Routes>
             </div>
             <NavBar />
