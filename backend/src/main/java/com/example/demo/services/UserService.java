@@ -37,6 +37,11 @@ public class UserService {
         return userRepository.findAll(pageable);
     }
 
+    public UserDTO getUserDTO(Long id, String username, String email) {
+        User currentUser = getUser(id, username, email);
+        return new UserDTO(currentUser);
+    }
+
     public User getUser(Long id, String username, String email) {
         if (id != null) {
             return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find user by id: ", id));
@@ -58,26 +63,26 @@ public class UserService {
         return Base64.getEncoder().encodeToString(userProfile.getProfilePicture());
     }
 
-    public UserProfile getUserProfile(Long id, String username, String email) {
+    public UserProfileDTO getUserProfileDTO(Long id, String username, String email) {
         User currentUser = getUser(id, username, email);
         UserProfile userProfile = currentUser.getProfile();
         if (userProfile == null) {
             throw new ResourceNotFoundException("User profile not found", currentUser);
         }
-        return userProfile;
+        return new UserProfileDTO(userProfile);
     }
 
-    public UserInterestVector getUserInterestsVector(Long id, String username, String email) {
+    public UserInterestVectorDTO getUserInterestsVectorDTO(Long id, String username, String email) {
         User currentUser = getUser(id, username, email);
         UserInterestVector interestVector = currentUser.getInterestVector();
         if (interestVector == null) {
             throw new ResourceNotFoundException("User interests vector not found", currentUser);
         }
-        return interestVector;
+        return new UserInterestVectorDTO(interestVector);
     }
 
     // POST
-    public User registerNewUser(UserRegistrationDTO dto) {
+    public UserDTO registerNewUser(UserRegistrationDTO dto) {
         if (dto.getUsername() != null && !dto.getUsername().isBlank() && userRepository.findByUsername(dto.getUsername()).isPresent()) {
             throw new DuplicateResourceException("User with this username already exists", dto.getUsername());
         }
@@ -95,63 +100,65 @@ public class UserService {
         } else {
             newUser.setInterestVector(new UserInterestVector());
         }
-        return userRepository.save(newUser);
+        return new UserDTO(userRepository.save(newUser));
     }
 
     // PATCH
-    public User patchUser(Long id, String username, String email, UserDTO userDTO) {
+    public UserDTO patchUser(Long id, String username, String email, UserDTO userDTO) {
         User currentUser = getUser(id, username, email);
         currentUser = assignUserValues(currentUser, userDTO);
         if (userDTO.getProfile() != null) {
             currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), userDTO.getProfile()));
         }
-
         if (userDTO.getInterestVector() != null) {
             currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userDTO.getInterestVector()));
         }
-
-        return userRepository.save(currentUser);
+        return new UserDTO(userRepository.save(currentUser));
     }
 
-    public UserProfile patchUserProfile(Long id, String username, String email, UserProfileDTO profileDTO) {
+    public UserProfileDTO patchUserProfile(Long id, String username, String email, UserProfileDTO profileDTO) {
         User currentUser = getUser(id, username, email);
         if (currentUser.getProfile() == null) {
             currentUser.setProfile(new UserProfile());
         }
         currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), profileDTO));
-        return userRepository.save(currentUser).getProfile();
+        return new UserProfileDTO(userRepository.save(currentUser).getProfile());
     }
 
-    public UserInterestVector patchUserInterestsVector(Long id, String username, String email, UserInterestVectorDTO userInterestVectorDTO) {
+    public UserInterestVectorDTO patchUserInterestsVector(Long id, String username, String email, UserInterestVectorDTO userInterestVectorDTO) {
         User currentUser = getUser(id, username, email);
         if (currentUser.getInterestVector() == null) {
             currentUser.setInterestVector(new UserInterestVector(userInterestVectorDTO));
         }
         currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userInterestVectorDTO));
-        return userRepository.save(currentUser).getInterestVector();
+        return new UserInterestVectorDTO(userRepository.save(currentUser).getInterestVector());
     }
 
     // DELETE
-    public User deleteUser(Long id, String username, String email) {
+    public UserDTO deleteUser(Long id, String username, String email) {
         User currentUser = getUser(id, username, email);
 
         List<Connection> connections = connectionRepository.findByReceiverOrSender(currentUser.getProfile());
         connections.forEach(connectionsService::deleteConnection);
 
         userRepository.deleteById(currentUser.getId());
-        return currentUser;
+        return new UserDTO(currentUser);
     }
 
-    public User deleteUserProfile(Long id, String username, String email) {
+    public UserDTO deleteUserProfile(Long id, String username, String email) {
         User currentUser = getUser(id, username, email);
+
+        List<Connection> connections = connectionRepository.findByReceiverOrSender(currentUser.getProfile());
+        connections.forEach(connectionsService::deleteConnection);
+
         currentUser.setProfile(null);
-        return userRepository.save(currentUser);
+        return new UserDTO(userRepository.save(currentUser));
     }
 
-    public User deleteUserInterestsVector(Long id, String username, String email) {
+    public UserDTO deleteUserInterestsVector(Long id, String username, String email) {
         User currentUser = getUser(id, username, email);
         currentUser.setInterestVector(null);
-        return userRepository.save(currentUser);
+        return new UserDTO(userRepository.save(currentUser));
     }
 
     // HELPER METHODS

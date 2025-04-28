@@ -40,7 +40,7 @@ public class DataSeeder implements CommandLineRunner {
             profile.setBirthDate(generateRandomLocalDate());
             profile.setGender(generateRandomGender());
             profile.setHeight(generateRandomInt(150, 200));
-            profile.setDescription(generateRandomString(100, 255));
+            profile.setDescription(generateRandomString(100, 300));
             user.setProfile(profile);
 
             user.setInterestedMinAge(generateRandomInt(18, 30));

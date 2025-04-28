@@ -2,9 +2,16 @@ package com.example.demo.dTOs;
 
 import com.example.demo.constraints.ValidInterestedAge;
 import com.example.demo.constraints.ValidInterestedGenders;
+import com.example.demo.entities.Connection;
+import com.example.demo.entities.User;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.ManyToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -24,5 +31,21 @@ public class UserDTO {
     private String[] interestedGenders;
 
     private UserInterestVectorDTO interestVector;
-    private UserConnectionDTO connections;
+
+    private List<Connection> connections = new ArrayList<>();
+    private List<Connection> connectionRequests = new ArrayList<>();
+
+    public UserDTO(User user) {
+        this.id = user.getId();
+        this.username = user.getUsername();
+        this.email = user.getEmail();
+        this.password = user.getPassword();
+        this.profile = new UserProfileDTO(user.getProfile());
+        this.interestedMinAge = user.getInterestedMinAge();
+        this.interestedMaxAge = user.getInterestedMaxAge();
+        this.interestedGenders = user.getInterestedGenders();
+        this.interestVector = new UserInterestVectorDTO(user.getInterestVector());
+        this.connections = user.getConnections();
+        this.connectionRequests = user.getConnectionRequests();
+    }
 }

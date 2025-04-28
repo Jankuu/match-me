@@ -35,5 +35,6 @@ public class UserProfile {
     private String gender;
     @ValidHeight
     private Integer height;
+    @Column(length = 300)
     private String description;
 }

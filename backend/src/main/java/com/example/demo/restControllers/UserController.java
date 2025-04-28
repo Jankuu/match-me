@@ -36,47 +36,47 @@ public class UserController {
     }
 
     @GetMapping
-    public User getUser(
+    public UserDTO getUser(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email) {
-        return userService.getUser(id, username, email);
+        return userService.getUserDTO(id, username, email);
     }
 
     @GetMapping("/profilePicture")
     public String getUserProfilePicture(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email){
+            @RequestParam(required = false) String email) {
         return userService.getUserProfilePicture(id, username, email);
     }
 
     @GetMapping("/profile")
-    public UserProfile getUserProfile(
+    public UserProfileDTO getUserProfile(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email) {
-        return userService.getUserProfile(id, username, email);
+        return userService.getUserProfileDTO(id, username, email);
     }
 
     @GetMapping("/interestsVector")
-    public UserInterestVector getUserInterestsVector(
+    public UserInterestVectorDTO getUserInterestsVector(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email) {
-        return userService.getUserInterestsVector(id, username, email);
+        return userService.getUserInterestsVectorDTO(id, username, email);
     }
 
     // POST
     @PostMapping
-    public User registerUser(
+    public UserDTO registerUser(
             @Valid @RequestBody UserRegistrationDTO userRegistrationDTO) {
         return userService.registerNewUser(userRegistrationDTO);
     }
 
     // PATCH
     @PatchMapping
-    public User patchUser(
+    public UserDTO patchUser(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
@@ -85,7 +85,7 @@ public class UserController {
     }
 
     @PatchMapping("/profile")
-    public UserProfile patchUserProfile(
+    public UserProfileDTO patchUserProfile(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
@@ -94,7 +94,7 @@ public class UserController {
     }
 
     @PatchMapping("/interestsVector")
-    public UserInterestVector patchUserInterestsVector(
+    public UserInterestVectorDTO patchUserInterestsVector(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
@@ -105,7 +105,7 @@ public class UserController {
 
     // DELETE
     @DeleteMapping
-    public User deleteUser(
+    public UserDTO deleteUser(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email) {
@@ -113,7 +113,7 @@ public class UserController {
     }
 
     @DeleteMapping("/profile")
-    public User deleteUserProfile(
+    public UserDTO deleteUserProfile(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email) {
@@ -121,7 +121,7 @@ public class UserController {
     }
 
     @DeleteMapping("/interestsVector")
-    public User deleteUserInterestsVector(
+    public UserDTO deleteUserInterestsVector(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email
