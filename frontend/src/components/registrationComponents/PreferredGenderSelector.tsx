@@ -14,14 +14,14 @@ const PreferredGenderSelector = ({ selected, onChange }: Props) => {
       </label>
       <div className="d-flex gap-3 mt-2">
         <Button
-          variant={selected[0] === "male" && selected.length === 1 ? "primary" : "outline-primary"}
+          variant={selected[0] === "man" && selected.length === 1 ? "primary" : "outline-primary"}
           onClick={() => onChange(["man"])}
           className="d-flex align-items-center gap-2"
         >
           <GenderMale size={20} /> Male
         </Button>
         <Button
-          variant={selected[0] === "female" && selected.length === 1 ? "danger" : "outline-danger"}
+          variant={selected[0] === "woman" && selected.length === 1 ? "danger" : "outline-danger"}
           onClick={() => onChange(["woman"])}
           className="d-flex align-items-center gap-2"
         >

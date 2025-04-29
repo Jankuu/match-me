@@ -1,98 +1,174 @@
-// ProfilePage.tsx
-import { useEffect, useState } from "react";
-import { Container, Row, Col, Card, Spinner, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Container, Form, Button, Spinner } from "react-bootstrap";
+import { FaEdit } from "react-icons/fa"; // Pencil icon
+import axios from "axios";
 
-interface UserProfile {
+type Profile = {
     username: string;
     email: string;
-    imageUrl: string;
-}
+    profile: {
+        name: string;
+        profilePicture: string;
+        birthDate: string;
+        gender: string;
+        height: number;
+        description: string;
+        location?: string;
+    };
+    interestedMinAge: number;
+    interestedMaxAge: number;
+    interestedGenders: string[];
+    interestVector: {
+        fantasy: number;
+        competitive: number;
+        action: number;
+        story: number;
+        complex: number;
+    };
+};
 
 const ProfilePage = () => {
-    const [user, setUser] = useState<UserProfile | null>(null);
+    const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
+    const [editing, setEditing] = useState(false);
 
     useEffect(() => {
-        const token = localStorage.getItem("authToken");
-
-        if (!token) {
-            // If no token found, redirect to login page
-            navigate("/login");
-            return;
-        }
-
-        // Fetch user profile from the server
-        const fetchUserProfile = async () => {
+        const fetchProfile = async () => {
             try {
-                const response = await fetch("/api/profile", {
-                    method: "GET",
+                const token = localStorage.getItem("token");
+                const response = await axios.get<Profile>("http://localhost:8080/users/me", {
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${token}`, // Add the token in the header
                     },
                 });
-
-                if (!response.ok) {
-                    throw new Error("Failed to fetch profile");
-                }
-
-                const data = await response.json();
-
-                setUser({
-                    username: data.username,
-                    email: data.email,
-                    imageUrl: data.imageUrl || "/default-avatar.png",
-                });
-            } catch (err) {
-                console.error(err);
-                alert("Failed to load profile.");
+                setProfile(response.data);
+            } catch (error) {
+                console.error("Failed to load profile", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchUserProfile();
-    }, [navigate]);
+        fetchProfile();
+    }, []);
+
+    const handleChange = (field: keyof Profile["profile"], value: any) => {
+        if (!profile) return;
+        setProfile({
+            ...profile,
+            profile: {
+                ...profile.profile,
+                [field]: value,
+            },
+        });
+    };
+
+    const handleSave = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(
+                "http://localhost:8080/users/me",
+                profile,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Add the token in the header
+                    },
+                }
+            );
+            setEditing(false);
+        } catch (error) {
+            console.error("Failed to save profile", error);
+        }
+    };
 
     if (loading) {
         return (
-            <Container className="text-center mt-5">
+            <Container className="mt-5 text-center">
                 <Spinner animation="border" />
             </Container>
         );
     }
 
-    if (!user) {
+    if (!profile) {
         return (
-            <Container className="text-center mt-5">
-                <p>Failed to load profile.</p>
-                <Button onClick={() => navigate("/login")}>Go to Login</Button>
+            <Container className="mt-5 text-center">
+                <p>Profile not found.</p>
             </Container>
         );
     }
 
     return (
-        <Container className="mt-5">
-            <Row className="justify-content-center">
-                <Col md={6}>
-                    <Card className="text-center">
-                        <Card.Body>
-                            <img
-                                src={user.imageUrl}
-                                alt="Profile"
-                                className="rounded-circle mb-3"
-                                style={{ width: "150px", height: "150px", objectFit: "cover" }}
-                            />
-                            <h4>{user.username}</h4>
-                            <p>{user.email}</p>
-                            <Button variant="primary" onClick={() => navigate("/chat")}>
-                                Go to Chat
-                            </Button>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+        <Container className="mt-5" style={{ maxWidth: "600px" }}>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h2>My Profile</h2>
+                <Button variant="outline-primary" onClick={() => setEditing(!editing)}>
+                    <FaEdit /> {editing ? "Cancel" : "Edit"}
+                </Button>
+            </div>
+
+            <Form>
+                <Form.Group className="mb-3">
+                    <Form.Label>Username</Form.Label>
+                    <Form.Control type="text" value={profile.username} disabled />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control type="email" value={profile.email} disabled />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                    <Form.Label>Birth Date</Form.Label>
+                    <Form.Control type="date" value={profile.profile.birthDate} disabled />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                    <Form.Label>Gender</Form.Label>
+                    <Form.Control
+                        type="text"
+                        value={profile.profile.gender}
+                        disabled={!editing}
+                        onChange={(e) => handleChange("gender", e.target.value)}
+                    />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                    <Form.Label>Height (cm)</Form.Label>
+                    <Form.Control
+                        type="number"
+                        value={profile.profile.height}
+                        disabled={!editing}
+                        onChange={(e) => handleChange("height", Number(e.target.value))}
+                    />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                    <Form.Label>Location</Form.Label>
+                    <Form.Control
+                        type="text"
+                        value={profile.profile.location || ""}
+                        disabled={!editing}
+                        onChange={(e) => handleChange("location", e.target.value)}
+                    />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control
+                        as="textarea"
+                        rows={3}
+                        value={profile.profile.description}
+                        disabled={!editing}
+                        onChange={(e) => handleChange("description", e.target.value)}
+                    />
+                </Form.Group>
+
+                {editing && (
+                    <Button variant="success" onClick={handleSave}>
+                        Save Changes
+                    </Button>
+                )}
+            </Form>
         </Container>
     );
 };
