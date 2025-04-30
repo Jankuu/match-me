@@ -11,9 +11,15 @@ import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import NavBar from "./components/NavBar";
 import { useMediaQuery } from "react-responsive";
+import { useState } from "react";
+import SettingsPage from "./pages/SettingsPage";
 
 function App() {
    
+    const [email, setEmail] = useState<string | null>(
+        localStorage.getItem("email")
+    );
+    
     const token = localStorage.getItem("token");
     const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -31,10 +37,14 @@ function App() {
                         path="/"
                         element={<Navigate to={token ? "/chat" : "/login"} />}
                     />
-                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/login" element={<LoginPage onLoginSuccess={(email) => {
+                        setEmail(email);
+                        localStorage.setItem("email", email); // Сохраняем между перезагрузками
+                    }} />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/chat" element={<ChatPage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/profile" element={<ProfilePage email={email || ""}/>} />
+                    <Route path="/settings" element={<SettingsPage />} />
                 </Routes>
             </div>
             <NavBar />

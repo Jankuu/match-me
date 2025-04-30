@@ -1,33 +1,13 @@
 import { useState, useEffect } from "react";
-import { Container, Form, Button, Spinner } from "react-bootstrap";
-import { FaEdit } from "react-icons/fa"; // Pencil icon
+import { Container, Button, Spinner } from "react-bootstrap";
+import { FaEdit } from "react-icons/fa";
 import axios from "axios";
+import ProfileForm from "../components/profileForm/ProfileForm";
+import ProfilePicture from "../components/profileForm/ProfilePicture";
+import { Profile } from "../types/Profile";
 
-type Profile = {
-    username: string;
-    email: string;
-    profile: {
-        name: string;
-        profilePicture: string;
-        birthDate: string;
-        gender: string;
-        height: number;
-        description: string;
-        location?: string;
-    };
-    interestedMinAge: number;
-    interestedMaxAge: number;
-    interestedGenders: string[];
-    interestVector: {
-        fantasy: number;
-        competitive: number;
-        action: number;
-        story: number;
-        complex: number;
-    };
-};
 
-const ProfilePage = () => {
+const ProfilePage = ({ email }: { email: string }) => {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
@@ -35,13 +15,15 @@ const ProfilePage = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const token = localStorage.getItem("token");
-                const response = await axios.get<Profile>("http://localhost:8080/users/me", {
-                    headers: {
-                        Authorization: `Bearer ${token}`, // Add the token in the header
-                    },
-                });
-                setProfile(response.data);
+                const response = await axios.get<Profile>(`http://localhost:8080/users?email=${encodeURIComponent(email)}`);
+                const profileData = response.data;
+
+                const picture = profileData.profile.profilePicture;
+                if (picture && !picture.startsWith("data:image")) {
+                    profileData.profile.profilePicture = `data:image/jpeg;base64,${picture}`;
+                }
+
+                setProfile(profileData);
             } catch (error) {
                 console.error("Failed to load profile", error);
             } finally {
@@ -50,7 +32,7 @@ const ProfilePage = () => {
         };
 
         fetchProfile();
-    }, []);
+    }, [email]);
 
     const handleChange = (field: keyof Profile["profile"], value: any) => {
         if (!profile) return;
@@ -65,16 +47,7 @@ const ProfilePage = () => {
 
     const handleSave = async () => {
         try {
-            const token = localStorage.getItem("token");
-            await axios.put(
-                "http://localhost:8080/users/me",
-                profile,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`, // Add the token in the header
-                    },
-                }
-            );
+            await axios.put("http://localhost:8080/users/me", profile); //replace with correct url
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);
@@ -106,69 +79,14 @@ const ProfilePage = () => {
                 </Button>
             </div>
 
-            <Form>
-                <Form.Group className="mb-3">
-                    <Form.Label>Username</Form.Label>
-                    <Form.Control type="text" value={profile.username} disabled />
-                </Form.Group>
+            <ProfilePicture profilePicture={profile.profile.profilePicture} />
 
-                <Form.Group className="mb-3">
-                    <Form.Label>Email</Form.Label>
-                    <Form.Control type="email" value={profile.email} disabled />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>Birth Date</Form.Label>
-                    <Form.Control type="date" value={profile.profile.birthDate} disabled />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>Gender</Form.Label>
-                    <Form.Control
-                        type="text"
-                        value={profile.profile.gender}
-                        disabled={!editing}
-                        onChange={(e) => handleChange("gender", e.target.value)}
-                    />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>Height (cm)</Form.Label>
-                    <Form.Control
-                        type="number"
-                        value={profile.profile.height}
-                        disabled={!editing}
-                        onChange={(e) => handleChange("height", Number(e.target.value))}
-                    />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>Location</Form.Label>
-                    <Form.Control
-                        type="text"
-                        value={profile.profile.location || ""}
-                        disabled={!editing}
-                        onChange={(e) => handleChange("location", e.target.value)}
-                    />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>Description</Form.Label>
-                    <Form.Control
-                        as="textarea"
-                        rows={3}
-                        value={profile.profile.description}
-                        disabled={!editing}
-                        onChange={(e) => handleChange("description", e.target.value)}
-                    />
-                </Form.Group>
-
-                {editing && (
-                    <Button variant="success" onClick={handleSave}>
-                        Save Changes
-                    </Button>
-                )}
-            </Form>
+            <ProfileForm
+                profile={profile}
+                editing={editing}
+                onChange={handleChange}
+                onSave={handleSave}
+            />
         </Container>
     );
 };

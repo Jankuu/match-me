@@ -1,162 +1,111 @@
-import { useState, useEffect } from "react";
-import { Container, Form, Button, Spinner } from "react-bootstrap";
-import { FaEdit } from "react-icons/fa"; // иконка карандаша
-import axios from "axios";
+import { useState } from "react";
+import { Button, Form, Container, Spinner, Alert } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
-type Profile = {
-    username: string;
-    email: string;
-    profile: {
-        name: string;
-        profilePicture: string;
-        birthDate: string;
-        gender: string;
-        height: number;
-        description: string;
-        location?: string;
-    };
-    interestedMinAge: number;
-    interestedMaxAge: number;
-    interestedGenders: string[];
-    interestVector: {
-        fantasy: number;
-        competitive: number;
-        action: number;
-        story: number;
-        complex: number;
-    };
+type LoginPageProps = {
+    onLoginSuccess: (email: string) => void;
 };
 
-const ProfilePage = () => {
-    const [profile, setProfile] = useState<Profile | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [editing, setEditing] = useState(false);
+const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false); //loading icon 
+    const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const response = await axios.get<Profile>("http://localhost:8080/users/me"); 
-                setProfile(response.data);
-            } catch (error) {
-                console.error("Failed to load profile", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    // const handleLogin = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     setError("");
+    //     setLoading(true);
 
-        fetchProfile();
-    }, []);
+    //     //JWT handeling
+    //     try {
+    //         const response = await fetch("http://localhost:8080/api/auth/login", {
+    //             method: "POST",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //             },
+    //             body: JSON.stringify({ email, password }),
+    //         });
 
-    const handleChange = (field: keyof Profile["profile"], value: any) => {
-        if (!profile) return;
-        setProfile({
-            ...profile,
-            profile: {
-                ...profile.profile,
-                [field]: value
-            }
-        });
-    };
+    //         const data = await response.json();
 
-    const handleSave = async () => {
+    //         if (!response.ok) {
+    //             throw new Error(data.message || "Login failed");
+    //         }
+
+    //         // localStorage.setItem("token", data.token);
+    //         navigate("/chat"); // can be home page
+    //     } catch (err: any) {
+    //         setError("Login failed!");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+    
         try {
-            await axios.put("http://localhost:8080/users/me", profile); 
-            setEditing(false);
-        } catch (error) {
-            console.error("Failed to save profile", error);
+            const response = await fetch(`http://localhost:8080/users?email=${encodeURIComponent(email)}`);
+            const data = await response.json();
+    
+            if (!response.ok) {
+                throw new Error(data.message || "Login failed");
+            }
+            
+            onLoginSuccess(email);
+
+            // Временно сохраним email в localStorage или передадим как state:
+            navigate("/profile"); // Передаём email в профиль через state
+        } catch (err: any) {
+            setError("Login failed!");
+        } finally {
+            setLoading(false);
         }
     };
 
-    if (loading) {
-        return (
-            <Container className="mt-5 text-center">
-                <Spinner animation="border" />
-            </Container>
-        );
-    }
-
-    if (!profile) {
-        return (
-            <Container className="mt-5 text-center">
-                <p>Profile not found.</p>
-            </Container>
-        );
-    }
-
     return (
-        <Container className="mt-5" style={{ maxWidth: "600px" }}>
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2>My Profile</h2>
-                <Button variant="outline-primary" onClick={() => setEditing(!editing)}>
-                    <FaEdit /> {editing ? "Cancel" : "Edit"}
-                </Button>
-            </div>
-
-            <Form>
-                <Form.Group className="mb-3">
-                    <Form.Label>Username</Form.Label>
-                    <Form.Control type="text" value={profile.username} disabled />
-                </Form.Group>
-
+        <Container className="mt-5" style={{ maxWidth: "400px" }}>
+            <h2 className="mb-4">Login</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            <Form onSubmit={handleLogin}>
                 <Form.Group className="mb-3">
                     <Form.Label>Email</Form.Label>
-                    <Form.Control type="email" value={profile.email} disabled />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>Birth Date</Form.Label>
-                    <Form.Control type="date" value={profile.profile.birthDate} disabled />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>Gender</Form.Label>
                     <Form.Control
-                        type="text"
-                        value={profile.profile.gender}
-                        disabled={!editing}
-                        onChange={(e) => handleChange("gender", e.target.value)}
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={loading}
                     />
                 </Form.Group>
-
                 <Form.Group className="mb-3">
-                    <Form.Label>Height (cm)</Form.Label>
+                    <Form.Label>Password</Form.Label>
                     <Form.Control
-                        type="number"
-                        value={profile.profile.height}
-                        disabled={!editing}
-                        onChange={(e) => handleChange("height", Number(e.target.value))}
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={loading}
                     />
                 </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>Location</Form.Label>
-                    <Form.Control
-                        type="text"
-                        value={profile.profile.location || ""}
-                        disabled={!editing}
-                        onChange={(e) => handleChange("location", e.target.value)}
-                    />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                    <Form.Label>Description</Form.Label>
-                    <Form.Control
-                        as="textarea"
-                        rows={3}
-                        value={profile.profile.description}
-                        disabled={!editing}
-                        onChange={(e) => handleChange("description", e.target.value)}
-                    />
-                </Form.Group>
-
-                {editing && (
-                    <Button variant="success" onClick={handleSave}>
-                        Save Changes
-                    </Button>
-                )}
+                <Button variant="primary" type="submit" disabled={loading}>
+                    {loading ? (<><Spinner animation="border" size="sm" /> Logging in...</>) : "Login"}
+                </Button>
+                <Button
+                    variant="link"
+                    onClick={() => navigate("/register")}
+                    className="ms-2"
+                    disabled={loading}
+                >
+                    Sign up
+                </Button>
             </Form>
         </Container>
     );
 };
 
-export default ProfilePage;
+export default LoginPage;
