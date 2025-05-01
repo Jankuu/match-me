@@ -46,38 +46,47 @@ public class UserService {
         if (id != null) {
             return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find user by id: ", id));
         }
+
         if (username != null && !username.isBlank()) {
             return userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("Could not find user by username: ", username));
         }
+
         if (email != null && !email.isBlank()) {
             return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Could not find user by email: ", email));
         }
+
         throw new ResourceNotFoundException("Could not find user by id, username or email: ", null);
     }
 
     public String getUserProfilePicture(Long id, String username, String email) {
         UserProfile userProfile = getUser(id, username, email).getProfile();
+
         if (userProfile.getProfilePicture() == null) {
             return null;
         }
+
         return Base64.getEncoder().encodeToString(userProfile.getProfilePicture());
     }
 
     public UserProfileDTO getUserProfileDTO(Long id, String username, String email) {
         User currentUser = getUser(id, username, email);
         UserProfile userProfile = currentUser.getProfile();
+
         if (userProfile == null) {
             throw new ResourceNotFoundException("User profile not found", currentUser);
         }
+
         return new UserProfileDTO(userProfile);
     }
 
     public UserInterestVectorDTO getUserInterestsVectorDTO(Long id, String username, String email) {
         User currentUser = getUser(id, username, email);
         UserInterestVector interestVector = currentUser.getInterestVector();
+
         if (interestVector == null) {
             throw new ResourceNotFoundException("User interests vector not found", currentUser);
         }
+
         return new UserInterestVectorDTO(interestVector);
     }
 
@@ -86,20 +95,24 @@ public class UserService {
         if (dto.getUsername() != null && !dto.getUsername().isBlank() && userRepository.findByUsername(dto.getUsername()).isPresent()) {
             throw new DuplicateResourceException("User with this username already exists", dto.getUsername());
         }
+
         if (dto.getEmail() != null && !dto.getEmail().isBlank() && userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new DuplicateResourceException("User with this email already exists", dto.getEmail());
         }
+
         User newUser = assignUserValues(dto);
         if (dto.getProfile() != null) {
             newUser.setProfile(assignUserProfileValues(null, dto.getProfile()));
         } else {
             newUser.setProfile(new UserProfile());
         }
+
         if (dto.getInterestVector() != null) {
             newUser.setInterestVector(assignUserInterestVectorValues(null, dto.getInterestVector()));
         } else {
             newUser.setInterestVector(new UserInterestVector());
         }
+
         return new UserDTO(userRepository.save(newUser));
     }
 

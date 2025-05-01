@@ -11,7 +11,7 @@ import org.springframework.stereotype.Controller;
 import java.util.Objects;
 
 @Controller
-public class MessageController {
+public class MessageSocketController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 

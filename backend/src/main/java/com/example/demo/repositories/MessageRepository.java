@@ -13,22 +13,10 @@ import java.time.LocalDateTime;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    // Get all messages where the user is the receiver, newest first
-    Page<Message> findAllByReceiverOrderByTimestampDesc(User receiver, Pageable pageable);
-
-    // Get all messages where the user is the sender, newest first
-    Page<Message> findAllBySenderOrderByTimestampDesc(User sender, Pageable pageable);
-
-    // Get all messages between a sender and a receiver, newest first
-    Page<Message> findAllBySenderAndReceiverOrderByTimestampDesc(User sender, User receiver, Pageable pageable);
-
-    // Get all messages between a sender and a receiver, within a timestamp range, newest first
-    @Query("SELECT m FROM Message m WHERE m.sender = :sender AND m.receiver = :receiver AND m.timestamp BETWEEN :start AND :end ORDER BY m.timestamp DESC")
-    Page<Message> findBySenderAndReceiverBetweenTimestamps(
-            @Param("sender") User sender,
-            @Param("receiver") User receiver,
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end,
-            Pageable pageable
-    );
+    @Query("SELECT m FROM Message m WHERE " +
+            "(m.senderId = :userId1 AND m.receiverId = :userId2) OR " +
+            "(m.senderId = :userId2 AND m.receiverId = :userId1)")
+    Page<Message> findMessagesBetweenUsers(@Param("userId1") Long userId1,
+                                           @Param("userId2") Long userId2,
+                                           Pageable pageable);
 }

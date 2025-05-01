@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserConnectionDTO {
+public class UserLinkDTO {
     private long senderID;
     private String senderUsername;
     private String senderEmail;

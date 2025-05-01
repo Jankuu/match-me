@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@RequiredArgsConstructor
 @Entity
 @Table(name = "messages")
 public class Message {
@@ -18,23 +17,15 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "sender_id", nullable = false)
     @NonNull
-    @NotBlank
-    private User sender;
-
-    @ManyToOne
-    @JoinColumn(name = "receiver_id", nullable = false)
+    private Long receiverId;
     @NonNull
-    @NotBlank
-    private User receiver;
+    private Long senderId;
 
     @NonNull
     @NotBlank
+    @Column(length = 300)
     private String content;
 
-    @NonNull
-    @NotBlank
-    private LocalDateTime timestamp;
+    private LocalDateTime timestamp = LocalDateTime.now();
 }
