@@ -7,13 +7,13 @@ import com.example.demo.entities.User;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.MessageRepository;
 import com.example.demo.repositories.UserRepository;
+import com.example.demo.restControllers.MessageController;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -36,6 +36,14 @@ public class MessageService {
 
         Page<Message> messagePage = messageRepository.findMessagesBetweenUsers(userId1, userId2, pageable);
         return messagePage.map(MessageDTO::new);
+    }
+
+    public Page<MessageDTO> getSearchedMessages(MessageController.SearchMessages searchMessages, int page, int size) {
+        Long userId1 = searchMessages.getUserLinkDTO().getReceiverID();
+        Long userId2 = searchMessages.getUserLinkDTO().getSenderID();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
+        Page<Message> foundMessages = messageRepository.searchMessagesBetweenUsers(userId1, userId2, searchMessages.getSearchTerm(), pageable);
+        return foundMessages.map(MessageDTO::new);
     }
 
     // POST
@@ -63,6 +71,8 @@ public class MessageService {
     }
 
     // PATCH
+    public MessageDTO patchMessage(Long messageId, String content) {
+    }
 
     // DELETE
 
