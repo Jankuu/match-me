@@ -7,7 +7,7 @@ import ProfilePicture from "../components/profileForm/ProfilePicture";
 import { Profile } from "../types/Profile";
 
 
-const ProfilePage = ({ email }: { email: string }) => {
+const MyProfilePage = ({ email }: { email: string }) => {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
@@ -91,4 +91,4 @@ const ProfilePage = ({ email }: { email: string }) => {
     );
 };
 
-export default ProfilePage;
+export default MyProfilePage;

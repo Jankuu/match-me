@@ -59,7 +59,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             onLoginSuccess(email);
 
             // Временно сохраним email в localStorage или передадим как state:
-            navigate("/profile"); // Передаём email в профиль через state
+            navigate("/my_profile"); // Передаём email в профиль через state
         } catch (err: any) {
             setError("Login failed!");
         } finally {

@@ -117,7 +117,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                     gender,
                     height,
                     description,
-                    // location: location, // 
+                    location: location, // 
                 },
                 interestedMinAge: ages[0],
                 interestedMaxAge: ages[1],

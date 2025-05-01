@@ -21,16 +21,22 @@ public class ImageController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long userId) {
-        return (ResponseEntity<byte[]>) userRepository.findById(userId)
-                .map(user -> {
-                    byte[] imageBytes = user.getProfile().getProfilePicture();
-                    if (imageBytes == null || imageBytes.length == 0) {
-                        return ResponseEntity.notFound().build();
-                    }
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.setContentType(MediaType.IMAGE_JPEG); // или PNG, если нужно
-                    return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
-                })
-                .orElse(ResponseEntity.notFound().build());
+        var userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        var user = userOptional.get();
+        byte[] imageBytes = user.getProfile().getProfilePicture();
+
+        if (imageBytes == null || imageBytes.length == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG); // или PNG, если нужно
+
+        return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
     }
+
 }

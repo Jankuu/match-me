@@ -23,7 +23,7 @@ const NavBar = () => {
                     <Nav.Link href="/chat">
                         <FaComments size={24} />
                     </Nav.Link>
-                    <Nav.Link href="/notifications">
+                    <Nav.Link href="/matching">
                         <FaBell size={24} />
                     </Nav.Link>
                     <Nav.Link href="/settings">

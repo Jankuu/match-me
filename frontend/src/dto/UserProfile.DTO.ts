@@ -5,4 +5,5 @@ export interface UserProfileDTO {
     gender: string;    //
     height: number;
     description: string;
+    location: string;
 }

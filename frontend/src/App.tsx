@@ -8,11 +8,13 @@ import {
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ChatPage from "./pages/ChatPage";
-import ProfilePage from "./pages/ProfilePage";
+import MyProfilePage from "./pages/MyProfilePage";
 import NavBar from "./components/NavBar";
 import { useMediaQuery } from "react-responsive";
 import { useState } from "react";
 import SettingsPage from "./pages/SettingsPage";
+import MatchingPage from "./pages/MatchingPage";
+import UserProfilePage from "./pages/UserProfilePage";
 
 function App() {
    
@@ -43,8 +45,10 @@ function App() {
                     }} />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/chat" element={<ChatPage />} />
-                    <Route path="/profile" element={<ProfilePage email={email || ""}/>} />
+                    <Route path="/my_profile" element={<MyProfilePage email={email || ""}/>} />
+                    <Route path="/user_profile/:email" element={<UserProfilePage />} />
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/matching" element={<MatchingPage />} />
                 </Routes>
             </div>
             <NavBar />
