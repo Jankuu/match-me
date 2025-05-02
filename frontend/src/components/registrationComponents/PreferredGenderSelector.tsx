@@ -2,8 +2,8 @@ import { Button } from "react-bootstrap";
 import { GenderMale, GenderFemale, People } from "react-bootstrap-icons";
 
 type Props = {
-  selected: string;
-  onChange: (gender: string) => void;
+  selected: string[];
+  onChange: (gender: string[]) => void;
 };
 
 const PreferredGenderSelector = ({ selected, onChange }: Props) => {
@@ -14,22 +14,22 @@ const PreferredGenderSelector = ({ selected, onChange }: Props) => {
       </label>
       <div className="d-flex gap-3 mt-2">
         <Button
-          variant={selected === "male" ? "primary" : "outline-primary"}
-          onClick={() => onChange("male")}
+          variant={selected[0] === "man" && selected.length === 1 ? "primary" : "outline-primary"}
+          onClick={() => onChange(["man"])}
           className="d-flex align-items-center gap-2"
         >
           <GenderMale size={20} /> Male
         </Button>
         <Button
-          variant={selected === "female" ? "danger" : "outline-danger"}
-          onClick={() => onChange("female")}
+          variant={selected[0] === "woman" && selected.length === 1 ? "danger" : "outline-danger"}
+          onClick={() => onChange(["woman"])}
           className="d-flex align-items-center gap-2"
         >
           <GenderFemale size={20} /> Female
         </Button>
         <Button
-          variant={selected === "any" ? "success" : "outline-success"}
-          onClick={() => onChange("any")}
+          variant={selected[0] === "man" && selected[1] === "woman" ? "success" : "outline-success"}
+          onClick={() => onChange(["man", "woman"])}
           className="d-flex align-items-center gap-2"
         >
           <People size={20} /> Any

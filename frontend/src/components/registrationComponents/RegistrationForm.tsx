@@ -7,33 +7,45 @@ import AgeRangeSelector from "./AgeRangeSelector";
 import PreferredGenderSelector from "./PreferredGenderSelector";
 import ImageUpload from "./ImageUpload";
 import LocationSelector from "./LocationSelector";
+import GenderSelector from "./GenderSelection";
+import HeightSet from "./HeightSet";
+import Description from "./Description";
+import { UserRegistrationDTO } from "../../dto/UserRegistrationDTO";
 
 type Props = {
-    onSubmit: (data: FormData) => void;
+    onSubmit: (data: UserRegistrationDTO) => void;
     loading: boolean;
 };
 
 const RegisterForm = ({ onSubmit, loading }: Props) => {
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [repeatedEmail, setRepeatedEmail] = useState("");
     const [password, setPassword] = useState("");
     const [repeatedPassword, setRepeatedPassword] = useState("");
-    const [username, setUsername] = useState("");
+
     const [image, setImage] = useState<File | null>(null);
-    const [birthDate, setBirthDate] = useState<string>("");
-    const [preferredGender, setPreferredGender] = useState<string>("any");
+    const [birthDateUi, setBirthDateUi] = useState<string>("");
+    const [gender, setGender] = useState("man");
+    const [height, setHeight] = useState<number>(150);
+    const [description, setDescription] = useState<string>("");
+
+    const [ages, setAges] = useState<[number, number]>([18, 120]);
+    const [preferredGendersArray, setPreferredGendersArray] = useState<string[]>(["man", "woman"]);
     const [location, setLocation] = useState("");
     const [age, setAge] = useState<number | null>(null);
-    const [ages, setAges] = useState<[number, number]>([18, 120]);
+    const [interest, setInterest] = useState<number[]>([3, 3, 3, 3, 3]); // stub values
 
     const [usernameValid, setUsernameValid] = useState(false);
-    const isPasswordValid = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password);
-    
 
+    const isPasswordValid = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password);
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const emailMatch = email.length > 0 && repeatedEmail === email;
+    const passwordMatch = password.length > 0 && repeatedPassword === password;
 
     useEffect(() => {
-        if (birthDate) {
-            const birth = new Date(birthDate);
+        if (birthDateUi) {
+            const birth = new Date(birthDateUi);
             const today = new Date();
             let userAge = today.getFullYear() - birth.getFullYear();
             const monthDiff = today.getMonth() - birth.getMonth();
@@ -44,51 +56,83 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         } else {
             setAge(null);
         }
-    }, [birthDate]);
-
-    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    const emailMatch = email.length > 0 && repeatedEmail === email;
-    const passwordMatch = password.length > 0 && repeatedPassword === password;
+    }, [birthDateUi]);
 
     const isFormValid = usernameValid &&
         isEmailValid &&
         emailMatch &&
         isPasswordValid &&
         passwordMatch &&
-        birthDate &&
+        birthDateUi &&
         age !== null &&
         age >= 18;
 
-        const handleSubmit = (e: React.FormEvent) => {
+        // const fileToBase64 = (file: File): Promise<string> => {
+        //     return new Promise((resolve, reject) => {
+        //         const reader = new FileReader();
+        //         reader.onload = () => {
+        //             resolve(reader.result as string);
+        //         };
+        //         reader.onerror = reject;
+        //         reader.readAsDataURL(file);
+        //     });
+        // };
+
+        const readImageAsBase64 = (file: File): Promise<string> => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result as string;
+                    const base64 = result.split(",")[1]; // remove "data:image/jpeg;base64,"
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        };
+
+        const handleSubmit = async (e: React.FormEvent) => {
             e.preventDefault();
         
-            // if (!ages) return; // protection
-        
-            // 
-            const userPayload = {
-                name: username,
-                email,
-                password,
-                birthDate,
-                preferredGender,
-                location,
-                minAge: ages[0],
-                maxAge: ages[1],
-            };
-        
-            const formData = new FormData();
-            formData.append(
-                "user",
-                new Blob([JSON.stringify(userPayload)], { type: "application/json" })
-            );
-        
-            if (image) {
-                formData.append("image", image);
+            if (!ages) return;
+
+            let base64Image: string | undefined = undefined;
+            if (image) { // imageFile — состояние типа File
+                try {
+                    base64Image = await readImageAsBase64(image);
+                } catch (error) {
+                    console.error("Failed to read image", error);
+                    return;
+                }
             }
         
-            onSubmit(formData);
-        };
-                    
+            const userPayload: UserRegistrationDTO = {
+                username,
+                email,
+                password,
+                profile: {
+                    name: username,
+                    profilePicture: base64Image, // 
+                    birthDate: birthDateUi,
+                    gender,
+                    height,
+                    description,
+                    location: location, // 
+                },
+                interestedMinAge: ages[0],
+                interestedMaxAge: ages[1],
+                interestedGenders: preferredGendersArray,
+                interestVector: {
+                    fantasy: interest[0],
+                    competitive: interest[1],
+                    action: interest[2],
+                    story: interest[3],
+                    complex: interest[4],
+                },
+            };
+        
+            onSubmit(userPayload);
+        };        
 
     return (
         <Form onSubmit={handleSubmit}>
@@ -116,8 +160,8 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 <Form.Label>Date of Birth <span style={{ color: "red" }}>*</span></Form.Label>
                 <Form.Control
                     type="date"
-                    value={birthDate}
-                    onChange={(e) => setBirthDate(e.target.value)}
+                    value={birthDateUi}
+                    onChange={(e) => setBirthDateUi(e.target.value)}
                     required
                     disabled={loading}
                     min={new Date(new Date().setFullYear(new Date().getFullYear() - 120)).toISOString().split("T")[0]}
@@ -127,31 +171,20 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                     <Form.Text className="text-danger">You must be at least 18 years old.</Form.Text>
                 )}
             </Form.Group>
-            <AgeRangeSelector 
-                userAge={age}
-                onChange={setAges}
-            />
-            <LocationSelector
-                value={location}
-                onChange={setLocation}
-                disabled={loading}
-            />
-            <PreferredGenderSelector 
-                onChange={setPreferredGender} 
-                selected={preferredGender}            
-            />
 
-            <ImageUpload image={null} setImage={function (file: File | null): void {
-                throw new Error("Function not implemented.");
-            } } loading={false} 
-            />
+            <AgeRangeSelector userAge={age} onChange={setAges} />
+            <GenderSelector onChange={setGender} selected={gender} />
+            <HeightSet height={height} setHeight={setHeight} />
+            <LocationSelector value={location} onChange={setLocation} disabled={loading} />
+            <PreferredGenderSelector onChange={setPreferredGendersArray} selected={preferredGendersArray} />
+            <Description description={description} setDescription={setDescription} />
+
+            <ImageUpload image={image} setImage={setImage} loading={loading} />
 
             <Button
                 variant="success"
                 type="submit"
-                disabled={
-                    loading || !isFormValid
-                }
+                disabled={loading || !isFormValid}
             >
                 {loading ? <><Spinner animation="border" size="sm" /> Creating...</> : "Create Account"}
             </Button>

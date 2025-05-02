@@ -15,6 +15,11 @@ const AgeRangeSlider: React.FC<AgeRangeSliderProps> = ({ userAge, onChange }) =>
 
     useEffect(() => {
         if (userAge) {
+            if (userAge > MAX) {
+                userAge = MAX;
+            } else if (userAge < MIN) {
+                userAge = MIN;
+            }
             const lower = Math.max(MIN, userAge - 2);
             const upper = Math.min(MAX, userAge + 2);
             setValues([lower, upper]);
