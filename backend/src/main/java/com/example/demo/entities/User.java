@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.locationtech.jts.geom.Point;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,4 +60,19 @@ public class User implements EmailOrUsernameCarrier {
 
     @ManyToMany(cascade = CascadeType.ALL)
     private List<Connection> connectionRequests = new ArrayList<>();
+
+    /*
+    Not sure if these should be kept under user or userProfile
+     */
+    private Boolean isGpsUser; // false if location chosen by city list
+
+    @Column(columnDefinition = "geometry(Point, 4326)")
+    private Point location; // for GPS users
+
+    private Integer radius; // meters
+
+    @ManyToOne
+    @JoinColumn(name = "city_id")
+    private City city;
+
 }
