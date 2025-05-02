@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserConnectionDTO {
-    private long senderID;
+public class UserLinkDTO {
+    private long senderId;
     private String senderUsername;
     private String senderEmail;
 
-    private long receiverID;
+    private long receiverId;
     private String receiverUsername;
     private String receiverEmail;
 }

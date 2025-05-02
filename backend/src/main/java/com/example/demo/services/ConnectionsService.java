@@ -1,14 +1,19 @@
 package com.example.demo.services;
 
-import com.example.demo.dTOs.UserConnectionDTO;
+import com.example.demo.dTOs.ConnectionDTO;
+import com.example.demo.dTOs.UserLinkDTO;
 import com.example.demo.entities.Connection;
 import com.example.demo.entities.User;
+import com.example.demo.exceptions.ConnectionAlreadyExistsException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;
 import com.example.demo.repositories.UserRepository;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 
 @Service
 public class ConnectionsService {
@@ -23,27 +28,47 @@ public class ConnectionsService {
     }
 
     // GET
-    public Connection getConnection(UserConnectionDTO connectionDTO) {
-        User sender = userService.getUser(connectionDTO.getSenderID(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
-        User receiver = userService.getUser(connectionDTO.getReceiverID(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
-
-        return connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find the connection between users", connectionDTO));
+    public Map<String, List<ConnectionDTO>> getUserConnections(Long id, String username, String email) {
+        Map<String, List<ConnectionDTO>> userConnections = new HashMap<>();
+        userConnections.put("Connections", getConnections(id, username, email));
+        userConnections.put("ConnectionRequests", getConnectionRequests(id, username, email));
+        return userConnections;
     }
 
-    public List<Connection> getConnectionRequests(Long id, String username, String email) {
+    public List<ConnectionDTO> getConnectionRequests(Long id, String username, String email) {
         User user = userService.getUser(id, username, email);
-        return user.getConnectionRequests();
+        return user.getConnectionRequests()
+                .stream()
+                .sorted(Comparator.comparing(Connection::getCreatedAt).reversed())
+                .map(ConnectionDTO::new)
+                .toList();
     }
 
-    public List<Connection> getConnections(Long id, String username, String email) {
+    public List<ConnectionDTO> getConnections(Long id, String username, String email) {
         User user = userService.getUser(id, username, email);
-        return user.getConnections();
+        return user.getConnections()
+                .stream()
+                .sorted(Comparator.comparing(Connection::getCreatedAt).reversed())
+                .map(ConnectionDTO::new)
+                .toList();
+    }
+
+    private FullConnection getFullConnection(UserLinkDTO connectionDTO) {
+        User sender = userService.getUser(connectionDTO.getSenderId(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
+        User receiver = userService.getUser(connectionDTO.getReceiverId(), connectionDTO.getReceiverUsername(), connectionDTO.getReceiverEmail());
+        Connection connection = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find the connection between users", connectionDTO));
+        return new FullConnection(sender, receiver, connection);
     }
 
     // POST
-    public Connection sendRequest(UserConnectionDTO connectionDTO) {
-        User sender = userService.getUser(connectionDTO.getSenderID(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
-        User receiver = userService.getUser(connectionDTO.getReceiverID(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
+    public ConnectionDTO sendRequest(UserLinkDTO connectionDTO) {
+        User sender = userService.getUser(connectionDTO.getSenderId(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
+        User receiver = userService.getUser(connectionDTO.getReceiverId(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
+
+        Optional<Connection> existing = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile());
+        if (existing.isPresent()) {
+            throw new ConnectionAlreadyExistsException("Connection between users already exists.", existing);
+        }
 
         Connection request = new Connection();
         request.setSender(sender.getProfile());
@@ -52,29 +77,33 @@ public class ConnectionsService {
 
         receiver.getConnectionRequests().add(request);
         userRepository.save(receiver);
-        return request;
+        return new ConnectionDTO(request);
     }
 
-    public Connection acceptRequest(UserConnectionDTO connectionDTO) {
-        User sender = userService.getUser(connectionDTO.getSenderID(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
-        User receiver = userService.getUser(connectionDTO.getReceiverID(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
+    public ConnectionDTO acceptRequest(UserLinkDTO connectionDTO) {
+        FullConnection fullConnection = getFullConnection(connectionDTO);
+        User sender = fullConnection.sender;
+        User receiver = fullConnection.receiver;
+        Connection request = fullConnection.connection;
 
-        Connection request = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find the connection between users", connectionDTO));
+        if (receiver.getConnections().contains(request)) {
+            throw new ConnectionAlreadyExistsException("Connection between users already exists.", request);
+        }
 
         receiver.getConnectionRequests().remove(request);
         receiver.getConnections().add(request);
         sender.getConnections().add(request);
-
-        return connectionRepository.save(request);
+        connectionRepository.save(request);
+        return new ConnectionDTO(request);
     }
 
     // DELETE
-    public Connection deleteConnection(UserConnectionDTO connectionDTO) {
-        Connection connection = getConnection(connectionDTO);
+    public ConnectionDTO deleteConnection(UserLinkDTO connectionDTO) {
+        Connection connection = getFullConnection(connectionDTO).connection;
         return deleteConnection(connection);
     }
 
-    public Connection deleteConnection(Connection connection) {
+    public ConnectionDTO deleteConnection(Connection connection) {
         User sender = userRepository.findByProfile(connection.getSender()).orElseThrow(() -> new ResourceNotFoundException("Could not find sender in connection", connection));
         User receiver = userRepository.findByProfile(connection.getReceiver()).orElseThrow(() -> new ResourceNotFoundException("Could not find receiver in connection", connection));
 
@@ -85,7 +114,16 @@ public class ConnectionsService {
         receiver.getConnectionRequests().remove(connection);
 
         connectionRepository.delete(connection);
-        return connection;
+        return new ConnectionDTO(connection);
     }
+
     // HELPER METHODS
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    public static class FullConnection {
+        private User sender;
+        private User receiver;
+        private Connection connection;
+    }
 }

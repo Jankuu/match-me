@@ -4,6 +4,7 @@ import com.example.demo.constraints.EmailOrUsername;
 import com.example.demo.constraints.ValidInterestedAge;
 import com.example.demo.constraints.ValidInterestedGenders;
 import com.example.demo.utilities.EmailOrUsernameCarrier;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -54,9 +55,15 @@ public class User implements EmailOrUsernameCarrier {
     @JoinColumn(name = "interestVector_id")
     private UserInterestVector interestVector;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Connection> connections = new ArrayList<>();
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Connection> connectionRequests = new ArrayList<>();
+
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Message> messages = new ArrayList<>();
 }

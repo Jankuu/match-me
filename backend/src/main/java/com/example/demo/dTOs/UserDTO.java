@@ -32,9 +32,6 @@ public class UserDTO {
 
     private UserInterestVectorDTO interestVector;
 
-    private List<Connection> connections = new ArrayList<>();
-    private List<Connection> connectionRequests = new ArrayList<>();
-
     public UserDTO(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
@@ -45,7 +42,5 @@ public class UserDTO {
         this.interestedMaxAge = user.getInterestedMaxAge();
         this.interestedGenders = user.getInterestedGenders();
         this.interestVector = new UserInterestVectorDTO(user.getInterestVector());
-        this.connections = user.getConnections();
-        this.connectionRequests = user.getConnectionRequests();
     }
 }

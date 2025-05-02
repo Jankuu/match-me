@@ -5,12 +5,8 @@ import com.example.demo.dTOs.UserInterestVectorDTO;
 import com.example.demo.dTOs.UserProfileDTO;
 import com.example.demo.dTOs.UserRegistrationDTO;
 import com.example.demo.entities.User;
-import com.example.demo.entities.UserInterestVector;
-import com.example.demo.entities.UserProfile;
-import com.example.demo.repositories.UserRepository;
 import com.example.demo.services.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +19,6 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-    @Autowired
-    private UserRepository userRepository;
 
     // GET
     @GetMapping("/all")
