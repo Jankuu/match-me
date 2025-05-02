@@ -20,7 +20,7 @@ public class MessageController {
     }
 
     // GET
-    @GetMapping
+    @PostMapping
     public Page<MessageDTO> getMessagesBetweenUsers(
             @RequestBody UserLinkDTO userLinkDTO,
             @RequestParam(defaultValue = "0") int page,
@@ -43,8 +43,8 @@ public class MessageController {
     }
 
     @PostMapping("/save")
-    public List<MessageDTO> saveMessages(@RequestBody SaveMessages saveMessages) {
-        return messageService.saveMessages(saveMessages.getUserLinkDTO(), saveMessages.getMessageDTOS());
+    public List<MessageDTO> saveMessages(@RequestBody List<MessageDTO> messageDTOS) {
+        return messageService.saveMessages(messageDTOS);
     }
 
     // PATCH
@@ -52,16 +52,14 @@ public class MessageController {
     public MessageDTO patchMessage(@RequestParam Long messageId, @RequestBody String content) {
         return messageService.patchMessage(messageId, content);
     }
-    // DELETE
 
-    // HELPER METHODS
-    @Getter
-    @AllArgsConstructor
-    public static class SaveMessages {
-        private UserLinkDTO userLinkDTO;
-        private List<MessageDTO> messageDTOS;
+    // DELETE
+    @DeleteMapping
+    public MessageDTO deleteMessage(@RequestParam Long messageId){
+        return messageService.deleteMessage(messageId);
     }
 
+    // HELPER METHODS
     @Getter
     @AllArgsConstructor
     public static class SearchMessages {

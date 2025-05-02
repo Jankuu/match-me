@@ -54,16 +54,16 @@ public class ConnectionsService {
     }
 
     private FullConnection getFullConnection(UserLinkDTO connectionDTO) {
-        User sender = userService.getUser(connectionDTO.getSenderID(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
-        User receiver = userService.getUser(connectionDTO.getReceiverID(), connectionDTO.getReceiverUsername(), connectionDTO.getReceiverEmail());
+        User sender = userService.getUser(connectionDTO.getSenderId(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
+        User receiver = userService.getUser(connectionDTO.getReceiverId(), connectionDTO.getReceiverUsername(), connectionDTO.getReceiverEmail());
         Connection connection = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find the connection between users", connectionDTO));
         return new FullConnection(sender, receiver, connection);
     }
 
     // POST
     public ConnectionDTO sendRequest(UserLinkDTO connectionDTO) {
-        User sender = userService.getUser(connectionDTO.getSenderID(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
-        User receiver = userService.getUser(connectionDTO.getReceiverID(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
+        User sender = userService.getUser(connectionDTO.getSenderId(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
+        User receiver = userService.getUser(connectionDTO.getReceiverId(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
 
         Optional<Connection> existing = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile());
         if (existing.isPresent()) {

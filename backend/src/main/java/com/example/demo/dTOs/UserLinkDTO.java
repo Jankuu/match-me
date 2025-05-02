@@ -8,11 +8,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserLinkDTO {
-    private long senderID;
+    private long senderId;
     private String senderUsername;
     private String senderEmail;
 
-    private long receiverID;
+    private long receiverId;
     private String receiverUsername;
     private String receiverEmail;
 }

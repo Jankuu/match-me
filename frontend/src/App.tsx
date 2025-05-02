@@ -11,6 +11,7 @@ import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import NavBar from "./components/NavBar";
 import { useMediaQuery } from "react-responsive";
+import TestStenPage from "./pages/TestStenPage";
 
 function App() {
     // DEBUGGING AND TEMPLATES:
@@ -30,7 +31,6 @@ function App() {
     // }, [client, isConnected]);
 
     // const [text, setText] = useState("");
-
 
     // const getAllUsersInDB = async () => {
     //     const res = await fetch("http://localhost:8080/users/users");
@@ -61,6 +61,7 @@ function App() {
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/chat" element={<ChatPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/test" element={<TestStenPage />} />
                 </Routes>
             </div>
             <NavBar />
