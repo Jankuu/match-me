@@ -60,7 +60,7 @@ public class UserController {
     }
 
     // POST
-    @PostMapping("/reg")
+    @PostMapping
     public User registerUser(
             @Valid @RequestBody UserRegistrationDTO userRegistrationDTO) {
         return userService.registerNewUser(userRegistrationDTO);
