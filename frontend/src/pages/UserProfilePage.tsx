@@ -52,7 +52,7 @@ const UserProfilePage = () => {
 
     const handleSave = async () => {
         try {
-            await axios.put("http://localhost:8080/users/me", profile); // замените на правильный URL
+            await axios.patch("http://localhost:8080/users/me", profile); // замените на правильный URL
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);

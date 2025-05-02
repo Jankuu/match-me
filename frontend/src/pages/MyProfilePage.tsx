@@ -8,6 +8,8 @@ import { Profile } from "../types/Profile";
 
 
 const MyProfilePage = ({ email }: { email: string }) => {
+
+
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
@@ -45,13 +47,22 @@ const MyProfilePage = ({ email }: { email: string }) => {
         });
     };
 
+
     const handleSave = async () => {
         try {
-            await axios.put("http://localhost:8080/users/me", profile); //replace with correct url
+            let testProfile = {
+                username: "Test"
+            }
+            // http://localhost:8080/users?id=1&username=USERNAME&email=EMAIL
+            // await axios.patch("http://localhost:8080/users?id=1", profile); //replace with correct url
+            await axios.patch("http://localhost:8080/users?id=1", testProfile); //replace with correct url
+
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);
         }
+
+        
     };
 
     if (loading) {
