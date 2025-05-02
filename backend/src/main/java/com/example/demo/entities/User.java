@@ -13,7 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.context.annotation.Lazy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,15 +55,15 @@ public class User implements EmailOrUsernameCarrier {
     @JoinColumn(name = "interestVector_id")
     private UserInterestVector interestVector;
 
-    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Connection> connections = new ArrayList<>();
 
-    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Connection> connectionRequests = new ArrayList<>();
 
-    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-   // @JsonIgnore
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Message> messages = new ArrayList<>();
 }

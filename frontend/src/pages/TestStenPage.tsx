@@ -8,6 +8,14 @@ const TestStenPage = () => {
     const [loadedMessages, setLoadedMessages] = useState<any[] | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    /*
+    
+    user login <- Java
+    getUser
+    
+
+    
+    */
     useEffect(() => {
         const fetchMessages = async () => {
             const messages = await getMessages();
