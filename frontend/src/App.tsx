@@ -8,7 +8,6 @@ import {
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ChatPage from "./pages/ChatPage";
-import ProfilePage from "./pages/ProfilePage";
 import NavBar from "./components/NavBar";
 import { useMediaQuery } from "react-responsive";
 import { useState } from "react";
@@ -21,9 +20,6 @@ function App() {
 
     const [email, setEmail] = useState<string | null>(
         localStorage.getItem("email")
-    )
-    const [id, setId] = useState<string | null>(
-        localStorage.getItem("id")
     )
 
     // DEBUGGING AND TEMPLATES:
@@ -76,18 +72,8 @@ function App() {
                     }} />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/chat/:id/:username" element={<ChatPage />} />
-                    <Route
-                        path="/user_profile"
-                        element={
-                            email ? (
-                                <ProfilePage id={id} />
-                            ) : (
-                                <Navigate to="/login" replace />
-                            )
-                        }
-                    />
-                    <Route path="/user_profile/id/:id" element={<UserProfilePage />} />
                     <Route path="/user_profile/email/:email" element={<UserProfilePage />} />
+                    <Route path="/user_profile/id/:id" element={<UserProfilePage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/matching" element={<MatchingPage />} />
                     <Route path="/test" element={<TestStenPage />} />
