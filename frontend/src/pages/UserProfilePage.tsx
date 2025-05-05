@@ -4,23 +4,34 @@ import { FaEdit } from "react-icons/fa";
 import axios from "axios";
 import ProfileForm from "../components/profileForm/ProfileForm";
 import ProfilePicture from "../components/profileForm/ProfilePicture";
-import { Profile } from "../types/Profile";
+import { User } from "../types/User";
 import { useLocation, useParams } from 'react-router-dom';
 
 const UserProfilePage = () => {
-    const { email } = useParams<{ email: string }>();
+    const { id, email } = useParams();
+    let param: string;
+   
+    const identifier = id || email;
+    const type = id ? "id" : "email";
     // const location = useLocation();
 
-    const [profile, setProfile] = useState<Profile | null>(null);
+    const [profile, setProfile] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
 
     useEffect(() => {
-        if (!email) return; // Если нет email, то не загружаем профиль
+        if (!type) return;
+
+        if (type === "email" && identifier) {
+            param = "email=" + encodeURIComponent(identifier);
+        } else if (type === "id" && identifier) {
+            param = "id=" + identifier;
+        }
 
         const fetchProfile = async () => {
+
             try {
-                const response = await axios.get<Profile>(`http://localhost:8080/users?email=${encodeURIComponent(email)}`);
+                const response = await axios.get<User>(`http://localhost:8080/users?${param}`);
                 const profileData = response.data;
 
                 const picture = profileData.profile.profilePicture;
@@ -39,7 +50,7 @@ const UserProfilePage = () => {
         fetchProfile();
     }, [email]);
 
-    const handleChange = (field: keyof Profile["profile"], value: any) => {
+    const handleChange = (field: keyof User["profile"], value: any) => {
         if (!profile) return;
         setProfile({
             ...profile,
@@ -52,7 +63,7 @@ const UserProfilePage = () => {
 
     const handleSave = async () => {
         try {
-            await axios.patch("http://localhost:8080/users/me", profile); // замените на правильный URL
+            await axios.patch("http://localhost:8080/users/me", profile);
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);

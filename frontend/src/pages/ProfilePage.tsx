@@ -4,20 +4,19 @@ import { FaEdit } from "react-icons/fa";
 import axios from "axios";
 import ProfileForm from "../components/profileForm/ProfileForm";
 import ProfilePicture from "../components/profileForm/ProfilePicture";
-import { Profile } from "../types/Profile";
+import { User } from "../types/User";
+
+const ProfilePage = ({ id }: { id: string | null}) => {
 
 
-const MyProfilePage = ({ email }: { email: string }) => {
-
-
-    const [profile, setProfile] = useState<Profile | null>(null);
+    const [profile, setProfile] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await axios.get<Profile>(`http://localhost:8080/users?email=${encodeURIComponent(email)}`);
+                const response = await axios.get<User>(`http://localhost:8080/users?id=${id}`);
                 const profileData = response.data;
 
                 const picture = profileData.profile.profilePicture;
@@ -34,9 +33,9 @@ const MyProfilePage = ({ email }: { email: string }) => {
         };
 
         fetchProfile();
-    }, [email]);
+    }, [id]);
 
-    const handleChange = (field: keyof Profile["profile"], value: any) => {
+    const handleChange = (field: keyof User["profile"], value: any) => {
         if (!profile) return;
         setProfile({
             ...profile,
@@ -49,19 +48,13 @@ const MyProfilePage = ({ email }: { email: string }) => {
 
 
     const handleSave = async () => {
-        try {
-            let testProfile = {
-                username: "Test"
-            }
-            // http://localhost:8080/users?id=1&username=USERNAME&email=EMAIL
-            // await axios.patch("http://localhost:8080/users?id=1", profile); //replace with correct url
-            await axios.patch("http://localhost:8080/users?id=1", testProfile); //replace with correct url
+        try {         
+            await axios.patch(`http://localhost:8080/users?id=${id}`, profile); //replace with correct url
 
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);
         }
-
         
     };
 
@@ -102,4 +95,4 @@ const MyProfilePage = ({ email }: { email: string }) => {
     );
 };
 
-export default MyProfilePage;
+export default ProfilePage;

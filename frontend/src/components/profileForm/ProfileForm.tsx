@@ -1,11 +1,11 @@
 import React from "react";
 import { Form, Button } from "react-bootstrap";
-import { Profile } from "../../types/Profile";
+import { User } from "../../types/User";
 
 interface ProfileFormProps {
-    profile: Profile;
+    profile: User;
     editing: boolean;
-    onChange: (field: keyof Profile["profile"], value: any) => void;
+    onChange: (field: keyof User["profile"], value: any) => void;
     onSave: () => void;
 }
 

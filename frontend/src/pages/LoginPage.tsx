@@ -58,7 +58,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             
             onLoginSuccess(email);
 
-            navigate("/my_profile"); 
+            navigate(`/user_profile/email/${encodeURIComponent(email)}`); 
         } catch (err: any) {
             setError("Login failed!");
         } finally {
