@@ -1,9 +1,6 @@
 package com.example.demo.restControllers;
 
-import com.example.demo.dTOs.UserDTO;
-import com.example.demo.dTOs.UserInterestVectorDTO;
-import com.example.demo.dTOs.UserProfileDTO;
-import com.example.demo.dTOs.UserRegistrationDTO;
+import com.example.demo.dTOs.*;
 import com.example.demo.entities.User;
 import com.example.demo.services.UserService;
 import jakarta.validation.Valid;
@@ -60,6 +57,11 @@ public class UserController {
         return userService.getUserInterestsVectorDTO(id, username, email);
     }
 
+    @GetMapping("/userMatches")
+    public UserMatchesDTO getUserMatches(@RequestParam long id){
+        return userService.getUserMatches(id);
+    }
+
     // POST
     @PostMapping
     public UserDTO registerUser(
@@ -68,6 +70,9 @@ public class UserController {
     }
 
     // PATCH
+    /*
+    INOP: Does not use List<Game> to calc interest vector
+
     @PatchMapping
     public UserDTO patchUser(
             @RequestParam(required = false) Long id,
@@ -76,7 +81,7 @@ public class UserController {
             @Valid @RequestBody UserDTO userDTO) {
         return userService.patchUser(id, username, email, userDTO);
     }
-
+*/
     @PatchMapping("/profile")
     public UserProfileDTO patchUserProfile(
             @RequestParam(required = false) Long id,
@@ -85,6 +90,9 @@ public class UserController {
             @Valid @RequestBody UserProfileDTO userProfileDTO) {
         return userService.patchUserProfile(id, username, email, userProfileDTO);
     }
+
+    /*
+    INOP: Does not use List<Game> to calc interest vector
 
     @PatchMapping("/interestsVector")
     public UserInterestVectorDTO patchUserInterestsVector(
@@ -95,7 +103,7 @@ public class UserController {
     ) {
         return userService.patchUserInterestsVector(id, username, email, userInterestVectorDTO);
     }
-
+*/
     // DELETE
     @DeleteMapping
     public UserDTO deleteUser(

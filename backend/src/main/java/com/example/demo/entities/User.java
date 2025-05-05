@@ -52,15 +52,33 @@ public class User implements EmailOrUsernameCarrier {
     @ValidInterestedGenders
     private String[] interestedGenders;
 
+    @ManyToMany
+    @JoinTable(
+            name = "user_interested_games",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "game_id")
+    )
+    private List<Game> interestedGames;
+
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "interestVector_id")
+    @JoinColumn(name = "user_interest_vector_id")
     private UserInterestVector interestVector;
 
     @ManyToMany(cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Connection> connections = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Connection> connectionRequests = new ArrayList<>();
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<UserProfile> rejectedUsersProfiles = new ArrayList<>();
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<UserProfile> recommendedUserProfiles = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
@@ -68,6 +86,7 @@ public class User implements EmailOrUsernameCarrier {
 
     private Boolean isGpsUser; // false if location chosen by city list
 
+    @JsonIgnore
     @Column(columnDefinition = "geometry(Point, 4326)")
     private Point location; // for GPS users
 

@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+
+
+/*
 @Component
 @RequiredArgsConstructor
 public class UserLocationDataSeeder implements CommandLineRunner {
@@ -120,6 +123,8 @@ public class UserLocationDataSeeder implements CommandLineRunner {
 
         return user;
     }
+
+
     private List<User> generateGpsUsersOutsideCities(int count) {
         List<User> users = new ArrayList<>();
 
@@ -205,3 +210,4 @@ public class UserLocationDataSeeder implements CommandLineRunner {
         }
     }
 }
+*/
