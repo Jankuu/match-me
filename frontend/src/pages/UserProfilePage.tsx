@@ -8,7 +8,7 @@ import { Profile } from "../types/Profile";
 import { useLocation, useParams } from 'react-router-dom';
 
 const UserProfilePage = () => {
-    const { email } = useParams<{ email: string }>();
+    const { identifier } = useParams<{ identifier: string }>();
     // const location = useLocation();
 
     const [profile, setProfile] = useState<Profile | null>(null);
@@ -16,11 +16,24 @@ const UserProfilePage = () => {
     const [editing, setEditing] = useState(false);
 
     useEffect(() => {
-        if (!email) return; // Если нет email, то не загружаем профиль
+        if (!identifier) return; // if no identifier, don't load profile
 
         const fetchProfile = async () => {
             try {
-                const response = await axios.get<Profile>(`http://localhost:8080/users?email=${encodeURIComponent(email)}`);
+                const token = localStorage.getItem('token');
+
+                // check if the identifier is an email or a username
+                const isEmail = identifier.includes('@');
+                const queryParam = isEmail ? 'email' : 'username';
+
+                const response = await axios.get<Profile>(
+                    `http://localhost:8080/users?${queryParam}=${encodeURIComponent(identifier)}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
                 const profileData = response.data;
 
                 const picture = profileData.profile.profilePicture;
@@ -37,7 +50,7 @@ const UserProfilePage = () => {
         };
 
         fetchProfile();
-    }, [email]);
+    }, [identifier]);
 
     const handleChange = (field: keyof Profile["profile"], value: any) => {
         if (!profile) return;
@@ -52,7 +65,21 @@ const UserProfilePage = () => {
 
     const handleSave = async () => {
         try {
-            await axios.patch("http://localhost:8080/users/me", profile); // замените на правильный URL
+            const token = localStorage.getItem('token');
+
+            const isEmail = identifier?.includes('@') ?? false;
+            const queryParam = isEmail ? 'email' : 'username';
+
+            await axios.patch(
+                `http://localhost:8080/users?${queryParam}=${encodeURIComponent(identifier as string)}`,
+                profile,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);

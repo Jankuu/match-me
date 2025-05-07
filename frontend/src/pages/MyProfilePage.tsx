@@ -5,9 +5,10 @@ import axios from "axios";
 import ProfileForm from "../components/profileForm/ProfileForm";
 import ProfilePicture from "../components/profileForm/ProfilePicture";
 import { Profile } from "../types/Profile";
+import { getUserIdentifierFromToken } from "../utils/auth";
 
 
-const MyProfilePage = ({ email }: { email: string }) => {
+const MyProfilePage = ({ userIdentifier }: { userIdentifier: string }) => {
 
 
     const [profile, setProfile] = useState<Profile | null>(null);
@@ -17,7 +18,28 @@ const MyProfilePage = ({ email }: { email: string }) => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await axios.get<Profile>(`http://localhost:8080/users?email=${encodeURIComponent(email)}`);
+                const token = localStorage.getItem('token');
+                // Use identifier from props or fallback to JWT token
+                const identifier = userIdentifier || getUserIdentifierFromToken();
+
+                if (!identifier) {
+                    console.error("No identifier provided and none found in JWT token");
+                    setLoading(false);
+                    return;
+                }
+
+                // check if the identifier is an email or a username
+                const isEmail = identifier.includes('@');
+                const queryParam = isEmail ? 'email' : 'username';
+
+                const response = await axios.get<Profile>(
+                    `http://localhost:8080/users?${queryParam}=${encodeURIComponent(identifier)}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
                 const profileData = response.data;
 
                 const picture = profileData.profile.profilePicture;
@@ -34,7 +56,7 @@ const MyProfilePage = ({ email }: { email: string }) => {
         };
 
         fetchProfile();
-    }, [email]);
+    }, [userIdentifier]);
 
     const handleChange = (field: keyof Profile["profile"], value: any) => {
         if (!profile) return;
@@ -50,19 +72,34 @@ const MyProfilePage = ({ email }: { email: string }) => {
 
     const handleSave = async () => {
         try {
-            let testProfile = {
-                username: "Test"
+            const token = localStorage.getItem('token');
+            // Use identifier from props or fallback to JWT token
+            const identifier = userIdentifier || getUserIdentifierFromToken();
+
+            if (!identifier) {
+                console.error("No identifier provided and none found in JWT token");
+                return;
             }
-            // http://localhost:8080/users?id=1&username=USERNAME&email=EMAIL
-            // await axios.patch("http://localhost:8080/users?id=1", profile); //replace with correct url
-            await axios.patch("http://localhost:8080/users?id=1", testProfile); //replace with correct url
+
+            // Check if the identifier is an email (contains @) or a username
+            const isEmail = identifier.includes('@');
+            const queryParam = isEmail ? 'email' : 'username';
+
+            // Use the actual profile data instead of test data
+            await axios.patch(
+                `http://localhost:8080/users?${queryParam}=${encodeURIComponent(identifier)}`, 
+                profile,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
 
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);
         }
-
-        
     };
 
     if (loading) {

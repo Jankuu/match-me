@@ -27,7 +27,15 @@ const UserList: React.FC = () => {
 
   const fetchUsers = async (page = 0, size = 10) => {
     try {
-      const response = await axios.get(`http://localhost:8080/users/all?page=${page}&size=${size}`);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `http://localhost:8080/users/all?page=${page}&size=${size}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
       setUsers(response.data.content);
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -46,8 +54,10 @@ const UserList: React.FC = () => {
     // TODO: implement DELETE FROM THE LIST request
   };
 
-  const handleCardClick = (email: string) => {
-    navigate(`/user_profile/${email}`, { state: { email } });
+  const handleCardClick = (user: User) => {
+    // Use email if available, otherwise use username
+    const identifier = user.email || user.username;
+    navigate(`/user_profile/${identifier}`, { state: { identifier } });
 };
 
   const calculateAge = (birthDate: string | undefined) => {
@@ -65,7 +75,7 @@ const UserList: React.FC = () => {
       {users.map((user) => {
         const profile = user.profile || {};
         return (
-          <div key={user.id} onClick={() => handleCardClick(user.email)} style={{ cursor: 'pointer' }}>
+          <div key={user.id} onClick={() => handleCardClick(user)} style={{ cursor: 'pointer' }}>
             <Card className="mb-3 shadow-sm">
   <Row className="align-items-center g-0">
     <Col xs={3} md={2} className="text-center">

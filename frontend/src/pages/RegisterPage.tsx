@@ -15,7 +15,7 @@ const RegisterPage = () => {
         setLoading(true);
     
         try {
-            const response = await axios.post("http://localhost:8080/users/reg", userPayload, {
+            const response = await axios.post("http://localhost:8080/users", userPayload, {
                 headers: {
                     "Content-Type": "application/json",
                 },

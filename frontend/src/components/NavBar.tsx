@@ -17,7 +17,7 @@ const NavBar = () => {
                     <Nav.Link href="/login">
                         <FaHome size={24} />
                     </Nav.Link>
-                    <Nav.Link href="/profile">
+                    <Nav.Link href="/my_profile">
                         <FaUser size={24} />
                     </Nav.Link>
                     <Nav.Link href="/chat">
