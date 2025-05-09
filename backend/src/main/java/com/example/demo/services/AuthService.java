@@ -46,7 +46,7 @@ public class AuthService {
     public List<UserProfile> testLogin(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find user with this id", id));
 
-        List<UserProfile> recommendedUserProfiles = matchingService.getRecommendationsFromInterests(user);
+        List<UserProfile> recommendedUserProfiles = matchingService.getRecommendations(user);
 
         System.out.println(recommendedUserProfiles);
 

@@ -157,7 +157,7 @@ public class DataSeeder implements CommandLineRunner {
     private void generateRandomUsers() {
         List<User> users = new ArrayList<>();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 500; i++) {
             User user = new User();
             UserProfile profile = new UserProfile();
             UserInterestVector interestVector = new UserInterestVector();
@@ -174,10 +174,7 @@ public class DataSeeder implements CommandLineRunner {
 
             user.setInterestedMinAge(generateRandomInt(18, 19));
             user.setInterestedMaxAge(generateRandomInt(99, 100));
-            //user.setInterestedGenders(generateRandomGenders());
-
-            String[] iGen = {"man", "woman"};
-            user.setInterestedGenders(iGen);
+            user.setInterestedGenders(generateRandomGenders());
 
             interestVector.setFantasy(generateRandomInt(0, 100));
             interestVector.setCompetitive(generateRandomInt(0, 100));
