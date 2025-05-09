@@ -172,9 +172,12 @@ public class DataSeeder implements CommandLineRunner {
             profile.setDescription(generateRandomString(100, 300));
             user.setProfile(profile);
 
-            user.setInterestedMinAge(generateRandomInt(18, 30));
-            user.setInterestedMaxAge(generateRandomInt(31, 45));
-            user.setInterestedGenders(generateRandomGenders());
+            user.setInterestedMinAge(generateRandomInt(18, 19));
+            user.setInterestedMaxAge(generateRandomInt(99, 100));
+            //user.setInterestedGenders(generateRandomGenders());
+
+            String[] iGen = {"man", "woman"};
+            user.setInterestedGenders(iGen);
 
             interestVector.setFantasy(generateRandomInt(0, 100));
             interestVector.setCompetitive(generateRandomInt(0, 100));
@@ -187,8 +190,8 @@ public class DataSeeder implements CommandLineRunner {
             if (randGPS == 1) {
                 user.setIsGpsUser(true);
                 user.setLocation(GeometryUtils.createPoint(
-                        generateRandomDouble(-180, 180),
-                        generateRandomDouble(-90, 90)));
+                        generateRandomDouble(-1, 1),
+                        generateRandomDouble(-1, 1)));
                 user.setRadius(generateRandomInt(20000, 100000));
             } else {
                 user.setIsGpsUser(false);

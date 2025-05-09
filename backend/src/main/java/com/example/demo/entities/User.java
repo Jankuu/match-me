@@ -76,7 +76,7 @@ public class User implements EmailOrUsernameCarrier {
     @JsonIgnore
     private List<UserProfile> rejectedUsersProfiles = new ArrayList<>();
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @Transient
     @JsonIgnore
     private List<UserProfile> recommendedUserProfiles = new ArrayList<>();
 

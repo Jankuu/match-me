@@ -24,4 +24,24 @@ public class MatchingService {
         }
         return null;
     }
+
+    public List<UserProfile> getTestRecommendations(User user) {
+        if (user.getIsGpsUser()){
+            return userRepository.getTestRecommendations(user.getId())
+                    .stream()
+                    .map(User::getProfile)
+                    .toList();
+        }
+        return null;
+    }
+
+    public List<UserProfile> getRecommendationsFromInterests(User user) {
+        if (user.getIsGpsUser()){
+            return userRepository.getRecommendationsFromInterests(user.getId())
+                    .stream()
+                    .map(User::getProfile)
+                    .toList();
+        }
+        return null;
+    }
 }
