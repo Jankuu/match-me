@@ -25,10 +25,14 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     const [messages, setMessages] = useState<string[]>([]);
 
     useEffect(() => {
-        const sock = new SockJS("http://localhost:8080/ws");
+        const token = localStorage.getItem('token');
+        const sock = new SockJS(`http://localhost:8080/ws?token=${token}`);
         const stompClient = new Client({
             webSocketFactory: () => sock,
             debug: (str) => console.log(str),
+            connectHeaders: {
+                Authorization: `Bearer ${token}`
+            },
             onConnect: () => {
                 console.log("✅ Connected to WebSocket");
                 setIsConnected(true);

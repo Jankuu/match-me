@@ -15,6 +15,7 @@ import com.example.demo.repositories.UserRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
@@ -25,11 +26,17 @@ public class UserService {
     private final UserRepository userRepository;
     private final ConnectionRepository connectionRepository;
     private final ConnectionsService connectionsService;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, ConnectionRepository connectionRepository, @Lazy ConnectionsService connectionsService) {
+    public UserService(
+            UserRepository userRepository, 
+            ConnectionRepository connectionRepository, 
+            @Lazy ConnectionsService connectionsService,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.connectionRepository = connectionRepository;
         this.connectionsService = connectionsService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // GET
@@ -175,24 +182,24 @@ public class UserService {
     }
 
     // HELPER METHODS
-    private static User assignUserValues(UserRegistrationDTO dto) {
+    private User assignUserValues(UserRegistrationDTO dto) {
         User user = new User();
         if (dto.getUsername() != null && !dto.getUsername().isBlank()) user.setUsername(dto.getUsername());
         if (dto.getEmail() != null && !dto.getEmail().isBlank()) user.setEmail(dto.getEmail());
-        if (dto.getPassword() != null && !dto.getPassword().isBlank()) user.setPassword(dto.getPassword());
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) user.setPassword(passwordEncoder.encode(dto.getPassword()));
         if (dto.getInterestedMinAge() != null) user.setInterestedMinAge(dto.getInterestedMinAge());
         if (dto.getInterestedMaxAge() != null) user.setInterestedMaxAge(dto.getInterestedMaxAge());
         if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
         return user;
     }
 
-    private static User assignUserValues(User user, UserDTO dto) {
+    private User assignUserValues(User user, UserDTO dto) {
         if (user == null) {
             user = new User();
         }
         if (dto.getUsername() != null && !dto.getUsername().isBlank()) user.setUsername(dto.getUsername());
         if (dto.getEmail() != null && !dto.getEmail().isBlank()) user.setEmail(dto.getEmail());
-        if (dto.getPassword() != null && !dto.getPassword().isBlank()) user.setPassword(dto.getPassword());
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) user.setPassword(passwordEncoder.encode(dto.getPassword()));
         if (dto.getInterestedMinAge() != null) user.setInterestedMinAge(dto.getInterestedMinAge());
         if (dto.getInterestedMaxAge() != null) user.setInterestedMaxAge(dto.getInterestedMaxAge());
         if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());

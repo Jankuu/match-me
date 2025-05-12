@@ -9,6 +9,8 @@ import com.example.demo.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -120,5 +122,35 @@ public class UserController {
             @RequestParam(required = false) String email
     ) {
         return userService.deleteUserInterestsVector(id, username, email);
+    }
+
+    //testing jwt
+
+    @GetMapping("/me")
+    public UserDTO getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.getUserDTO(null, currentUsername, null);
+    }
+
+    @GetMapping("/me/interestsVector")
+    public UserInterestVectorDTO getCurrentUserInterestsVector() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.getUserInterestsVectorDTO(null, currentUsername, null);
+    }
+
+    @GetMapping("/me/profilePicture")
+    public String getCurrentUserProfilePicture() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.getUserProfilePicture(null, currentUsername, null);
+    }
+
+    @GetMapping("/me/profile")
+    public UserProfileDTO getCurrentUserProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.getUserProfileDTO(null, currentUsername, null);
     }
 }
