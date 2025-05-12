@@ -31,9 +31,13 @@ const MatchingPage: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const fetchUsers = async (page = 0, size = 100) => {
+  const fetchUsers = async (page = 0, size = 10
+  ) => {
     try {
       const response = await axios.get(`http://localhost:8080/users/all?page=${page}&size=${size}`);
+      // connections
+
+      // recomindations
       setUsers(response.data.content);
     } catch (error) {
       console.error('Failed to fetch users:', error);

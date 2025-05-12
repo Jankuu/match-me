@@ -35,6 +35,7 @@ const UserProfilePage = () => {
         const fetchProfile = async () => {
 
             try {
+                console.log(param);
                 const response = await axios.get<User>(`http://localhost:8080/users?${param}`);
                 const profileData = response.data;
 
@@ -67,7 +68,8 @@ const UserProfilePage = () => {
 
     const handleSave = async () => {
         try {
-            await axios.patch("http://localhost:8080/users/me", profile);
+            console.log(profile?.id);
+            await axios.patch(`http://localhost:8080/users?id=${profile?.id}`, profile);
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);
