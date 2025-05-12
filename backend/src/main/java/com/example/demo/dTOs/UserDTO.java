@@ -3,6 +3,7 @@ package com.example.demo.dTOs;
 import com.example.demo.constraints.ValidInterestedAge;
 import com.example.demo.constraints.ValidInterestedGenders;
 import com.example.demo.entities.Connection;
+import com.example.demo.entities.Game;
 import com.example.demo.entities.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToMany;
@@ -31,6 +32,7 @@ public class UserDTO {
     private String[] interestedGenders;
 
     private UserInterestVectorDTO interestVector;
+    private List<Game> interestedGames;
 
     public UserDTO(User user) {
         this.id = user.getId();

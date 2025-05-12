@@ -4,6 +4,7 @@ import com.example.demo.dTOs.AuthResponseDTO;
 import com.example.demo.dTOs.LoginDTO;
 import com.example.demo.dTOs.UserDTO;
 import com.example.demo.entities.User;
+import com.example.demo.entities.UserProfile;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.UserRepository;
 import com.example.demo.security.JwtUtil;
@@ -14,19 +15,23 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AuthService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final MatchingService matchingService;
 
     public AuthService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
-            JwtUtil jwtUtil) {
+            JwtUtil jwtUtil, MatchingService matchingService) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.matchingService = matchingService;
     }
 
     public AuthResponseDTO authenticate(LoginDTO loginDTO) {
@@ -48,5 +53,20 @@ public class AuthService {
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Invalid username/email or password");
         }
+    }
+
+    // This gets matches without location filtering
+    public List<UserProfile> testLogin(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find user with this id", id));
+
+        List<UserProfile> recommendedUserProfiles = matchingService.getRecommendations(user);
+
+        System.out.println(recommendedUserProfiles);
+
+        user.setRecommendedUserProfiles(recommendedUserProfiles);
+
+        userRepository.save(user);
+
+        return recommendedUserProfiles;
     }
 }

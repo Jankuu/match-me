@@ -1,13 +1,7 @@
 package com.example.demo.services;
 
-import com.example.demo.dTOs.UserDTO;
-import com.example.demo.dTOs.UserInterestVectorDTO;
-import com.example.demo.dTOs.UserProfileDTO;
-import com.example.demo.dTOs.UserRegistrationDTO;
-import com.example.demo.entities.Connection;
-import com.example.demo.entities.User;
-import com.example.demo.entities.UserInterestVector;
-import com.example.demo.entities.UserProfile;
+import com.example.demo.dTOs.*;
+import com.example.demo.entities.*;
 import com.example.demo.exceptions.DuplicateResourceException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;
@@ -97,6 +91,16 @@ public class UserService {
         return new UserInterestVectorDTO(interestVector);
     }
 
+    public UserMatchesDTO getUserMatches(long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find user by id", id));
+
+        UserMatchesDTO dto = new UserMatchesDTO();
+        dto.setRecommendedUserProfiles(user.getRecommendedUserProfiles());
+        dto.setRejectedUsersProfiles(user.getRejectedUsersProfiles());
+
+        return dto;
+    }
+
     // POST
     public UserDTO registerNewUser(UserRegistrationDTO dto) {
         if (dto.getUsername() != null && !dto.getUsername().isBlank() && userRepository.findByUsername(dto.getUsername()).isPresent()) {
@@ -114,8 +118,8 @@ public class UserService {
             newUser.setProfile(new UserProfile());
         }
 
-        if (dto.getInterestVector() != null) {
-            newUser.setInterestVector(assignUserInterestVectorValues(null, dto.getInterestVector()));
+        if (dto.getInterestedGames() != null) {
+            newUser.setInterestVector(assignUserInterestVectorValues(null, dto.getInterestedGames()));
         } else {
             newUser.setInterestVector(new UserInterestVector());
         }
@@ -131,7 +135,7 @@ public class UserService {
             currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), userDTO.getProfile()));
         }
         if (userDTO.getInterestVector() != null) {
-            currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userDTO.getInterestVector()));
+            //currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userDTO.getInterestVector()));
         }
         return new UserDTO(userRepository.save(currentUser));
     }
@@ -150,7 +154,7 @@ public class UserService {
         if (currentUser.getInterestVector() == null) {
             currentUser.setInterestVector(new UserInterestVector(userInterestVectorDTO));
         }
-        currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userInterestVectorDTO));
+        //currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userInterestVectorDTO));
         return new UserInterestVectorDTO(userRepository.save(currentUser).getInterestVector());
     }
 
@@ -227,18 +231,31 @@ public class UserService {
         return profile;
     }
 
-    private static UserInterestVector assignUserInterestVectorValues(UserInterestVector interestVector, UserInterestVectorDTO interestVectorDTO) {
+    private static UserInterestVector assignUserInterestVectorValues(UserInterestVector interestVector, List<Game> games) {
         if (interestVector == null) {
             interestVector = new UserInterestVector();
         }
-        if (interestVectorDTO.getFantasy() != null)
-            interestVector.setFantasy(interestVectorDTO.getFantasy());
-        if (interestVectorDTO.getCompetitive() != null)
-            interestVector.setCompetitive(interestVectorDTO.getCompetitive());
-        if (interestVectorDTO.getAction() != null) interestVector.setAction(interestVectorDTO.getAction());
-        if (interestVectorDTO.getStory() != null) interestVector.setStory(interestVectorDTO.getStory());
-        if (interestVectorDTO.getComplex() != null)
-            interestVector.setComplex(interestVectorDTO.getComplex());
+        int total = games.size();
+
+        int fantasySum = 0;
+        int competitiveSum = 0;
+        int actionSum = 0;
+        int storySum = 0;
+        int complexSum = 0;
+
+        for (Game game : games) {
+            fantasySum += game.getFantasy();
+            competitiveSum += game.getCompetitive();
+            actionSum += game.getAction();
+            storySum += game.getStory();
+            complexSum += game.getComplex();
+        }
+
+        interestVector.setFantasy(fantasySum / total);
+        interestVector.setCompetitive(competitiveSum / total);
+        interestVector.setAction(actionSum / total);
+        interestVector.setStory(storySum / total);
+        interestVector.setComplex(complexSum / total);
 
         return interestVector;
     }
