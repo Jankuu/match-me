@@ -85,7 +85,6 @@ const MyProfilePage = ({ userIdentifier }: { userIdentifier: string }) => {
             const isEmail = identifier.includes('@');
             const queryParam = isEmail ? 'email' : 'username';
 
-            // Use the actual profile data instead of test data
             await axios.patch(
                 `http://localhost:8080/users?${queryParam}=${encodeURIComponent(identifier)}`, 
                 profile,
