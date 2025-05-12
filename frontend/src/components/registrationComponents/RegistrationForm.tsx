@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button, Form, Spinner } from "react-bootstrap";
+import { Button, Form, InputGroup, Spinner } from "react-bootstrap";
 import UsernameInput from "./UsernameInput";
 import EmailInput from "./EmailInput";
 import PasswordInput from "./PasswordInput";
@@ -11,6 +11,7 @@ import GenderSelector from "./GenderSelection";
 import HeightSet from "./HeightSet";
 import Description from "./Description";
 import { UserRegistrationDTO } from "../../dto/UserRegistrationDTO";
+import { CheckCircleFill, XCircleFill } from "react-bootstrap-icons";
 
 type Props = {
     onSubmit: (data: UserRegistrationDTO) => void;
@@ -26,6 +27,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
 
     const [image, setImage] = useState<File | null>(null);
     const [birthDateUi, setBirthDateUi] = useState<string>("");
+    const [birthDateError, setBirthDateError] = useState<string>("");
     const [gender, setGender] = useState("man");
     const [height, setHeight] = useState<number>(150);
     const [description, setDescription] = useState<string>("");
@@ -53,8 +55,15 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 userAge--;
             }
             setAge(userAge);
+
+            if (userAge < 18 || userAge > 120) {
+                setBirthDateError("You must be between 18 and 120 years old.");
+            } else {
+                setBirthDateError("");
+            }
         } else {
             setAge(null);
+            setBirthDateError("");
         }
     }, [birthDateUi]);
 
@@ -65,74 +74,65 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         passwordMatch &&
         birthDateUi &&
         age !== null &&
-        age >= 18;
+        age >= 18 &&
+        age <= 120 &&
+        location !== null;
 
-        // const fileToBase64 = (file: File): Promise<string> => {
-        //     return new Promise((resolve, reject) => {
-        //         const reader = new FileReader();
-        //         reader.onload = () => {
-        //             resolve(reader.result as string);
-        //         };
-        //         reader.onerror = reject;
-        //         reader.readAsDataURL(file);
-        //     });
-        // };
+    const readImageAsBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result as string;
+                const base64 = result.split(",")[1]; // remove "data:image/jpeg;base64,"
+                resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
 
-        const readImageAsBase64 = (file: File): Promise<string> => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const result = reader.result as string;
-                    const base64 = result.split(",")[1]; // remove "data:image/jpeg;base64,"
-                    resolve(base64);
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!ages) return;
+
+        let base64Image: string | undefined = undefined;
+        if (image) {
+            try {
+                base64Image = await readImageAsBase64(image);
+            } catch (error) {
+                console.error("Failed to read image", error);
+                return;
+            }
+        }
+
+        const userPayload: UserRegistrationDTO = {
+            username,
+            email,
+            password,
+            profile: {
+                name: username,
+                profilePicture: base64Image,
+                birthDate: birthDateUi,
+                gender,
+                height,
+                description,
+                location: location,
+            },
+            interestedMinAge: ages[0],
+            interestedMaxAge: ages[1],
+            interestedGenders: preferredGendersArray,
+            interestVector: {
+                fantasy: interest[0],
+                competitive: interest[1],
+                action: interest[2],
+                story: interest[3],
+                complex: interest[4],
+            },
         };
 
-        const handleSubmit = async (e: React.FormEvent) => {
-            e.preventDefault();
-        
-            if (!ages) return;
-
-            let base64Image: string | undefined = undefined;
-            if (image) { // imageFile — состояние типа File
-                try {
-                    base64Image = await readImageAsBase64(image);
-                } catch (error) {
-                    console.error("Failed to read image", error);
-                    return;
-                }
-            }
-        
-            const userPayload: UserRegistrationDTO = {
-                username,
-                email,
-                password,
-                profile: {
-                    name: username,
-                    profilePicture: base64Image, // 
-                    birthDate: birthDateUi,
-                    gender,
-                    height,
-                    description,
-                    location: location, // 
-                },
-                interestedMinAge: ages[0],
-                interestedMaxAge: ages[1],
-                interestedGenders: preferredGendersArray,
-                interestVector: {
-                    fantasy: interest[0],
-                    competitive: interest[1],
-                    action: interest[2],
-                    story: interest[3],
-                    complex: interest[4],
-                },
-            };
-        
-            onSubmit(userPayload);
-        };        
+        onSubmit(userPayload);
+    };
 
     return (
         <Form onSubmit={handleSubmit}>
@@ -157,18 +157,31 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 loading={loading}
             />
             <Form.Group className="mb-3">
-                <Form.Label>Date of Birth <span style={{ color: "red" }}>*</span></Form.Label>
-                <Form.Control
-                    type="date"
-                    value={birthDateUi}
-                    onChange={(e) => setBirthDateUi(e.target.value)}
-                    required
-                    disabled={loading}
-                    min={new Date(new Date().setFullYear(new Date().getFullYear() - 120)).toISOString().split("T")[0]}
-                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
-                />
-                {age !== null && age < 18 && (
-                    <Form.Text className="text-danger">You must be at least 18 years old.</Form.Text>
+            <Form.Label>Date of Birth <span style={{ color: "red" }}>*</span></Form.Label>
+                <InputGroup>
+                    <Form.Control
+                        type="date"
+                        value={birthDateUi}
+                        onChange={(e) => setBirthDateUi(e.target.value)}
+                        required
+                        disabled={loading}
+                        min={new Date(new Date().setFullYear(new Date().getFullYear() - 120)).toISOString().split("T")[0]}
+                        max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
+                    />
+                    <InputGroup.Text>
+                        {birthDateUi && (
+                            age && age >= 18 && age <= 120 ? (
+                                <CheckCircleFill color="green" />
+                            ) : (
+                                <XCircleFill color="red" />
+                            )
+                        )}
+                    </InputGroup.Text>
+                </InputGroup>
+                {birthDateError && (
+                    <Form.Text className="text-danger d-block">
+                        {birthDateError}
+                    </Form.Text>
                 )}
             </Form.Group>
 

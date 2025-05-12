@@ -58,7 +58,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             
             onLoginSuccess(email);
 
-            navigate("/my_profile"); 
+            navigate(`/matching`); // Need to be autorized and request matching stuff
         } catch (err: any) {
             setError("Login failed!");
         } finally {

@@ -4,23 +4,39 @@ import { FaEdit } from "react-icons/fa";
 import axios from "axios";
 import ProfileForm from "../components/profileForm/ProfileForm";
 import ProfilePicture from "../components/profileForm/ProfilePicture";
-import { Profile } from "../types/Profile";
-import { useLocation, useParams } from 'react-router-dom';
+import { User } from "../types/User";
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft } from "react-bootstrap-icons";
 
 const UserProfilePage = () => {
-    const { email } = useParams<{ email: string }>();
+    const { id, email } = useParams();
+    let param: string;
+   
+    const currentUserEmail = localStorage.getItem("email");
+    const navigate = useNavigate();
+    
+    const identifier = id || email;
+    const type = id ? "id" : "email";
     // const location = useLocation();
 
-    const [profile, setProfile] = useState<Profile | null>(null);
+    const [profile, setProfile] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
 
     useEffect(() => {
-        if (!email) return; // Если нет email, то не загружаем профиль
+        if (!type) return;
+
+        if (type === "email" && identifier) {
+            param = "email=" + encodeURIComponent(identifier);
+        } else if (type === "id" && identifier) {
+            param = "id=" + identifier;
+        }
 
         const fetchProfile = async () => {
+
             try {
-                const response = await axios.get<Profile>(`http://localhost:8080/users?email=${encodeURIComponent(email)}`);
+                console.log(param);
+                const response = await axios.get<User>(`http://localhost:8080/users?${param}`);
                 const profileData = response.data;
 
                 const picture = profileData.profile.profilePicture;
@@ -39,7 +55,7 @@ const UserProfilePage = () => {
         fetchProfile();
     }, [email]);
 
-    const handleChange = (field: keyof Profile["profile"], value: any) => {
+    const handleChange = (field: keyof User["profile"], value: any) => {
         if (!profile) return;
         setProfile({
             ...profile,
@@ -52,7 +68,8 @@ const UserProfilePage = () => {
 
     const handleSave = async () => {
         try {
-            await axios.patch("http://localhost:8080/users/me", profile); // замените на правильный URL
+            console.log(profile?.id);
+            await axios.patch(`http://localhost:8080/users?id=${profile?.id}`, profile);
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);
@@ -76,23 +93,37 @@ const UserProfilePage = () => {
     }
 
     return (
+        <>
+        <div className="px-3 pt-3">
+                        <Button
+                            // variant="link"
+                            onClick={() => navigate("/matching")}
+                            className="d-flex align-items-center"
+                        >
+                            <ArrowLeft size={20} className="me-1" />
+                            {/* Back */}
+                        </Button>
+                    </div>
         <Container className="mt-5" style={{ maxWidth: "600px" }}>
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2>My Profile</h2>
+            <   h2>{currentUserEmail === profile.email ? "My Profile" : `${profile.username}'s Profile`}</h2>
+                {profile.email === currentUserEmail && (
                 <Button variant="outline-primary" onClick={() => setEditing(!editing)}>
                     <FaEdit /> {editing ? "Cancel" : "Edit"}
                 </Button>
+            )}
             </div>
 
             <ProfilePicture profilePicture={profile.profile.profilePicture} />
 
             <ProfileForm
                 profile={profile}
-                editing={false}
+                editing={editing}
                 onChange={handleChange}
                 onSave={handleSave}
             />
         </Container>
+        </>
     );
 };
 

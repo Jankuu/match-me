@@ -8,7 +8,6 @@ import {
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ChatPage from "./pages/ChatPage";
-import MyProfilePage from "./pages/MyProfilePage";
 import NavBar from "./components/NavBar";
 import { useMediaQuery } from "react-responsive";
 import { useState } from "react";
@@ -18,6 +17,11 @@ import UserProfilePage from "./pages/UserProfilePage";
 import TestStenPage from "./pages/TestStenPage";
 
 function App() {
+
+    const [email, setEmail] = useState<string | null>(
+        localStorage.getItem("email")
+    )
+
     // DEBUGGING AND TEMPLATES:
     // const { client, isConnected } = useWebSocket();
 
@@ -60,16 +64,16 @@ function App() {
                     {/* Default route — redirect based on login status, chat is used as an example */}
                     <Route
                         path="/"
-                        element={<Navigate to={token ? "/chat" : "/login"} />}
+                        element={<Navigate to={token ? "/matching" : "/login"} />}
                     />
                     <Route path="/login" element={<LoginPage onLoginSuccess={(email) => {
                         setEmail(email);
-                        localStorage.setItem("email", email); // Сохраняем между перезагрузками
+                        localStorage.setItem("email", email); // Saving it
                     }} />} />
                     <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/chat" element={<ChatPage />} />
-                    <Route path="/my_profile" element={<MyProfilePage email={email || ""}/>} />
-                    <Route path="/user_profile/:email" element={<UserProfilePage />} />
+                    <Route path="/chat/:id/:username" element={<ChatPage />} />
+                    <Route path="/user_profile/email/:email" element={<UserProfilePage />} />
+                    <Route path="/user_profile/id/:id" element={<UserProfilePage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/matching" element={<MatchingPage />} />
                     <Route path="/test" element={<TestStenPage />} />

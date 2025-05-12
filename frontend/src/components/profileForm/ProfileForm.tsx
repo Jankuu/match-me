@@ -1,15 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { Form, Button } from "react-bootstrap";
-import { Profile } from "../../types/Profile";
+import { User } from "../../types/User";
+import HeightSet from "../registrationComponents/HeightSet";
 
 interface ProfileFormProps {
-    profile: Profile;
+    profile: User;
     editing: boolean;
-    onChange: (field: keyof Profile["profile"], value: any) => void;
+    onChange: (field: keyof User["profile"], value: any) => void;
     onSave: () => void;
+
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({ profile, editing, onChange, onSave }) => {
+
+    const [height, setHeight] = useState<number>(profile.profile.height);
+    
     return (
         <Form>
             <Form.Group className="mb-3">
@@ -39,6 +44,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile, editing, onChange, o
 
             <Form.Group className="mb-3">
                 <Form.Label>Height (cm)</Form.Label>
+                {/* <HeightSet height={height} setHeight={setHeight} onChange={profile.profile.height = height} /> */}
                 <Form.Control
                     type="number"
                     value={profile.profile.height}

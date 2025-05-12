@@ -1,33 +1,36 @@
-// Navigation for mobile versions on the bottom 
 import { Container, Nav } from "react-bootstrap";
 import {
-    FaHome,
     FaUser,
-    FaComments,
-    FaBell,
     FaCog,
 } from "react-icons/fa";
-import "../styles/NavBar.css"; // стили отдельно
+import { BsPeopleFill } from "react-icons/bs";
+import { useNavigate } from "react-router-dom";
+import "../styles/NavBar.css";
 
 const NavBar = () => {
+    const navigate = useNavigate();
+
+    const handleProfileClick = () => {
+        const email = localStorage.getItem("email");
+        if (email) {
+            navigate(`/user_profile/email/${encodeURIComponent(email)}`);
+        } else {
+            navigate("/login");
+        }
+    };
+
     return (
         <div className="nav-wrapper">
             <Container>
                 <Nav className="justify-content-between nav-icons">
-                    <Nav.Link href="/login">
-                        <FaHome size={24} />
-                    </Nav.Link>
-                    <Nav.Link href="/profile">
-                        <FaUser size={24} />
-                    </Nav.Link>
-                    <Nav.Link href="/chat">
-                        <FaComments size={24} />
+                    <Nav.Link as="button" onClick={handleProfileClick} style={{ background: "none", border: "none" }}>
+                        <FaUser size={30} />
                     </Nav.Link>
                     <Nav.Link href="/matching">
-                        <FaBell size={24} />
+                        <BsPeopleFill size={30} />
                     </Nav.Link>
                     <Nav.Link href="/settings">
-                        <FaCog size={24} />
+                        <FaCog size={30} />
                     </Nav.Link>
                 </Nav>
             </Container>
