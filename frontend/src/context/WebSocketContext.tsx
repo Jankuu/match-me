@@ -25,18 +25,29 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     const [messages, setMessages] = useState<string[]>([]);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         const sock = new SockJS(`http://localhost:8080/ws?token=${token}`);
+
         const stompClient = new Client({
-            webSocketFactory: () => sock,
-            debug: (str) => console.log(str),
+            brokerURL: `ws://localhost:8080/ws?token=${token}`,
+            //webSocketFactory: () => sock,
             connectHeaders: {
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${token}`,
             },
+            debug: (str) => console.log("[STOMP]", str),
+            reconnectDelay: 5000,
             onConnect: () => {
                 console.log("✅ Connected to WebSocket");
                 setIsConnected(true);
 
+                stompClient.subscribe(
+                    "/user/queue/messages",
+                    (msg: IMessage) => {
+                        console.log("📥 DM:", msg.body);
+                    }
+                );
+
+                // BULLSHIT
                 stompClient.subscribe("/topic/messages", (msg: IMessage) => {
                     console.log("📥 Received from server:", msg.body);
                     setMessages((prev) => [...prev, msg.body]);

@@ -8,18 +8,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.nio.charset.StandardCharsets;
 
 @Component
 public class JwtUtil {
 
     private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    
+
     @Value("${jwt.expiration:86400000}") // Default to 24 hours if not specified
     private long jwtExpiration;
 
@@ -70,5 +70,14 @@ public class JwtUtil {
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            extractUsername(token); // exception will throw if invalid
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -11,9 +11,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final WebSocketMessageInterceptor messageInterceptor;
+    private final AuthHandshakeInterceptor authHandshakeInterceptor;
 
-    public WebSocketConfig(WebSocketMessageInterceptor messageInterceptor) {
+    public WebSocketConfig(WebSocketMessageInterceptor messageInterceptor, AuthHandshakeInterceptor authHandshakeInterceptor) {
         this.messageInterceptor = messageInterceptor;
+        this.authHandshakeInterceptor = authHandshakeInterceptor;
     }
 
     @Override
@@ -24,9 +26,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:5173") // ✅ Use your frontend's origin
-                .withSockJS()
-                .setSessionCookieNeeded(false); // optional: disables cookies if not needed
+                .addInterceptors(authHandshakeInterceptor)
+                .setAllowedOrigins("http://localhost:5173");
+                //.withSockJS()
+                //.setSessionCookieNeeded(false); // optional: disables cookies if not needed
     }
 
     @Override

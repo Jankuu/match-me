@@ -17,6 +17,7 @@ import MatchingPage from "./pages/MatchingPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import JwtTestPage from "./pages/JwtTestPage";
 import { getUserIdentifierFromToken } from "./utils/auth";
+import TestChat from "./pages/TestChat";
 
 function App() {
     const [userIdentifier, setUserIdentifier] = useState<string>(
@@ -126,6 +127,7 @@ function App() {
                         }
                     />
                     <Route path="/jwt-test" element={<JwtTestPage />} />
+                    <Route path="/testchat" element={<TestChat></TestChat>} />
                 </Routes>
             </div>
             {token && <NavBar />}

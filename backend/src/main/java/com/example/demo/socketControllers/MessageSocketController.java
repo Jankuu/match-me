@@ -2,7 +2,6 @@ package com.example.demo.socketControllers;
 
 import com.example.demo.dTOs.MessageDTO;
 import com.example.demo.services.MessageService;
-import com.sun.tools.jconsole.JConsoleContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -11,21 +10,60 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
 import java.util.Objects;
 
 @Controller
 public class MessageSocketController {
+    private final MessageService messageService;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
-    private final MessageService messageService;
 
     public MessageSocketController(MessageService messageService) {
         this.messageService = messageService;
     }
 
     @MessageMapping("/send") // Maps to /app/send
+    public void receiveAMessage(@Payload String message,
+                                Principal principal,
+                                SimpMessageHeaderAccessor headerAccessor) {
+
+        String sender = principal.getName(); // ✅ Comes from your JWT and handshake setup
+
+        /*
+        if ("pass".equals(message)) {
+            // Broadcast to all users
+            messagingTemplate.convertAndSend("/topic/broadcast", "🚨 Someone sent 'pass'!");
+        } */
+
+        int firstSpace = message.indexOf(" ");
+        if (firstSpace > 1) {
+            String targetUser = message.substring(1, firstSpace);
+            String msgContent = message.substring(firstSpace + 1);
+
+            messagingTemplate.convertAndSendToUser(
+                    targetUser,
+                    "/queue/messages",
+                    sender + ": " + msgContent
+            );
+        }
+
+    }
+
+    @MessageMapping("/register")
+    public void registerUser(@Payload String username, SimpMessageHeaderAccessor headerAccessor) {
+        Objects.requireNonNull(headerAccessor.getSessionAttributes()).put("username", username);
+    }
+
+    @MessageMapping("/testSendMessage")
+    @SendTo("/topic/testReceiveMessage")
+    public MessageDTO sendMessage(@Payload MessageDTO messageDTO, SimpMessageHeaderAccessor headerAccessor) {
+        return messageService.sendMessage(messageDTO);
+    }
+
+    @MessageMapping("/send2") // Maps to /app/send
     @SendTo("/topic/messages") // Optional: echo back to frontend
-    public String receiveMessage(@Payload String message, SimpMessageHeaderAccessor headerAccessor) {
+    public String receiveAMessage(@Payload String message, SimpMessageHeaderAccessor headerAccessor) {
         if ("pass".equals(message)) {
 
             // messagingTemplate.convertAndSendToUser(
@@ -38,16 +76,5 @@ public class MessageSocketController {
             messagingTemplate.convertAndSend("/topic/broadcast", "🚨 Someone sent '11'!");
         }
         return "You said: " + message; // Optional echo to all subscribers
-    }
-
-    @MessageMapping("/register")
-    public void registerUser(@Payload String username, SimpMessageHeaderAccessor headerAccessor) {
-        Objects.requireNonNull(headerAccessor.getSessionAttributes()).put("username", username);
-    }
-
-    @MessageMapping("/testSendMessage")
-    @SendTo("/topic/testReceiveMessage")
-    public MessageDTO sendMessage (@Payload MessageDTO messageDTO, SimpMessageHeaderAccessor headerAccessor){
-        return messageService.sendMessage(messageDTO);
     }
 }

@@ -4,7 +4,6 @@ import com.example.demo.dTOs.AuthResponseDTO;
 import com.example.demo.dTOs.LoginDTO;
 import com.example.demo.dTOs.UserDTO;
 import com.example.demo.entities.User;
-import com.example.demo.entities.UserProfile;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.UserRepository;
 import com.example.demo.security.JwtUtil;
@@ -14,8 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class AuthService {
@@ -55,18 +52,10 @@ public class AuthService {
         }
     }
 
-    // This gets matches without location filtering
-    public List<UserProfile> testLogin(Long id) {
+    public AuthResponseDTO testLogin(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find user with this id", id));
 
-        List<UserProfile> recommendedUserProfiles = matchingService.getRecommendations(user);
-
-        System.out.println(recommendedUserProfiles);
-
-        user.setRecommendedUserProfiles(recommendedUserProfiles);
-
-        userRepository.save(user);
-
-        return recommendedUserProfiles;
+        LoginDTO dto = new LoginDTO(user.getUsername(), user.getPassword());
+        return authenticate(dto);
     }
 }

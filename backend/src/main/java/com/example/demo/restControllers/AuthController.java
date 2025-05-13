@@ -22,6 +22,11 @@ public class AuthController {
         return ResponseEntity.ok(authService.authenticate(loginDTO));
     }
 
+    @PostMapping("/test/login")
+    public ResponseEntity<AuthResponseDTO> testLogin(Long id) {
+        return ResponseEntity.ok(authService.testLogin(id));
+    }
+
     /*
     @GetMapping("/test")
     public List<UserProfile> testLogin(@RequestParam Long id){
