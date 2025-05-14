@@ -12,16 +12,16 @@ import java.time.LocalDateTime;
 public class MessageDTO {
     private Long id;
     @NonNull
-    private Long senderId;
+    private String senderUsername;
     @NonNull
-    private Long receiverId;
+    private String receiverUsername;
     private String content;
     private LocalDateTime timestamp;
 
     public MessageDTO(Message message) {
         this.id = message.getId();
-        this.senderId = message.getSenderId();
-        this.receiverId = message.getReceiverId();
+        this.senderUsername = message.getSenderUsername();
+        this.receiverUsername = message.getReceiverUsername();
         this.content = message.getContent();
         this.timestamp = message.getTimestamp();
     }

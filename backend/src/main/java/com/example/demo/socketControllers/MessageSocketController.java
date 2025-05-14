@@ -27,14 +27,13 @@ public class MessageSocketController {
     public void receiveAMessage(@Payload String message,
                                 Principal principal,
                                 SimpMessageHeaderAccessor headerAccessor) {
+        System.out.println("Sender Principal: " + principal.getName());
+        if (message == null || message.isBlank()) {
+            System.out.println("Message is null or blank");
+            return;
+        }
 
         String sender = principal.getName(); // ✅ Comes from your JWT and handshake setup
-
-        /*
-        if ("pass".equals(message)) {
-            // Broadcast to all users
-            messagingTemplate.convertAndSend("/topic/broadcast", "🚨 Someone sent 'pass'!");
-        } */
 
         int firstSpace = message.indexOf(" ");
         if (firstSpace > 1) {
@@ -46,8 +45,20 @@ public class MessageSocketController {
                     "/queue/messages",
                     sender + ": " + msgContent
             );
-        }
 
+            messagingTemplate.convertAndSendToUser(
+                    sender,
+                    "/queue/messages",
+                    sender + ": " + msgContent
+            );
+
+            MessageDTO messageDTO = new MessageDTO();
+            messageDTO.setReceiverUsername(targetUser);
+            messageDTO.setSenderUsername(sender);
+            messageDTO.setContent(msgContent);
+
+            messageService.sendMessage(messageDTO);
+        }
     }
 
     @MessageMapping("/register")

@@ -27,14 +27,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
                 .addInterceptors(authHandshakeInterceptor)
-                .setAllowedOrigins("http://localhost:5173");
-                //.withSockJS()
-                //.setSessionCookieNeeded(false); // optional: disables cookies if not needed
+                .setAllowedOrigins("http://localhost:5173")
+                .setHandshakeHandler(new CustomHandshakeHandler());
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app");
-        registry.enableSimpleBroker("/topic");
+        registry.enableSimpleBroker("/queue", "/topic");
+        registry.setUserDestinationPrefix("/user");
     }
 }

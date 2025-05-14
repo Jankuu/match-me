@@ -27,7 +27,7 @@ public class MessageController {
             @RequestParam(defaultValue = "10") int size) {
         return messageService.getMessagesBetweenUsers(userLinkDTO, page, size);
     }
-
+/*
     @GetMapping("/search")
     public Page<MessageDTO> getSearchedMessages(
             @RequestBody SearchMessages searchMessages,
@@ -35,18 +35,19 @@ public class MessageController {
             @RequestParam(defaultValue = "10") int size) {
         return messageService.getSearchedMessages(searchMessages, page, size);
     }
-
+*/
     // POST
     @PostMapping("/send")
     public MessageDTO sendMessage(@RequestBody MessageDTO messageDTO) {
         return messageService.sendMessage(messageDTO);
     }
 
+    /*
     @PostMapping("/save")
     public List<MessageDTO> saveMessages(@RequestBody List<MessageDTO> messageDTOS) {
         return messageService.saveMessages(messageDTOS);
     }
-
+*/
     // PATCH
     @PatchMapping
     public MessageDTO patchMessage(@RequestParam Long messageId, @RequestBody String content) {

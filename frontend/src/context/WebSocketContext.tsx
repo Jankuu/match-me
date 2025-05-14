@@ -26,11 +26,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-        const sock = new SockJS(`http://localhost:8080/ws?token=${token}`);
+        if (token == null) {
+            console.log("JWT token is null");
+            // return;
+        }
+        //const sock = new SockJS(`http://localhost:8080/ws?token=${token}`);
 
         const stompClient = new Client({
             brokerURL: `ws://localhost:8080/ws?token=${token}`,
-            //webSocketFactory: () => sock,
+            // webSocketFactory: () => sock,
             connectHeaders: {
                 Authorization: `Bearer ${token}`,
             },
@@ -44,13 +48,13 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                     "/user/queue/messages",
                     (msg: IMessage) => {
                         console.log("📥 DM:", msg.body);
+                        setMessages((prev) => [...prev, msg.body]);
                     }
                 );
 
                 // BULLSHIT
                 stompClient.subscribe("/topic/messages", (msg: IMessage) => {
                     console.log("📥 Received from server:", msg.body);
-                    setMessages((prev) => [...prev, msg.body]);
                 });
 
                 stompClient.subscribe("/topic/online-users", (msg) => {

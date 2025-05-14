@@ -12,6 +12,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,15 +21,17 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final MatchingService matchingService;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
-            JwtUtil jwtUtil, MatchingService matchingService) {
+            JwtUtil jwtUtil, MatchingService matchingService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.matchingService = matchingService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public AuthResponseDTO authenticate(LoginDTO loginDTO) {
@@ -54,8 +57,7 @@ public class AuthService {
 
     public AuthResponseDTO testLogin(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find user with this id", id));
-
-        LoginDTO dto = new LoginDTO(user.getUsername(), user.getPassword());
+        LoginDTO dto = new LoginDTO(user.getUsername(), "pw");
         return authenticate(dto);
     }
 }

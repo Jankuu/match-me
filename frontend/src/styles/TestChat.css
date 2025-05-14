@@ -1,6 +1,7 @@
 .reponseContainer {
     border: 1px solid black;
-    max-width: 600px;
+    max-width: 90vw;
     min-height: 200px;
     margin: 20px;
+    overflow-wrap: break-word;
 }

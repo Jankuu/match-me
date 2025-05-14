@@ -18,9 +18,9 @@ public class Message {
     private Long id;
 
     @NonNull
-    private Long receiverId;
+    private String receiverUsername;
     @NonNull
-    private Long senderId;
+    private String senderUsername;
 
     @NonNull
     @NotBlank

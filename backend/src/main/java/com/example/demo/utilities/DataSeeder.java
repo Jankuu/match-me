@@ -9,6 +9,7 @@ import com.example.demo.repositories.GameRepository;
 import com.example.demo.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final ConnectionRepository connectionRepository;
     private final GameRepository gameRepository;
+    private final PasswordEncoder passwordEncoder;
 
     private static String generateRandomString(int min, int max) {
         int length = generateRandomInt(min, max);
@@ -162,7 +164,10 @@ public class DataSeeder implements CommandLineRunner {
             UserInterestVector interestVector = new UserInterestVector();
 
             user.setUsername(generateRandomString(5, 10));
-            user.setPassword(generateRandomString(8, 16));
+
+            //user.setPassword(generateRandomString(8, 16));
+
+            user.setPassword(passwordEncoder.encode("pw"));
 
             profile.setName(generateRandomString(5, 15));
             profile.setBirthDate(generateRandomLocalDate());
@@ -195,7 +200,47 @@ public class DataSeeder implements CommandLineRunner {
 
             users.add(user);
         }
+        users.add(getDebuggingUser());
 
         userRepository.saveAll(users);
+    }
+
+    private User getDebuggingUser() {
+        User user = new User();
+        UserProfile profile = new UserProfile();
+        UserInterestVector interestVector = new UserInterestVector();
+
+        user.setUsername("testUsername");
+        user.setPassword(passwordEncoder.encode("testPassword"));
+        user.setEmail("test@email.com");
+        profile.setName("Test Name");
+        profile.setBirthDate(generateRandomLocalDate());
+        profile.setGender(generateRandomGender());
+        profile.setHeight(generateRandomInt(150, 200));
+        profile.setDescription(generateRandomString(100, 300));
+        user.setProfile(profile);
+
+        user.setInterestedMinAge(generateRandomInt(18, 19));
+        user.setInterestedMaxAge(generateRandomInt(99, 100));
+        user.setInterestedGenders(generateRandomGenders());
+
+        interestVector.setFantasy(generateRandomInt(0, 100));
+        interestVector.setCompetitive(generateRandomInt(0, 100));
+        interestVector.setAction(generateRandomInt(0, 100));
+        interestVector.setStory(generateRandomInt(0, 100));
+        interestVector.setComplex(generateRandomInt(0, 100));
+        user.setInterestVector(interestVector);
+
+        int randGPS = generateRandomInt(0, 1);
+        if (randGPS == 1) {
+            user.setIsGpsUser(true);
+            user.setLocation(GeometryUtils.createPoint(
+                    generateRandomDouble(-1, 1),
+                    generateRandomDouble(-1, 1)));
+            user.setRadius(generateRandomInt(20000, 100000));
+        } else {
+            user.setIsGpsUser(false);
+        }
+        return user;
     }
 }

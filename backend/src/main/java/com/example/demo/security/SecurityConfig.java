@@ -47,7 +47,8 @@ public class SecurityConfig {
                         .requestMatchers("/users").permitAll()// Allow registration
                         .requestMatchers("/users/all").permitAll()// Allow registration
                         .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/test/login").permitAll()
+                        .requestMatchers("/auth/test/login").permitAll()
+                        .requestMatchers("/messages").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

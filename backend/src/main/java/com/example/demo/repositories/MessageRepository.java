@@ -11,12 +11,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT m FROM Message m WHERE " +
-            "(m.senderId = :userId1 AND m.receiverId = :userId2) OR " +
-            "(m.senderId = :userId2 AND m.receiverId = :userId1)")
-    Page<Message> findMessagesBetweenUsers(@Param("userId1") Long userId1,
-                                           @Param("userId2") Long userId2,
+            "(m.senderUsername = :userUsername1 AND m.receiverUsername = :userUsername2) OR " +
+            "(m.senderUsername = :userUsername2 AND m.receiverUsername = :userUsername1)")
+    Page<Message> findMessagesBetweenUsers(@Param("userUsername1") String userUsername1,
+                                           @Param("userUsername2") String userUsername2,
                                            Pageable pageable);
 
+    /*
     @Query("SELECT m FROM Message m WHERE " +
             "((m.senderId = :userId1 AND m.receiverId = :userId2) OR " +
             " (m.senderId = :userId2 AND m.receiverId = :userId1)) AND " +
@@ -24,5 +25,5 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Page<Message> searchMessagesBetweenUsers(@Param("userId1") Long userId1,
                                              @Param("userId2") Long userId2,
                                              @Param("searchTerm") String searchTerm,
-                                             Pageable pageable);
+                                             Pageable pageable);*/
 }
