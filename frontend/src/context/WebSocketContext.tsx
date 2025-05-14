@@ -48,13 +48,13 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                     "/user/queue/messages",
                     (msg: IMessage) => {
                         console.log("📥 DM:", msg.body);
-                        setMessages((prev) => [...prev, msg.body]);
                     }
                 );
 
                 // BULLSHIT
                 stompClient.subscribe("/topic/messages", (msg: IMessage) => {
                     console.log("📥 Received from server:", msg.body);
+                    setMessages((prev) => [...prev, msg.body]);
                 });
 
                 stompClient.subscribe("/topic/online-users", (msg) => {

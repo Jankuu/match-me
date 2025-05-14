@@ -49,6 +49,12 @@ public class AuthService {
                     .orElseGet(() -> userRepository.findByEmail(identifier)
                             .orElseThrow(() -> new ResourceNotFoundException("User not found with username or email: " + identifier, null)));
 
+
+            // Get the user entity
+            // Get List<UserProfile> recommendedUserProfiles from matching service
+            // Assign to user entity
+            // Save user entity
+
             return new AuthResponseDTO(token, new UserDTO(user));
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Invalid username/email or password");
