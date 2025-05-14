@@ -158,7 +158,7 @@ public class DataSeeder implements CommandLineRunner {
     private void generateRandomUsers() {
         List<User> users = new ArrayList<>();
 
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 50; i++) {
             User user = new User();
             UserProfile profile = new UserProfile();
             UserInterestVector interestVector = new UserInterestVector();

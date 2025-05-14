@@ -48,6 +48,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                     "/user/queue/messages",
                     (msg: IMessage) => {
                         console.log("📥 DM:", msg.body);
+                        setMessages((prev) => [...prev, msg.body]);
                     }
                 );
 

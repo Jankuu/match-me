@@ -46,6 +46,7 @@ const TestChat = () => {
             setResponse("Login failed");
         }
     };
+
     const handleSendMessage = async () => {
         if (client && isConnected) {
             const formattedMessage = `@${receiverUsername} ${message}`;

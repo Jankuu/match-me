@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/auth/test/login").permitAll()
                         .requestMatchers("/messages").permitAll()
+                        .requestMatchers("/games").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
