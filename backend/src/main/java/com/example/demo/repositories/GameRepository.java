@@ -10,6 +10,4 @@ import java.util.List;
 
 @Repository
 public interface GameRepository extends JpaRepository<Game, Long> {
-    @Query("SELECT g FROM Game g WHERE LOWER(g.name) LIKE LOWER(CONCAT('%', :fragment, '%'))")
-    List<Game> searchByNameFragment(@Param("fragment") String fragment);
 }

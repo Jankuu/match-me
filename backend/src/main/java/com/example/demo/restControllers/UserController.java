@@ -60,7 +60,7 @@ public class UserController {
     }
 
     @GetMapping("/userMatches")
-    public UserMatchesDTO getUserMatches(@RequestParam long id){
+    public UserMatchesDTO getUserMatches(@RequestParam long id) {
         return userService.getUserMatches(id);
     }
 
@@ -72,9 +72,6 @@ public class UserController {
     }
 
     // PATCH
-    /*
-    INOP: Does not use List<Game> to calc interest vector
-
     @PatchMapping
     public UserDTO patchUser(
             @RequestParam(required = false) Long id,
@@ -83,7 +80,7 @@ public class UserController {
             @Valid @RequestBody UserDTO userDTO) {
         return userService.patchUser(id, username, email, userDTO);
     }
-*/
+
     @PatchMapping("/profile")
     public UserProfileDTO patchUserProfile(
             @RequestParam(required = false) Long id,
@@ -93,19 +90,6 @@ public class UserController {
         return userService.patchUserProfile(id, username, email, userProfileDTO);
     }
 
-    /*
-    INOP: Does not use List<Game> to calc interest vector
-
-    @PatchMapping("/interestsVector")
-    public UserInterestVectorDTO patchUserInterestsVector(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email,
-            @Valid @RequestBody UserInterestVectorDTO userInterestVectorDTO
-    ) {
-        return userService.patchUserInterestsVector(id, username, email, userInterestVectorDTO);
-    }
-*/
     // DELETE
     @DeleteMapping
     public UserDTO deleteUser(

@@ -8,7 +8,7 @@ public class FormatName {
      * @return The formated name.
      */
     public static String getFormatedName(String name) {
-        if (name.isEmpty()){
+        if (name == null || name.isEmpty()){
             return null;
         }
         // Initialize a StringBuilder to construct the resulting string

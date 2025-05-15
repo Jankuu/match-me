@@ -22,14 +22,4 @@ public class GameController {
     public List<Game> getGames(){
         return gameService.getGames();
     }
-
-    @GetMapping("/id")
-    public Game getGameById(@RequestParam Long id){
-        return gameService.getGameById(id);
-    }
-
-    @GetMapping("/search")
-    public List<Game> getGameByName(@RequestParam String searchTerm){
-        return gameService.getGameByName(searchTerm);
-    }
 }

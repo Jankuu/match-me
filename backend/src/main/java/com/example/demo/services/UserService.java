@@ -131,12 +131,15 @@ public class UserService {
     public UserDTO patchUser(Long id, String username, String email, UserDTO userDTO) {
         User currentUser = getUser(id, username, email);
         currentUser = assignUserValues(currentUser, userDTO);
+
         if (userDTO.getProfile() != null) {
             currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), userDTO.getProfile()));
         }
-        if (userDTO.getInterestVector() != null) {
-            //currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userDTO.getInterestVector()));
+
+        if (userDTO.getInterestedGames() != null) {
+            currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userDTO.getInterestedGames()));
         }
+
         return new UserDTO(userRepository.save(currentUser));
     }
 

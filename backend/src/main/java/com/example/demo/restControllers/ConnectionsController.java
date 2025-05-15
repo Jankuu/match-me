@@ -53,6 +53,8 @@ public class ConnectionsController {
         return connectionsService.acceptRequest(connectionDTO);
     }
 
+    // Reject User
+
     // DELETE
     @DeleteMapping("/connection")
     public ConnectionDTO deleteConnection(@RequestBody UserLinkDTO connectionDTO) {

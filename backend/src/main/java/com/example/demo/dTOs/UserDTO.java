@@ -5,13 +5,11 @@ import com.example.demo.constraints.ValidInterestedGenders;
 import com.example.demo.entities.Connection;
 import com.example.demo.entities.Game;
 import com.example.demo.entities.User;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.ManyToMany;
+import com.example.demo.entities.UserProfile;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -32,7 +30,13 @@ public class UserDTO {
     private String[] interestedGenders;
 
     private UserInterestVectorDTO interestVector;
+
     private List<Game> interestedGames;
+
+    private List<UserProfile> recommendedUserProfiles;
+
+    private List<Connection> connectionRequests;
+    private List<Connection> connections;
 
     public UserDTO(User user) {
         this.id = user.getId();
@@ -44,5 +48,8 @@ public class UserDTO {
         this.interestedMaxAge = user.getInterestedMaxAge();
         this.interestedGenders = user.getInterestedGenders();
         this.interestVector = new UserInterestVectorDTO(user.getInterestVector());
+        this.connectionRequests = user.getConnectionRequests();
+        this.connections = user.getConnections();
+        this.recommendedUserProfiles = user.getRecommendedUserProfiles();
     }
 }

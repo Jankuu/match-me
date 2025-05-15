@@ -11,6 +11,7 @@ import com.example.demo.repositories.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,11 +21,13 @@ public class ConnectionsService {
     private final ConnectionRepository connectionRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public ConnectionsService(ConnectionRepository connectionRepository1, UserRepository userRepository, UserService userService) {
+    public ConnectionsService(ConnectionRepository connectionRepository1, UserRepository userRepository, UserService userService, SimpMessagingTemplate messagingTemplate) {
         this.connectionRepository = connectionRepository1;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     // GET
@@ -61,9 +64,9 @@ public class ConnectionsService {
     }
 
     // POST
-    public ConnectionDTO sendRequest(UserLinkDTO connectionDTO) {
-        User sender = userService.getUser(connectionDTO.getSenderId(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
-        User receiver = userService.getUser(connectionDTO.getReceiverId(), connectionDTO.getSenderUsername(), connectionDTO.getReceiverEmail());
+    public ConnectionDTO sendRequest(UserLinkDTO userLinkDTO) {
+        User sender = userService.getUser(userLinkDTO.getSenderId(), userLinkDTO.getSenderUsername(), userLinkDTO.getSenderEmail());
+        User receiver = userService.getUser(userLinkDTO.getReceiverId(), userLinkDTO.getSenderUsername(), userLinkDTO.getReceiverEmail());
 
         Optional<Connection> existing = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile());
         if (existing.isPresent()) {
@@ -77,7 +80,17 @@ public class ConnectionsService {
 
         receiver.getConnectionRequests().add(request);
         userRepository.save(receiver);
-        return new ConnectionDTO(request);
+
+        ConnectionDTO connectionDTO = new ConnectionDTO(request);
+
+        // Notify receiver
+        messagingTemplate.convertAndSendToUser(
+                receiver.getUsername(),
+                "/queue/notifications/connectionRequest",
+                sender.getProfile()
+        );
+
+        return connectionDTO;
     }
 
     public ConnectionDTO acceptRequest(UserLinkDTO connectionDTO) {
@@ -94,6 +107,19 @@ public class ConnectionsService {
         receiver.getConnections().add(request);
         sender.getConnections().add(request);
         connectionRepository.save(request);
+
+        // Notify receiver and sender
+        messagingTemplate.convertAndSendToUser(
+                sender.getUsername(),
+                "/queue/notifications/connection",
+                receiver.getProfile()
+        );
+        messagingTemplate.convertAndSendToUser(
+                receiver.getUsername(),
+                "/queue/notifications/connection",
+                sender.getProfile()
+        );
+
         return new ConnectionDTO(request);
     }
 

@@ -18,12 +18,4 @@ public class GameService {
     public List<Game> getGames() {
         return gameRepository.findAll();
     }
-
-    public Game getGameById(Long id) {
-        return gameRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find a game by this id", id));
-    }
-
-    public List<Game> getGameByName(String name) {
-        return gameRepository.searchByNameFragment(name);
-    }
 }

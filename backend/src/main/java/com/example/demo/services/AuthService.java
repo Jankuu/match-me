@@ -4,6 +4,7 @@ import com.example.demo.dTOs.AuthResponseDTO;
 import com.example.demo.dTOs.LoginDTO;
 import com.example.demo.dTOs.UserDTO;
 import com.example.demo.entities.User;
+import com.example.demo.entities.UserProfile;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.UserRepository;
 import com.example.demo.security.JwtUtil;
@@ -14,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AuthService {
@@ -49,10 +52,9 @@ public class AuthService {
                     .orElseGet(() -> userRepository.findByEmail(identifier)
                             .orElseThrow(() -> new ResourceNotFoundException("User not found with username or email: " + identifier, null)));
 
-            // Get the user entity
-            // Get List<UserProfile> recommendedUserProfiles from matching service
-            // Assign to user entity
-            // Save user entity
+            // Matching
+            user.setRecommendedUserProfiles(matchingService.getRecommendations(user));
+            userRepository.save(user);
 
             return new AuthResponseDTO(token, new UserDTO(user));
         } catch (BadCredentialsException e) {
