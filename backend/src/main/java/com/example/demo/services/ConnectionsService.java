@@ -23,8 +23,8 @@ public class ConnectionsService {
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public ConnectionsService(ConnectionRepository connectionRepository1, UserRepository userRepository, UserService userService, SimpMessagingTemplate messagingTemplate) {
-        this.connectionRepository = connectionRepository1;
+    public ConnectionsService(ConnectionRepository connectionRepository, UserRepository userRepository, UserService userService, SimpMessagingTemplate messagingTemplate) {
+        this.connectionRepository = connectionRepository;
         this.userRepository = userRepository;
         this.userService = userService;
         this.messagingTemplate = messagingTemplate;
@@ -56,11 +56,17 @@ public class ConnectionsService {
                 .toList();
     }
 
-    private FullConnection getFullConnection(UserLinkDTO connectionDTO) {
-        User sender = userService.getUser(connectionDTO.getSenderId(), connectionDTO.getSenderUsername(), connectionDTO.getSenderEmail());
-        User receiver = userService.getUser(connectionDTO.getReceiverId(), connectionDTO.getReceiverUsername(), connectionDTO.getReceiverEmail());
-        Connection connection = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find the connection between users", connectionDTO));
+    private FullConnection getFullConnection(UserLinkDTO userLinkDTO) {
+        User sender = userService.getUser(userLinkDTO.getSenderId(), userLinkDTO.getSenderUsername(), userLinkDTO.getSenderEmail());
+        User receiver = userService.getUser(userLinkDTO.getReceiverId(), userLinkDTO.getReceiverUsername(), userLinkDTO.getReceiverEmail());
+        Connection connection = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find the connection between users", userLinkDTO));
         return new FullConnection(sender, receiver, connection);
+    }
+
+
+    public List<User> getRejected(Long id) {
+        User user = userService.getUser(id, null, null);
+        return user.getRejectedUsers();
     }
 
     // POST
@@ -93,8 +99,8 @@ public class ConnectionsService {
         return connectionDTO;
     }
 
-    public ConnectionDTO acceptRequest(UserLinkDTO connectionDTO) {
-        FullConnection fullConnection = getFullConnection(connectionDTO);
+    public ConnectionDTO acceptRequest(UserLinkDTO userLinkDTO) {
+        FullConnection fullConnection = getFullConnection(userLinkDTO);
         User sender = fullConnection.sender;
         User receiver = fullConnection.receiver;
         Connection request = fullConnection.connection;
@@ -123,9 +129,26 @@ public class ConnectionsService {
         return new ConnectionDTO(request);
     }
 
+    public ConnectionDTO rejectRequest(UserLinkDTO userLinkDTO) {
+        FullConnection fullConnection = getFullConnection(userLinkDTO);
+        User sender = fullConnection.sender;
+        User receiver = fullConnection.receiver;
+        Connection request = fullConnection.connection;
+
+        receiver.getConnectionRequests().remove(request);
+        receiver.getRejectedUsers().add(sender);
+        sender.getRejectedUsers().add(receiver);
+
+        connectionRepository.delete(request);
+        userRepository.save(receiver);
+        userRepository.save(sender);
+
+        return new ConnectionDTO(request);
+    }
+
     // DELETE
-    public ConnectionDTO deleteConnection(UserLinkDTO connectionDTO) {
-        Connection connection = getFullConnection(connectionDTO).connection;
+    public ConnectionDTO deleteConnection(UserLinkDTO userLinkDTO) {
+        Connection connection = getFullConnection(userLinkDTO).connection;
         return deleteConnection(connection);
     }
 

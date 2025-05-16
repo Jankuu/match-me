@@ -2,6 +2,8 @@ package com.example.demo.restControllers;
 
 import com.example.demo.dTOs.*;
 import com.example.demo.entities.User;
+import com.example.demo.entities.UserProfile;
+import com.example.demo.services.MatchingService;
 import com.example.demo.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -10,13 +12,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
+    private final MatchingService matchingService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, MatchingService matchingService) {
         this.userService = userService;
+        this.matchingService = matchingService;
     }
 
     // GET
@@ -62,6 +68,11 @@ public class UserController {
     @GetMapping("/userMatches")
     public UserMatchesDTO getUserMatches(@RequestParam long id) {
         return userService.getUserMatches(id);
+    }
+
+    @GetMapping("/recommendation")
+    public List<UserProfile> getRecommendations(@RequestParam Long id){
+        return matchingService.getFilteredRecommendations(id);
     }
 
     // POST
