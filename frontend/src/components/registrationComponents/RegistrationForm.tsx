@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button, Form, InputGroup, Spinner } from "react-bootstrap";
-import UsernameInput from "./UsernameInput";
+import NameInput from "./NameInput";
 import EmailInput from "./EmailInput";
 import PasswordInput from "./PasswordInput";
 import AgeRangeSelector from "./AgeRangeSelector";
@@ -12,6 +12,7 @@ import HeightSet from "./HeightSet";
 import Description from "./Description";
 import { UserRegistrationDTO } from "../../dto/UserRegistrationDTO";
 import { CheckCircleFill, XCircleFill } from "react-bootstrap-icons";
+import UsernameInput from "./UsernameInput";
 
 type Props = {
     onSubmit: (data: UserRegistrationDTO) => void;
@@ -25,6 +26,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const [password, setPassword] = useState("");
     const [repeatedPassword, setRepeatedPassword] = useState("");
 
+    const [name, setName] = useState("");
     const [image, setImage] = useState<File | null>(null);
     const [birthDateUi, setBirthDateUi] = useState<string>("");
     const [birthDateError, setBirthDateError] = useState<string>("");
@@ -39,6 +41,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const [interest, setInterest] = useState<number[]>([3, 3, 3, 3, 3]); // stub values
 
     const [usernameValid, setUsernameValid] = useState(false);
+    const [nameValid, setNameValid] = useState(false);
 
     const isPasswordValid = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password);
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -67,7 +70,9 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         }
     }, [birthDateUi]);
 
-    const isFormValid = usernameValid &&
+    const isFormValid = 
+        usernameValid &&
+        nameValid &&
         isEmailValid &&
         emailMatch &&
         isPasswordValid &&
@@ -111,7 +116,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
             email,
             password,
             profile: {
-                name: username,
+                name: name,
                 profilePicture: base64Image,
                 birthDate: birthDateUi,
                 gender,
@@ -136,7 +141,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
 
     return (
         <Form onSubmit={handleSubmit}>
-            <UsernameInput
+            <UsernameInput 
                 value={username}
                 onChange={setUsername}
                 onValidate={setUsernameValid}
@@ -184,11 +189,16 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                     </Form.Text>
                 )}
             </Form.Group>
-
+            <NameInput
+                value={name}
+                onChange={setName}
+                onValidate={setNameValid}
+                disabled={loading}
+            />
             <AgeRangeSelector userAge={age} onChange={setAges} />
-            <GenderSelector onChange={setGender} selected={gender} />
-            <HeightSet height={height} setHeight={setHeight} />
-            <LocationSelector value={location} onChange={setLocation} disabled={loading} />
+            <GenderSelector onChange={setGender} selected={gender} isEditable={true}/>
+            <HeightSet height={height} setHeight={setHeight} isEditable={true}/>
+            <LocationSelector value={location} onChange={setLocation} />
             <PreferredGenderSelector onChange={setPreferredGendersArray} selected={preferredGendersArray} />
             <Description description={description} setDescription={setDescription} />
 

@@ -11,10 +11,25 @@ const NavBar = () => {
     const navigate = useNavigate();
 
     const handleProfileClick = () => {
-        const email = localStorage.getItem("email");
-        if (email) {
-            navigate(`/user_profile/email/${encodeURIComponent(email)}`);
-        } else {
+        const userStr = localStorage.getItem("user");
+
+        if (!userStr) {
+            navigate("/login");
+            return;
+        }
+
+        try {
+            const user = JSON.parse(userStr);
+            const username = user.username;
+
+            if (!username) {
+                navigate("/login");
+                return;
+            }
+
+            navigate(`/user_profile/username/${username}`);
+        } catch (e) {
+            console.error("Invalid user data in localStorage", e);
             navigate("/login");
         }
     };
