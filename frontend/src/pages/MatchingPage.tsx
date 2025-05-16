@@ -62,8 +62,8 @@ const MatchingPage: React.FC = () => {
     }, 300); // Like in CSS
   };
 
-  const handleCardClick = (email: string) => {
-    navigate(`/user_profile/email/${email}`, { state: { email } });
+  const handleCardClick = (username: string) => {
+    navigate(`/user_profile/username/${username}`, { state: { username } });
   };
 
   const calculateAge = (birthDate: string | undefined) => {

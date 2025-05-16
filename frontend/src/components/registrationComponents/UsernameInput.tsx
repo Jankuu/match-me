@@ -9,21 +9,15 @@ type Props = {
     disabled: boolean;
 };
 
-const UsernameInput = ({ value, onChange, onValidate, disabled }: Props) => {
-    // Valid username: each word starts with capital letter, letters only
-    const isStructureValid = (name: string) => {
-        const parts = name.trim().split(/[- ]/);
-        return parts.every((part) => /^[A-Z][a-z]*$/.test(part));
-    };
+const UsernameInput = ({ value, onChange, onValidate, disabled }: Props) => {    
 
-    const isLongEnough = value.trim().length > 2;
-    const structureValid = isStructureValid(value);
-    const isUsernameValid = isLongEnough && structureValid;
+    const isLongEnough = value.trim().length > 0;
+    const structureValid = true;
+    const nameValid = isLongEnough && structureValid;
 
-    // Report validity to parent (only when value changes)
     useEffect(() => {
-        onValidate(isUsernameValid);
-    }, [value, isUsernameValid, onValidate]);
+        onValidate(nameValid);
+    }, [value, nameValid, onValidate]);
 
     return (
         <Form.Group className="mb-3">
@@ -35,14 +29,14 @@ const UsernameInput = ({ value, onChange, onValidate, disabled }: Props) => {
                     type="text"
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    placeholder="Enter username"
+                    placeholder="Enter your username"
                     required
                     disabled={disabled}
-                    isInvalid={value.length > 0 && !isUsernameValid}
+                    isInvalid={value.length < 1}
                 />
                 <InputGroup.Text>
                     {value && (
-                        isUsernameValid ? (
+                        nameValid ? (
                             <CheckCircleFill color="green" />
                         ) : (
                             <XCircleFill color="red" />
@@ -51,17 +45,10 @@ const UsernameInput = ({ value, onChange, onValidate, disabled }: Props) => {
                 </InputGroup.Text>
             </InputGroup>
 
-            {/* Show structure hint if structure invalid */}
-            {value.length > 0 && !structureValid && (
-                <Form.Text className="text-danger d-block">
-                    Username must start with a capital letter and can contain only letters, spaces or hyphens.
-                </Form.Text>
-            )}
-
             {/* Show length hint if too short */}
-            {value.length > 0 && !isLongEnough && (
+            {value.length < 1 && (
                 <Form.Text className="text-danger d-block">
-                    Username must be more than 2 characters long.
+                    Username must be more than 1 character long.
                 </Form.Text>
             )}
         </Form.Group>

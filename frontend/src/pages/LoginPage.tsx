@@ -7,6 +7,7 @@ type LoginPageProps = {
 };
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
+    const [token, setToken] = useState(null);
     const [usernameOrEmail, setUsernameOrEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -17,38 +18,52 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         e.preventDefault();
         setError("");
         setLoading(true);
-
+      
         try {
-            const response = await fetch("http://localhost:8080/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ 
-                    usernameOrEmail, 
-                    password 
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Login failed");
-            }
-
-            // Store the JWT token in localStorage
-            localStorage.setItem("token", data.token);
-
-            // Pass user data to parent component
-            onLoginSuccess(data.user.email || data.user.username);
-
-            navigate(`/matching`); // Need to be autorized and request matching stuff
+          const response = await fetch("http://localhost:8080/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              usernameOrEmail,
+              password,
+            }),
+          });
+      
+          const data = await response.json();
+      
+          if (!response.ok) {
+            throw new Error(data.message || "Login failed");
+          }
+      
+          const token = data.token;
+          localStorage.setItem("token", token);
+          setToken(token);
+      
+          const userResponse = await fetch("http://localhost:8080/users/me", {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+      
+          const userData = await userResponse.json();
+      
+          if (!userResponse.ok) {
+            throw new Error(userData.message || "Failed to fetch user");
+          }
+      
+          localStorage.setItem("user", JSON.stringify(userData));
+      
+          setUsernameOrEmail("");
+          setPassword("");
+          navigate("/matching");
         } catch (err: any) {
-            setError("Invalid username/email or password");
+          setError("Invalid username/email or password");
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    };
+      };
 
     return (
         <Container className="mt-5" style={{ maxWidth: "400px" }}>

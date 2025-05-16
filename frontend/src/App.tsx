@@ -8,7 +8,6 @@ import {
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ChatPage from "./pages/ChatPage";
-import MyProfilePage from "./pages/MyProfilePage";
 import NavBar from "./components/NavBar";
 import { useMediaQuery } from "react-responsive";
 import { useState, useEffect } from "react";
@@ -30,31 +29,6 @@ function App() {
             setUserIdentifier(identifier);
         }
     }, []);
-
-    // DEBUGGING AND TEMPLATES:
-    // const { client, isConnected } = useWebSocket();
-
-    // useEffect(() => {
-    //     if (!client || !isConnected) return;
-
-    //     const subscription = client.subscribe(
-    //         "/topic/my-custom-topic",
-    //         (msg) => {
-    //             console.log("📥 Received:", msg.body);
-    //         }
-    //     );
-
-    //     return () => subscription.unsubscribe();
-    // }, [client, isConnected]);
-
-    // const [text, setText] = useState("");
-
-    // const getAllUsersInDB = async () => {
-    //     const res = await fetch("http://localhost:8080/users/users");
-    //     const data = await res.json();
-    //     console.log("Got all users: ");
-    //     console.log(data);
-    // DEBUGGING END
 
     // ше get it with first login
     const token = localStorage.getItem("token");
@@ -92,19 +66,17 @@ function App() {
                         }
                     />
                     <Route
-                        path="/my_profile"
+                        path="/user_profile/username/:identifier"
                         element={
                             token ? (
-                                <MyProfilePage
-                                    userIdentifier={userIdentifier || ""}
-                                />
+                                <UserProfilePage />
                             ) : (
                                 <Navigate to="/login" />
                             )
                         }
                     />
                     <Route
-                        path="/user_profile/:identifier"
+                        path="/user_profile/id/:identifier"
                         element={
                             token ? (
                                 <UserProfilePage />

@@ -17,7 +17,7 @@ type User = {
 
 interface Props {
   user: User;
-  onCardClick: (email: string) => void;
+  onCardClick: (username: string) => void;
   onChatClick: (e: React.MouseEvent, id: number, username: string) => void;
   onDeleteClick: (e: React.MouseEvent, id: number) => void;
   onSwipeLeft: () => void;
@@ -43,7 +43,7 @@ const SwipeableUserCard: React.FC<Props> = ({
   });
 
   return (
-    <div {...swipeHandlers} onClick={() => onCardClick(user.email)} style={{ cursor: 'pointer' }}>
+    <div {...swipeHandlers} onClick={() => onCardClick(user.username)} style={{ cursor: 'pointer' }}>
       <Card className={`mb-3 shadow-sm ${isDeleting ? 'slide-out-left' : ''}`}>
         <Row className="align-items-center g-0">
           <Col xs={3} md={2} className="text-center">

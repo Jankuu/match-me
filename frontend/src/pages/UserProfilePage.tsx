@@ -1,59 +1,81 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Container, Button, Spinner } from "react-bootstrap";
 import { FaEdit } from "react-icons/fa";
 import axios from "axios";
 import ProfileForm from "../components/profileForm/ProfileForm";
 import ProfilePicture from "../components/profileForm/ProfilePicture";
 import { User } from "../types/User";
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "react-bootstrap-icons";
 
 const UserProfilePage = () => {
-    const { id, email } = useParams();
-    let param: string;
-   
-    const currentUserEmail = localStorage.getItem("email");
+    const { identifier } = useParams();
+    const location = useLocation();
     const navigate = useNavigate();
-    
-    const identifier = id || email;
-    const type = id ? "id" : "email";
-    // const location = useLocation();
+
+    // Memoize currentUser to avoid creating a new object on every render
+    const currentUser = useMemo(() => {
+        const storedUser = localStorage.getItem("user");
+        return storedUser ? (JSON.parse(storedUser) as User) : null;
+    }, []);
+
+    const isUsername = location.pathname.includes("/username/");
+    const isId = location.pathname.includes("/id/");
 
     const [profile, setProfile] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
 
     useEffect(() => {
-        if (!type) return;
+        if (!identifier) return;
 
-        if (type === "email" && identifier) {
-            param = "email=" + encodeURIComponent(identifier);
-        } else if (type === "id" && identifier) {
-            param = "id=" + identifier;
-        }
+        // Check if requested profile is own profile
+        const isOwnProfile =
+            currentUser &&
+            ((isUsername && currentUser.username === identifier) ||
+                (isId && String(currentUser.id) === identifier));
 
-        const fetchProfile = async () => {
-
-            try {
-                console.log(param);
-                const response = await axios.get<User>(`http://localhost:8080/users?${param}`);
-                const profileData = response.data;
-
-                const picture = profileData.profile.profilePicture;
-                if (picture && !picture.startsWith("data:image")) {
-                    profileData.profile.profilePicture = `data:image/jpeg;base64,${picture}`;
-                }
-
-                setProfile(profileData);
-            } catch (error) {
-                console.error("Failed to load profile", error);
-            } finally {
-                setLoading(false);
+        if (isOwnProfile && currentUser) {
+            // Load profile from localStorage
+            if (
+                currentUser.profile.profilePicture &&
+                !currentUser.profile.profilePicture.startsWith("data:image")
+            ) {
+                currentUser.profile.profilePicture = `data:image/jpeg;base64,${currentUser.profile.profilePicture}`;
             }
-        };
+            setProfile(currentUser);
+            setLoading(false);
+        } else {
+            // Load profile from server
+            const param = isUsername
+                ? `username=${identifier}`
+                : isId
+                ? `id=${identifier}`
+                : "";
 
-        fetchProfile();
-    }, [email]);
+            if (!param) return;
+
+            const fetchProfile = async () => {
+                try {
+                    const response = await axios.get<User>(`http://localhost:8080/users?${param}`);
+                    const profileData = response.data;
+
+                    const picture = profileData.profile.profilePicture;
+                    if (picture && !picture.startsWith("data:image")) {
+                        profileData.profile.profilePicture = `data:image/jpeg;base64,${picture}`;
+                    }
+
+                    setProfile(profileData);
+                } catch (error) {
+                    console.error("Failed to load profile", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            fetchProfile();
+        }
+    }, [identifier, isId, isUsername]); // currentUser removed from dependencies
 
     const handleChange = (field: keyof User["profile"], value: any) => {
         if (!profile) return;
@@ -68,8 +90,8 @@ const UserProfilePage = () => {
 
     const handleSave = async () => {
         try {
-            console.log(profile?.id);
-            await axios.patch(`http://localhost:8080/users?id=${profile?.id}`, profile);
+            if (!profile?.id) return;
+            await axios.patch(`http://localhost:8080/users/profile?id=${profile.id}`, profile.profile);
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);
@@ -92,37 +114,33 @@ const UserProfilePage = () => {
         );
     }
 
+    const isOwnProfile = currentUser && currentUser.username === profile.username;
+
     return (
         <>
-        <div className="px-3 pt-3">
-                        <Button
-                            // variant="link"
-                            onClick={() => navigate("/matching")}
-                            className="d-flex align-items-center"
-                        >
-                            <ArrowLeft size={20} className="me-1" />
-                            {/* Back */}
-                        </Button>
-                    </div>
-        <Container className="mt-5" style={{ maxWidth: "600px" }}>
-            <div className="d-flex justify-content-between align-items-center mb-4">
-            <   h2>{currentUserEmail === profile.email ? "My Profile" : `${profile.username}'s Profile`}</h2>
-                {profile.email === currentUserEmail && (
-                <Button variant="outline-primary" onClick={() => setEditing(!editing)}>
-                    <FaEdit /> {editing ? "Cancel" : "Edit"}
+            <div className="px-3 pt-3">
+                <Button onClick={() => navigate("/matching")} className="d-flex align-items-center">
+                    <ArrowLeft size={20} className="me-1" />
                 </Button>
-            )}
             </div>
+            <Container className="mt-5" style={{ maxWidth: "600px" }}>
+                <h2>{isOwnProfile ? "My Profile" : `${profile.username}'s Profile`}</h2>
 
-            <ProfilePicture profilePicture={profile.profile.profilePicture} />
+                {isOwnProfile && (
+                    <Button variant="outline-primary" onClick={() => setEditing(!editing)}>
+                        <FaEdit /> {editing ? "Cancel" : "Edit"}
+                    </Button>
+                )}
 
-            <ProfileForm
-                profile={profile}
-                editing={editing}
-                onChange={handleChange}
-                onSave={handleSave}
-            />
-        </Container>
+                <ProfilePicture profilePicture={profile.profile.profilePicture} />
+
+                <ProfileForm
+                    profile={profile}
+                    editing={editing}
+                    onChange={handleChange}
+                    onSave={handleSave}
+                />
+            </Container>
         </>
     );
 };

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { User } from "../../types/User";
 import HeightSet from "../registrationComponents/HeightSet";
+import GenderSelector from "../registrationComponents/GenderSelection";
 
 interface ProfileFormProps {
     profile: User;
@@ -14,6 +15,7 @@ interface ProfileFormProps {
 const ProfileForm: React.FC<ProfileFormProps> = ({ profile, editing, onChange, onSave }) => {
 
     const [height, setHeight] = useState<number>(profile.profile.height);
+    const [gender, setGender] = useState<string>(profile.profile.gender);
     
     return (
         <Form>
@@ -32,26 +34,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile, editing, onChange, o
                 <Form.Control type="date" value={profile.profile.birthDate} disabled />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-                <Form.Label>Gender</Form.Label>
-                <Form.Control
-                    type="text"
-                    value={profile.profile.gender}
-                    disabled={!editing}
-                    onChange={(e) => onChange("gender", e.target.value)}
-                />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-                <Form.Label>Height (cm)</Form.Label>
-                {/* <HeightSet height={height} setHeight={setHeight} onChange={profile.profile.height = height} /> */}
-                <Form.Control
-                    type="number"
-                    value={profile.profile.height}
-                    disabled={!editing}
-                    onChange={(e) => onChange("height", Number(e.target.value))}
-                />
-            </Form.Group>
+                <GenderSelector onChange={setGender} selected={gender} isEditable={editing} />
+                <HeightSet height={height} setHeight={setHeight} isEditable={editing}/>
 
             <Form.Group className="mb-3">
                 <Form.Label>Location</Form.Label>

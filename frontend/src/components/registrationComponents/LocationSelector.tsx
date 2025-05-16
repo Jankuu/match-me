@@ -14,10 +14,10 @@ type Props = {
         placeId?: string,
         coordinates?: Coordinates
     ) => void;
-    disabled: boolean;
+    isEditable?: boolean; // optional, defaults to true
 };
 
-const LocationSelector = ({ value, onChange, disabled }: Props) => {
+const LocationSelector = ({ value, onChange, isEditable = true }: Props) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
     const [isLocationFetching, setIsLocationFetching] = useState(false);
@@ -114,7 +114,7 @@ const LocationSelector = ({ value, onChange, disabled }: Props) => {
     return (
         <Form.Group className="mb-3">
             <Form.Label>
-                Location <span style={{ color: "red" }}>*</span>
+                Location {isEditable && <span style={{ color: "red" }}>*</span>}
             </Form.Label>
             <InputGroup>
                 <Form.Control
@@ -122,18 +122,21 @@ const LocationSelector = ({ value, onChange, disabled }: Props) => {
                     ref={inputRef}
                     defaultValue={value}
                     placeholder="Start typing your city"
-                    disabled={disabled}
-                    required
+                    disabled={!isEditable}
+                    required={isEditable}
                     isInvalid={!isValidLocation && value.length > 0}
                 />
-                
-                <Button
-                    variant="outline-secondary"
-                    onClick={getLocation}
-                    disabled={isLocationFetching || disabled}
-                >
-                    {isLocationFetching ? "..." : <GeoAltFill />}
-                </Button>
+
+                {isEditable && (
+                    <Button
+                        variant="outline-secondary"
+                        onClick={getLocation}
+                        disabled={isLocationFetching}
+                    >
+                        {isLocationFetching ? "..." : <GeoAltFill />}
+                    </Button>
+                )}
+
                 {value.length > 0 && (
                     <InputGroup.Text>
                         {isValidLocation ? (
