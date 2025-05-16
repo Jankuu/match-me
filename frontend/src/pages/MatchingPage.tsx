@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Accordion } from 'react-bootstrap';
 import axios from 'axios';
@@ -8,76 +7,97 @@ import '../styles/UserList.css';
 import SwipeableUserCard from '../components/SwipeableUserCard';
 
 type User = {
-    id: number;
-    username: string;
-    email: string;
-    profile?: {
-      name?: string;
-      gender?: string;
-      birthDate?: string;
-      profilePicture?: string;
-    };
+  id: number;
+  username: string;
+  email: string;
+  profile?: {
+    name?: string;
+    gender?: string;
+    birthDate?: string;
+    profilePicture?: string;
   };
+};
 
 const MatchingPage: React.FC = () => {
-
-    
-
-  const [users, setUsers] = useState<User[]>([]);
-  const navigate = useNavigate();
+  const [userConnections, setUserConnections] = useState<User[]>([]);
+  const [userRecommendations, setUserRecommendations] = useState<User[]>([]);
+  const [connectionRequests, setConnectionRequests] = useState<User[]>([]);
   const [deletingUserIds, setDeletingUserIds] = useState<number[]>([]);
+  const navigate = useNavigate();
+
+  const currentUserId = localStorage.getItem("user.id");
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (currentUserId) {
+      fetchUserConnections();
+      fetchRecommendations();
+      fetchConnectionRequests();
+    }
+  }, [currentUserId]);
 
-  const fetchUsers = async (page = 0, size = 10
-  ) => {
+  const fetchUserConnections = async () => {
+    
     try {
-      const response = await axios.get(`http://localhost:8080/users/all?page=${page}&size=${size}`);
-      // connections
+      const res = await axios.get(`http://localhost:8080/connections/userConnections?id=${currentUserId}`);
+      const allConnections: User[] = [
+        ...(res.data.sentConnections || []),
+        ...(res.data.receivedConnections || []),
+      ];
+      setUserConnections(allConnections);
+    } catch (err) {
+      console.error('Failed to fetch userConnections:', err);
+    }
+  };
 
-      // recomindations
-      setUsers(response.data.content);
-    } catch (error) {
-      console.error('Failed to fetch users:', error);
+  const fetchRecommendations = async () => {
+    try {
+      const res = await axios.get(`http://localhost:8080/connections/connections?id=${currentUserId}`);
+      setUserRecommendations(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch recommendations:', err);
+    }
+  };
+
+  const fetchConnectionRequests = async () => {
+    try {
+      const res = await axios.get(`http://localhost:8080/connections/connectionRequests?id=${currentUserId}`);
+      setConnectionRequests(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch connectionRequests:', err);
     }
   };
 
   const handleChatClick = (e: React.MouseEvent, userId: number, username: string) => {
     e.stopPropagation();
-    console.log(`Chat with user: ${userId}`);
-    // navigate(`/chat/${userId}`); // Redirect to chat page with user ID
-    navigate(`/chat/${userId}/${username}`); // Redirect to chat page with user ID
+    navigate(`/chat/${userId}/${username}`);
   };
 
   const handleDeleteClick = (e: React.MouseEvent, userId: number) => {
-    e.stopPropagation(); // Not to call onCardClick
-  
-    setDeletingUserIds((prev) => [...prev, userId]);
-  
+    e.stopPropagation();
+    setDeletingUserIds(prev => [...prev, userId]);
+
     setTimeout(() => {
-      setUsers((prev) => prev.filter((user) => user.id !== userId));
-      setDeletingUserIds((prev) => prev.filter((id) => id !== userId));
-    }, 300); // Like in CSS
+      setUserConnections(prev => prev.filter(user => user.id !== userId));
+      setUserRecommendations(prev => prev.filter(user => user.id !== userId));
+      setConnectionRequests(prev => prev.filter(user => user.id !== userId));
+      setDeletingUserIds(prev => prev.filter(id => id !== userId));
+    }, 300);
   };
 
   const handleCardClick = (username: string) => {
     navigate(`/user_profile/username/${username}`, { state: { username } });
   };
 
-  const calculateAge = (birthDate: string | undefined) => {
-    if (!birthDate) return '?';
-    return dayjs().diff(dayjs(birthDate), 'year');
+  const calculateAge = (birthDate?: string) => {
+    return birthDate ? dayjs().diff(dayjs(birthDate), 'year') : '?';
   };
 
-  const getProfilePicture = (base64: string | undefined) => {
-    // if (!base64) return 'https://via.placeholder.com/50';
-    return `data:image/jpeg;base64,${base64}`;
+  const getProfilePicture = (base64?: string) => {
+    return base64 ? `data:image/jpeg;base64,${base64}` : 'https://via.placeholder.com/50';
   };
 
-  const renderUserCards = (filteredUsers: User[]) =>
-    filteredUsers.map((user) => (
+  const renderUserCards = (users: User[]) =>
+    users.map(user => (
       <SwipeableUserCard
         key={user.id}
         user={user}
@@ -91,24 +111,24 @@ const MatchingPage: React.FC = () => {
       />
     ));
 
-  const maleUsers = users.filter((u) => u.profile?.gender?.toLowerCase() === 'man');
-  const femaleUsers = users.filter((u) => u.profile?.gender?.toLowerCase() === 'woman');
-
   return (
     <div className="container mt-4">
       <Accordion alwaysOpen>
         <Accordion.Item eventKey="0">
-          <Accordion.Header>Man (Connections) ({maleUsers.length})</Accordion.Header>
-          <Accordion.Body>{renderUserCards(maleUsers)}</Accordion.Body>
+          <Accordion.Header>Connections ({userConnections.length})</Accordion.Header>
+          <Accordion.Body>{renderUserCards(userConnections)}</Accordion.Body>
         </Accordion.Item>
         <Accordion.Item eventKey="1">
-          <Accordion.Header>Woman (Recommendations) ({femaleUsers.length})</Accordion.Header>
-          <Accordion.Body>{renderUserCards(femaleUsers)}</Accordion.Body>
+          <Accordion.Header>Recommendations ({userRecommendations.length})</Accordion.Header>
+          <Accordion.Body>{renderUserCards(userRecommendations)}</Accordion.Body>
+        </Accordion.Item>
+        <Accordion.Item eventKey="2">
+          <Accordion.Header>Connection Requests ({connectionRequests.length})</Accordion.Header>
+          <Accordion.Body>{renderUserCards(connectionRequests)}</Accordion.Body>
         </Accordion.Item>
       </Accordion>
     </div>
   );
 };
 
-
-export default MatchingPage
+export default MatchingPage;

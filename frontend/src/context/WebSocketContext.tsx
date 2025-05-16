@@ -7,49 +7,53 @@ import React, {
 } from "react";
 import SockJS from "sockjs-client";
 import { Client, IMessage } from "@stomp/stompjs";
+import { MessageDTO } from "../types/MessageDTO";
 
 interface WebSocketContextType {
-    sendMessage: (message: string) => void;
+    sendMessage: (message: MessageDTO) => void;
     isConnected: boolean;
     client: Client | null;
-    messages: string[];
+    messages: MessageDTO[];
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
-export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
-    children,
-}) => {
+export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const client = useRef<Client | null>(null);
     const [isConnected, setIsConnected] = useState(false);
-    const [messages, setMessages] = useState<string[]>([]);
+    const [messages, setMessages] = useState<MessageDTO[]>([]);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         const sock = new SockJS(`http://localhost:8080/ws?token=${token}`);
         const stompClient = new Client({
             webSocketFactory: () => sock,
             debug: (str) => console.log(str),
             connectHeaders: {
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${token}`,
             },
             onConnect: () => {
                 console.log("✅ Connected to WebSocket");
                 setIsConnected(true);
 
-                stompClient.subscribe("/topic/messages", (msg: IMessage) => {
-                    console.log("📥 Received from server:", msg.body);
-                    setMessages((prev) => [...prev, msg.body]);
+                stompClient.subscribe("/topic/testReceiveMessage", (msg: IMessage) => {
+                    try {
+                        const received: MessageDTO = JSON.parse(msg.body);
+                        console.log("📥 Received:", received);
+                        setMessages((prev) => [...prev, received]);
+                    } catch (err) {
+                        console.error("❌ Error parsing message:", err);
+                    }
                 });
 
-                stompClient.subscribe("/topic/online-users", (msg) => {
-                    const onlineUsers = JSON.parse(msg.body);
-                    console.log("🧍‍♀️ Online users:", onlineUsers);
-                });
-
-                stompClient.subscribe("/topic/broadcast", (msg) => {
-                    console.log("📡 Broadcast from server:", msg.body);
-                });
+                // Отправка имени при подключении
+                const username = localStorage.getItem("user.username");
+                if (username) {
+                    stompClient.publish({
+                        destination: "/app/register",
+                        body: username,
+                    });
+                }
             },
             onDisconnect: () => {
                 console.log("❌ Disconnected from WebSocket");
@@ -65,10 +69,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         };
     }, []);
 
-    const sendMessage = (msg: string) => {
+    const sendMessage = (message: MessageDTO) => {
         if (client.current && isConnected) {
-            client.current.publish({ destination: "/app/send", body: msg });
-            console.log("📤 Sent to server:", msg);
+            const body = JSON.stringify(message);
+            client.current.publish({
+                destination: "/app/testSendMessage",
+                body,
+            });
+            setMessages((prev) => [...prev, message]); // оптимистичное добавление
+            console.log("📤 Sent:", message);
         } else {
             console.warn("WebSocket not connected");
         }

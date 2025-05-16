@@ -57,6 +57,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       
           setUsernameOrEmail("");
           setPassword("");
+          console.log("navigating to /matching")
           navigate("/matching");
         } catch (err: any) {
           setError("Invalid username/email or password");

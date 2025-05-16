@@ -42,32 +42,46 @@ const SwipeableUserCard: React.FC<Props> = ({
     trackMouse: true,
   });
 
+  const name = user.profile?.name || user.username;
+  const gender = user.profile?.gender || 'Unknown';
+  const age = calculateAge(user.profile?.birthDate);
+  const profilePic = getProfilePicture(user.profile?.profilePicture);
+
   return (
     <div {...swipeHandlers} onClick={() => onCardClick(user.username)} style={{ cursor: 'pointer' }}>
       <Card className={`mb-3 shadow-sm ${isDeleting ? 'slide-out-left' : ''}`}>
         <Row className="align-items-center g-0">
           <Col xs={3} md={2} className="text-center">
             <Image
-              src={getProfilePicture(user.profile?.profilePicture)}
+              src={profilePic || 'https://via.placeholder.com/50'}
               roundedCircle
               width="50"
               height="50"
+              alt="Profile"
             />
           </Col>
           <Col xs={6} md={8}>
             <Card.Body className="py-2">
-              <Card.Title className="mb-1">{user.profile?.name || user.username}</Card.Title>
+              <Card.Title className="mb-1">{name}</Card.Title>
               <Card.Text className="mb-0 text-muted">
-                {user.profile?.gender}, {calculateAge(user.profile?.birthDate)} years old
+                {gender}, {age} years old
               </Card.Text>
             </Card.Body>
           </Col>
           <Col xs={3} md={2} className="d-flex justify-content-end align-items-center pe-3">
-            <div className="d-flex flex-row gap-4">
-              <Button variant="link" onClick={(e) => onChatClick(e, user.id, user.username)} className="p-0">
+            <div className="d-flex flex-row gap-3">
+              <Button
+                variant="link"
+                onClick={(e) => onChatClick(e, user.id, user.username)}
+                className="p-0"
+              >
                 <FaComment size={18} />
               </Button>
-              <Button variant="link" onClick={(e) => onDeleteClick(e, user.id)} className="p-0">
+              <Button
+                variant="link"
+                onClick={(e) => onDeleteClick(e, user.id)}
+                className="p-0"
+              >
                 <FaTrashAlt size={18} />
               </Button>
             </div>
