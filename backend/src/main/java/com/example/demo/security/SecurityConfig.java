@@ -44,12 +44,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/users").permitAll()// Allow registration
-                        .requestMatchers("/users/all").permitAll()// Allow registration
-                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/users").permitAll() // Allow registration
                         .requestMatchers("/auth/test/login").permitAll()
-                        .requestMatchers("/messages").permitAll()
-                        .requestMatchers("/games").permitAll()
+                        .requestMatchers("/ws/**").permitAll() // WebSocket connections
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Container, Button, Spinner } from "react-bootstrap";
 import { FaEdit } from "react-icons/fa";
-import axios from "axios";
 import ProfileForm from "../components/profileForm/ProfileForm";
 import ProfilePicture from "../components/profileForm/ProfilePicture";
 import { Profile } from "../types/Profile";
 import { getUserIdentifierFromToken } from "../utils/auth";
+import apiClient from "../utils/apiClient";
 
 
 const MyProfilePage = ({ userIdentifier }: { userIdentifier: string }) => {
@@ -18,7 +18,6 @@ const MyProfilePage = ({ userIdentifier }: { userIdentifier: string }) => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const token = localStorage.getItem('token');
                 // Use identifier from props or fallback to JWT token
                 const identifier = userIdentifier || getUserIdentifierFromToken();
 
@@ -32,13 +31,8 @@ const MyProfilePage = ({ userIdentifier }: { userIdentifier: string }) => {
                 const isEmail = identifier.includes('@');
                 const queryParam = isEmail ? 'email' : 'username';
 
-                const response = await axios.get<Profile>(
-                    `http://localhost:8080/users?${queryParam}=${encodeURIComponent(identifier)}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
+                const response = await apiClient.get<Profile>(
+                    `/users?${queryParam}=${encodeURIComponent(identifier)}`
                 );
                 const profileData = response.data;
 
@@ -72,8 +66,6 @@ const MyProfilePage = ({ userIdentifier }: { userIdentifier: string }) => {
 
     const handleSave = async () => {
         try {
-            const token = localStorage.getItem('token');
-            // Use identifier from props or fallback to JWT token
             const identifier = userIdentifier || getUserIdentifierFromToken();
 
             if (!identifier) {
@@ -81,18 +73,12 @@ const MyProfilePage = ({ userIdentifier }: { userIdentifier: string }) => {
                 return;
             }
 
-            // Check if the identifier is an email (contains @) or a username
             const isEmail = identifier.includes('@');
             const queryParam = isEmail ? 'email' : 'username';
 
-            await axios.patch(
-                `http://localhost:8080/users?${queryParam}=${encodeURIComponent(identifier)}`, 
-                profile,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
+            await apiClient.patch(
+                `/users?${queryParam}=${encodeURIComponent(identifier)}`,
+                profile
             );
 
             setEditing(false);

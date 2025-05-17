@@ -16,7 +16,7 @@ public class MatchingService {
     }
 
     public List<UserProfile> getRecommendations(User user) {
-        if (user.getIsGpsUser()){
+        if (Boolean.TRUE.equals(user.getIsGpsUser())) {
             return userRepository.getRecommendations(user.getId())
                     .stream()
                     .map(User::getProfile)

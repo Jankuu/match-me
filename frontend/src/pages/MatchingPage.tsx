@@ -1,9 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { Accordion } from 'react-bootstrap';
-import axios from 'axios';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../utils/apiClient';
 import '../styles/UserList.css';
 import SwipeableUserCard from '../components/SwipeableUserCard';
 
@@ -21,7 +21,7 @@ type User = {
 
 const MatchingPage: React.FC = () => {
 
-    
+
 
   const [users, setUsers] = useState<User[]>([]);
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ const MatchingPage: React.FC = () => {
   const fetchUsers = async (page = 0, size = 10
   ) => {
     try {
-      const response = await axios.get(`http://localhost:8080/users/all?page=${page}&size=${size}`);
+      const response = await apiClient.get(`/users/all?page=${page}&size=${size}`);
       // connections
 
       // recomindations
@@ -53,9 +53,9 @@ const MatchingPage: React.FC = () => {
 
   const handleDeleteClick = (e: React.MouseEvent, userId: number) => {
     e.stopPropagation(); // Not to call onCardClick
-  
+
     setDeletingUserIds((prev) => [...prev, userId]);
-  
+
     setTimeout(() => {
       setUsers((prev) => prev.filter((user) => user.id !== userId));
       setDeletingUserIds((prev) => prev.filter((id) => id !== userId));

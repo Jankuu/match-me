@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Button, Row, Col, Image } from 'react-bootstrap';
 import { FaComment, FaTrashAlt } from 'react-icons/fa';
-import axios from 'axios';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../utils/apiClient';
 
 type User = {
   id: number;
@@ -27,14 +27,8 @@ const UserList: React.FC = () => {
 
   const fetchUsers = async (page = 0, size = 10) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `http://localhost:8080/users/all?page=${page}&size=${size}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+      const response = await apiClient.get(
+        `/users/all?page=${page}&size=${size}`
       );
       setUsers(response.data.content);
     } catch (error) {

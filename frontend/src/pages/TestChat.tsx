@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "../styles/TestChat.css";
-import axios from "axios";
 import { useWebSocket } from "../context/WebSocketContext";
+import apiClient from "../utils/apiClient";
 
 const TestChat = () => {
     const [id, setId] = useState<number>(0);
@@ -29,8 +29,8 @@ const TestChat = () => {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post(
-                "http://localhost:8080/auth/test/login",
+            const response = await apiClient.post(
+                "/auth/test/login",
                 null, // No request body
                 {
                     params: { id }, // Send id as query param

@@ -28,16 +28,14 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         const token = localStorage.getItem("token");
         if (token == null) {
             console.log("JWT token is null");
-            // return;
+            return;
         }
+        console.log("Using token for WebSocket connection:", token.substring(0, 20) + "...");
         //const sock = new SockJS(`http://localhost:8080/ws?token=${token}`);
 
         const stompClient = new Client({
             brokerURL: `ws://localhost:8080/ws?token=${token}`,
             // webSocketFactory: () => sock,
-            connectHeaders: {
-                Authorization: `Bearer ${token}`,
-            },
             debug: (str) => console.log("[STOMP]", str),
             reconnectDelay: 5000,
             onConnect: () => {

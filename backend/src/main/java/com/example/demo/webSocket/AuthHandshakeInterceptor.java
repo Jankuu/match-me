@@ -25,21 +25,31 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
                                    WebSocketHandler wsHandler,
                                    Map<String, Object> attributes) throws Exception {
         if (!(request instanceof ServletServerHttpRequest servletRequest)) {
+            System.out.println("Handshake not valid: Not a ServletServerHttpRequest");
             return false;
         }
 
         String token = servletRequest.getServletRequest().getParameter("token");
-        if (token != null && !token.isBlank()) {
-            if (jwtUtil.validateToken(token)) {
-                String username = jwtUtil.extractUsername(token);
-                attributes.put("username", username); // 👈 stored for access in your MessageInterceptor
-                System.out.println("Handshake valid");
+        System.out.println("Token received: " + (token != null ? token.substring(0, Math.min(10, token.length())) + "..." : "null"));
 
-                return true;
+        if (token != null && !token.isBlank()) {
+            try {
+                if (jwtUtil.validateToken(token)) {
+                    String username = jwtUtil.extractUsername(token);
+                    attributes.put("username", username);
+                    System.out.println("Handshake valid for user: " + username);
+                    return true;
+                } else {
+                    System.out.println("Handshake not valid: Token validation failed");
+                }
+            } catch (Exception e) {
+                System.out.println("Handshake not valid: Exception during token validation: " + e.getMessage());
+                e.printStackTrace();
             }
+        } else {
+            System.out.println("Handshake not valid: Token is null or blank");
         }
 
-        System.out.println("Handshake not valid");
         return false;
     }
 

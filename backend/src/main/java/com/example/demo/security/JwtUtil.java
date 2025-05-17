@@ -18,8 +18,6 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-
     @Value("${jwt.expiration:86400000}") // Default to 24 hours if not specified
     private long jwtExpiration;
 
@@ -27,8 +25,21 @@ public class JwtUtil {
     private String jwtSecret;
 
     private Key getSigningKey() {
-        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
+        try {
+            System.out.println("Getting signing key with secret: " + (jwtSecret != null ? jwtSecret.substring(0, Math.min(5, jwtSecret.length())) + "..." : "null"));
+            if (jwtSecret == null || jwtSecret.isEmpty()) {
+                throw new IllegalArgumentException("JWT secret is null or empty");
+            }
+            byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+            System.out.println("Key bytes length: " + keyBytes.length);
+            Key key = Keys.hmacShaKeyFor(keyBytes);
+            System.out.println("Key algorithm: " + key.getAlgorithm());
+            return key;
+        } catch (Exception e) {
+            System.out.println("Failed to create signing key: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public String extractUsername(String token) {
@@ -45,7 +56,18 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        try {
+            System.out.println("Attempting to extract claims from token: " + token.substring(0, Math.min(10, token.length())) + "...");
+            Key signingKey = getSigningKey();
+            System.out.println("Signing key algorithm: " + signingKey.getAlgorithm());
+            Claims claims = Jwts.parserBuilder().setSigningKey(signingKey).build().parseClaimsJws(token).getBody();
+            System.out.println("Claims extracted successfully: " + claims);
+            return claims;
+        } catch (Exception e) {
+            System.out.println("Failed to extract claims: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     private Boolean isTokenExpired(String token) {
@@ -63,7 +85,7 @@ public class JwtUtil {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(key)
+                .signWith(getSigningKey())
                 .compact();
     }
 
@@ -74,9 +96,12 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         try {
-            extractUsername(token); // exception will throw if invalid
+            String username = extractUsername(token); // exception will throw if invalid
+            System.out.println("Token validation successful for user: " + username);
             return true;
         } catch (Exception e) {
+            System.out.println("Token validation failed: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
