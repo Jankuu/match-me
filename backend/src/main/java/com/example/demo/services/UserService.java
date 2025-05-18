@@ -96,7 +96,7 @@ public class UserService {
 
         UserMatchesDTO dto = new UserMatchesDTO();
         dto.setRecommendedUserProfiles(user.getRecommendedUserProfiles());
-        dto.setRejectedUsersProfiles(user.getRejectedUsersProfiles());
+        dto.setRejectedUsers(user.getRejectedUsers());
 
         return dto;
     }

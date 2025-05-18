@@ -10,14 +10,28 @@ import java.util.List;
 @Service
 public class MatchingService {
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public MatchingService(UserRepository userRepository) {
+    public MatchingService(UserRepository userRepository, UserService userService) {
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
-    public List<UserProfile> getRecommendations(User user) {
-        if (Boolean.TRUE.equals(user.getIsGpsUser())) {
-            return userRepository.getRecommendations(user.getId())
+    public List<UserProfile> getRecommendations(Long id) {
+        User user = userService.getUser(id, null, null);
+        if (user.getIsGpsUser()) {
+            return userRepository.getRecommendations(id)
+                    .stream()
+                    .map(User::getProfile)
+                    .toList();
+        }
+        return null;
+    }
+
+    public List<UserProfile> getFilteredRecommendations(Long id) {
+        User user = userService.getUser(id, null, null);
+        if (user.getIsGpsUser()) {
+            return userRepository.getRecommendations(id)
                     .stream()
                     .map(User::getProfile)
                     .toList();
