@@ -2,6 +2,7 @@ package com.example.demo.restControllers;
 
 import com.example.demo.dTOs.ConnectionDTO;
 import com.example.demo.dTOs.UserLinkDTO;
+import com.example.demo.entities.User;
 import com.example.demo.services.ConnectionsService;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,22 +43,30 @@ public class ConnectionsController {
         return connectionsService.getConnections(id, username, email);
     }
 
+    @GetMapping("/rejected")
+    public List<User> getRejected (@RequestParam Long id){
+        return connectionsService.getRejected(id);
+    }
+
     // POST
     @PostMapping("/send")
-    public ConnectionDTO sendRequest(@RequestBody UserLinkDTO connectionDTO) {
-        return connectionsService.sendRequest(connectionDTO);
+    public ConnectionDTO sendRequest(@RequestBody UserLinkDTO userLinkDTO) {
+        return connectionsService.sendRequest(userLinkDTO);
     }
 
     @PostMapping("/accept")
-    public ConnectionDTO acceptRequest(@RequestBody UserLinkDTO connectionDTO) {
-        return connectionsService.acceptRequest(connectionDTO);
+    public ConnectionDTO acceptRequest(@RequestBody UserLinkDTO userLinkDTO) {
+        return connectionsService.acceptRequest(userLinkDTO);
     }
 
-    // Reject User
+    @PostMapping("/reject")
+    public ConnectionDTO rejectRequest(@RequestBody UserLinkDTO userLinkDTO) {
+        return connectionsService.rejectRequest(userLinkDTO);
+    }
 
     // DELETE
     @DeleteMapping("/connection")
-    public ConnectionDTO deleteConnection(@RequestBody UserLinkDTO connectionDTO) {
-        return connectionsService.deleteConnection(connectionDTO);
+    public ConnectionDTO deleteConnection(@RequestBody UserLinkDTO userLinkDTO) {
+        return connectionsService.deleteConnection(userLinkDTO);
     }
 }

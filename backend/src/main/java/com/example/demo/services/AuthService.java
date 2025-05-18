@@ -53,7 +53,7 @@ public class AuthService {
                             .orElseThrow(() -> new ResourceNotFoundException("User not found with username or email: " + identifier, null)));
 
             // Matching
-            user.setRecommendedUserProfiles(matchingService.getRecommendations(user));
+            user.setRecommendedUserProfiles(matchingService.getRecommendations(user.getId()));
             userRepository.save(user);
 
             return new AuthResponseDTO(token, new UserDTO(user));

@@ -1,5 +1,6 @@
 package com.example.demo.dTOs;
 
+import com.example.demo.entities.User;
 import com.example.demo.entities.UserProfile;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserMatchesDTO {
-    private List<UserProfile> rejectedUsersProfiles = new ArrayList<>();
+    private List<User> rejectedUsers = new ArrayList<>();
     private List<UserProfile> recommendedUserProfiles = new ArrayList<>();
 }
