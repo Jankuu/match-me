@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import SockJS from "sockjs-client";
 import { Client, IMessage } from "@stomp/stompjs";
+import { MessageDTO } from "../types/MessageDTO";
 
 interface WebSocketContextType {
     sendMessage: (message: string) => void;
@@ -81,7 +82,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         };
     }, []);
 
-    const sendMessage = (message: MessageDTO) => {
+    const sendMessage = (message: string) => {
         if (client.current && isConnected) {
             const body = JSON.stringify(message);
             client.current.publish({
