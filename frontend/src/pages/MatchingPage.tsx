@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Accordion } from 'react-bootstrap';
-import axios from 'axios';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import '../styles/UserList.css';
 import SwipeableUserCard from '../components/SwipeableUserCard';
+import apiClient from '../utils/apiClient';
 
 type User = {
   id: number;
@@ -36,9 +36,9 @@ const MatchingPage: React.FC = () => {
   }, [currentUserId]);
 
   const fetchUserConnections = async () => {
-    
+
     try {
-      const res = await axios.get(`http://localhost:8080/connections/userConnections?id=${currentUserId}`);
+      const res = await apiClient.get(`/connections/userConnections?id=${currentUserId}`);
       const allConnections: User[] = [
         ...(res.data.sentConnections || []),
         ...(res.data.receivedConnections || []),
@@ -51,7 +51,7 @@ const MatchingPage: React.FC = () => {
 
   const fetchRecommendations = async () => {
     try {
-      const res = await axios.get(`http://localhost:8080/connections/connections?id=${currentUserId}`);
+      const res = await apiClient.get(`/connections/connections?id=${currentUserId}`);
       setUserRecommendations(res.data || []);
     } catch (err) {
       console.error('Failed to fetch recommendations:', err);
@@ -60,7 +60,7 @@ const MatchingPage: React.FC = () => {
 
   const fetchConnectionRequests = async () => {
     try {
-      const res = await axios.get(`http://localhost:8080/connections/connectionRequests?id=${currentUserId}`);
+      const res = await apiClient.get(`/connections/connectionRequests?id=${currentUserId}`);
       setConnectionRequests(res.data || []);
     } catch (err) {
       console.error('Failed to fetch connectionRequests:', err);
