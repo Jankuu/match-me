@@ -46,15 +46,14 @@ const TestChat = () => {
             setResponse("Login failed");
         }
     };
-
     const handleSendMessage = async () => {
         if (client && isConnected) {
             const formattedMessage = `@${receiverUsername} ${message}`;
-
             client.publish({
                 destination: "/app/send",
                 body: formattedMessage,
             });
+
             console.log("📤 Sent to server:", message);
         } else {
             console.warn("WebSocket not connected");
