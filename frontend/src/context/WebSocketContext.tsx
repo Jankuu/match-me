@@ -7,22 +7,21 @@ import React, {
 } from "react";
 import SockJS from "sockjs-client";
 import { Client, IMessage } from "@stomp/stompjs";
+import { MessageDTO } from "../types/MessageDTO";
 
 interface WebSocketContextType {
-    sendMessage: (message: string) => void;
+    sendMessage: (message: MessageDTO) => void;
     isConnected: boolean;
     client: Client | null;
-    messages: string[];
+    messages: MessageDTO[];
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
-export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
-    children,
-}) => {
+export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const client = useRef<Client | null>(null);
     const [isConnected, setIsConnected] = useState(false);
-    const [messages, setMessages] = useState<string[]>([]);
+    const [messages, setMessages] = useState<MessageDTO[]>([]);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -36,6 +35,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             brokerURL: `ws://localhost:8080/ws?token=${token}`,
             // webSocketFactory: () => sock,
             connectHeaders: {
+                Authorization: `Bearer ${token}`,
                 Authorization: `Bearer ${token}`,
             },
             debug: (str) => console.log("[STOMP]", str),
@@ -81,10 +81,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         };
     }, []);
 
-    const sendMessage = (msg: string) => {
+    const sendMessage = (message: MessageDTO) => {
         if (client.current && isConnected) {
-            client.current.publish({ destination: "/app/send", body: msg });
-            console.log("📤 Sent to server:", msg);
+            const body = JSON.stringify(message);
+            client.current.publish({
+                destination: "/app/testSendMessage",
+                body,
+            });
+            setMessages((prev) => [...prev, message]); // оптимистичное добавление
+            console.log("📤 Sent:", message);
         } else {
             console.warn("WebSocket not connected");
         }

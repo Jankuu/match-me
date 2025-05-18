@@ -13,7 +13,7 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
     // Valid username: each word starts with capital letter, letters only
     const isStructureValid = (name: string) => {
         const parts = name.trim().split(/[- ]/);
-        return parts.every((part) => /^[A-Z][a-z][']*$/.test(part));
+        return parts.every((part) => /^[A-Z][a-z]*$/.test(part));
     };
 
     const isLongEnough = value.trim().length > 2;
