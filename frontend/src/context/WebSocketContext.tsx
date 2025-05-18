@@ -7,21 +7,22 @@ import React, {
 } from "react";
 import SockJS from "sockjs-client";
 import { Client, IMessage } from "@stomp/stompjs";
-import { MessageDTO } from "../types/MessageDTO";
 
 interface WebSocketContextType {
-    sendMessage: (message: MessageDTO) => void;
+    sendMessage: (message: string) => void;
     isConnected: boolean;
     client: Client | null;
-    messages: MessageDTO[];
+    messages: string[];
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
-export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
+    children,
+}) => {
     const client = useRef<Client | null>(null);
     const [isConnected, setIsConnected] = useState(false);
-    const [messages, setMessages] = useState<MessageDTO[]>([]);
+    const [messages, setMessages] = useState<string[]>([]);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -35,7 +36,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             brokerURL: `ws://localhost:8080/ws?token=${token}`,
             // webSocketFactory: () => sock,
             connectHeaders: {
-                Authorization: `Bearer ${token}`,
                 Authorization: `Bearer ${token}`,
             },
             debug: (str) => console.log("[STOMP]", str),

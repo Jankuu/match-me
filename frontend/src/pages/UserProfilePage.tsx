@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Container, Button, Spinner } from "react-bootstrap";
 import { FaEdit } from "react-icons/fa";
-import axios from "axios";
 import ProfileForm from "../components/profileForm/ProfileForm";
 import ProfilePicture from "../components/profileForm/ProfilePicture";
 import { User } from "../types/User";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "react-bootstrap-icons";
+import apiClient from "../utils/apiClient";
 
 const UserProfilePage = () => {
     const { identifier } = useParams();
@@ -55,10 +55,12 @@ const UserProfilePage = () => {
 
             if (!param) return;
 
-            const fetchProfile = async () => {
-                try {
-                    const response = await axios.get<User>(`http://localhost:8080/users?${param}`);
-                    const profileData = response.data;
+        const fetchProfile = async () => {
+
+            try {
+                console.log(param);
+                const response = await apiClient.get<User>(`/users?${param}`);
+                const profileData = response.data;
 
                     const picture = profileData.profile.profilePicture;
                     if (picture && !picture.startsWith("data:image")) {
@@ -91,7 +93,7 @@ const UserProfilePage = () => {
     const handleSave = async () => {
         try {
             if (!profile?.id) return;
-            await axios.patch(`http://localhost:8080/users/profile?id=${profile.id}`, profile.profile);
+            await apiClient.patch(`/users/profile?id=${profile.id}`, profile.profile);
             setEditing(false);
         } catch (error) {
             console.error("Failed to save profile", error);

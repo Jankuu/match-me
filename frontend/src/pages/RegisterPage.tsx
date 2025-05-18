@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Container, Alert, Spinner, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import RegisterForm from "../components/registrationComponents/RegistrationForm";
 import { UserRegistrationDTO } from "../dto/UserRegistrationDTO";
+import apiClient from "../utils/apiClient";
 
 const RegisterPage = () => {
     const [error, setError] = useState("");
@@ -13,18 +13,14 @@ const RegisterPage = () => {
     const handleSubmit = async (userPayload: UserRegistrationDTO) => {
         setError("");
         setLoading(true);
-    
+
         try {
-            const response = await axios.post("http://localhost:8080/users", userPayload, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-    
+            const response = await apiClient.post("/users", userPayload);
+
             if (response.status !== 200 && response.status !== 201) {
                 throw new Error("Registration failed");
             }
-    
+
             navigate("/login");
         } catch (err: any) {
             setError(err.response?.data?.message || err.message || "Something went wrong");

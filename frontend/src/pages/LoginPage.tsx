@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Form, Container, Spinner, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { isAuthenticated } from "../utils/auth";
 
 type LoginPageProps = {
     onLoginSuccess: (identifier: string) => void;
@@ -13,6 +14,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false); //loading icon 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        // If user is already authenticated, redirect to matching page
+        if (isAuthenticated()) {
+            navigate("/matching");
+        }
+    }, [navigate]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
