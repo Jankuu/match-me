@@ -67,8 +67,31 @@ const TestChat = () => {
         console.log("Set Receiver: " + receiverUsername);
     };
 
+    const dto = {
+        interestedMinAge: 50,
+    };
+    const num = 2;
+
+    const handleFakeRequest = async () => {
+        try {
+            const response = await fetch(`http://localhost:8080/users${num}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify(dto),
+            });
+
+            console.log(response);
+        } catch (error) {
+            console.error("❌ Error during test login:", error);
+        }
+    };
+
     return (
         <div>
+            <button onClick={handleFakeRequest}>Check</button>
             <p>Test Chat</p>
             <input
                 type="number"

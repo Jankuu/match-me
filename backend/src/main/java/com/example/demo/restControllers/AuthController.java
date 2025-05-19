@@ -23,7 +23,7 @@ public class AuthController {
     }
 
     @PostMapping("/test/login")
-    public ResponseEntity<AuthResponseDTO> testLogin(Long id) {
+    public ResponseEntity<AuthResponseDTO> testLogin(@RequestParam Long id) {
         return ResponseEntity.ok(authService.testLogin(id));
     }
 }

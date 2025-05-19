@@ -3,6 +3,7 @@ package com.example.demo.utilities;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.http.HttpStatus;
 
 import java.util.Objects;
 

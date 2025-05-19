@@ -3,6 +3,7 @@ package com.example.demo.restControllers;
 import com.example.demo.dTOs.*;
 import com.example.demo.entities.User;
 import com.example.demo.entities.UserProfile;
+import com.example.demo.exceptions.TokenAndUserNotMatch;
 import com.example.demo.services.MatchingService;
 import com.example.demo.services.UserService;
 import jakarta.validation.Valid;
@@ -38,6 +39,7 @@ public class UserController {
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email) {
+
         return userService.getUserDTO(id, username, email);
     }
 
@@ -71,7 +73,7 @@ public class UserController {
     }
 
     @GetMapping("/recommendation")
-    public List<UserProfile> getRecommendations(@RequestParam Long id){
+    public List<UserProfile> getRecommendations(@RequestParam Long id) {
         return matchingService.getFilteredRecommendations(id);
     }
 
@@ -89,6 +91,15 @@ public class UserController {
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
             @Valid @RequestBody UserDTO userDTO) {
+/*
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        User user = userService.getUser(null, currentUsername, null);
+
+        if (!user.getId().equals(id)) {
+            throw new TokenAndUserNotMatch("Forbidden request", currentUsername);
+        }
+*/
         return userService.patchUser(id, username, email, userDTO);
     }
 
@@ -128,7 +139,6 @@ public class UserController {
     }
 
     //testing jwt
-
     @GetMapping("/me")
     public UserDTO getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
