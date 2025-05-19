@@ -31,7 +31,7 @@ public class MatchingService {
     public List<UserProfile> getFilteredRecommendations(Long id) {
         User user = userService.getUser(id, null, null);
         if (user.getIsGpsUser()) {
-            return userRepository.getRecommendations(id)
+            return userRepository.getFilteredRecommendations(id)
                     .stream()
                     .map(User::getProfile)
                     .toList();

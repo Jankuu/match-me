@@ -9,7 +9,7 @@ const TestChat = () => {
 
     const [message, setMessage] = useState<string>("");
 
-    const { messages } = useWebSocket();
+    const { messages, sendMessage } = useWebSocket();
 
     const { client, isConnected } = useWebSocket();
 
@@ -47,6 +47,8 @@ const TestChat = () => {
         }
     };
     const handleSendMessage = async () => {
+        sendMessage(receiverUsername, message);
+        /*
         if (client && isConnected) {
             const formattedMessage = `@${receiverUsername} ${message}`;
             client.publish({
@@ -57,7 +59,7 @@ const TestChat = () => {
             console.log("📤 Sent to server:", message);
         } else {
             console.warn("WebSocket not connected");
-        }
+        }*/
     };
 
     const handleChangeReceiver = () => {
