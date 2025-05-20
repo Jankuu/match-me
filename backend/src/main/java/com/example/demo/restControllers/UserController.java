@@ -91,7 +91,7 @@ public class UserController {
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
             @Valid @RequestBody UserDTO userDTO) {
-/*
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         User user = userService.getUser(null, currentUsername, null);
@@ -99,7 +99,7 @@ public class UserController {
         if (!user.getId().equals(id)) {
             throw new TokenAndUserNotMatch("Forbidden request", currentUsername);
         }
-*/
+
         return userService.patchUser(id, username, email, userDTO);
     }
 

@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/users").permitAll() // Allow registration
                         .requestMatchers("/auth/test/login").permitAll()
                         .requestMatchers("/ws/**").permitAll() // WebSocket connections
+                        .requestMatchers("/games").permitAll() // Games
                         // Debugging
                         .requestMatchers("/users/**").permitAll()
                         .requestMatchers("/connections/**").permitAll()
@@ -63,7 +64,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
@@ -71,5 +72,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
-
 }
