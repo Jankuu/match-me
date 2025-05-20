@@ -44,19 +44,17 @@ function App() {
     const isMobile = useMediaQuery({ maxWidth: 768 });
     const hideNavBar = ["/login", "/register"].includes(location.pathname);
 
-    // Инициализация userIdentifier по JWT один раз
     useEffect(() => {
         const identifier = getUserIdentifierFromToken();
         if (identifier && !userIdentifier) {
             setUserIdentifier(identifier);
         }
-    }, []); // ✅ нет лишних перерендеров
+    }, []); 
 
-    // Подгрузка токена при монтировании
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
         setToken(storedToken);
-    }, []); // ✅ только один раз при монтировании
+    }, []); 
 
     const paddingStyle = {
         paddingTop: isMobile ? "0" : "60px",
@@ -70,7 +68,7 @@ function App() {
                     <Route
                         path="/"
                         element={
-                            token ? <Navigate to="/chat" /> : <Navigate to="/login" />
+                            token ? <Navigate to="/matching" /> : <Navigate to="/login" />
                         }
                     />
                     <Route
@@ -79,7 +77,7 @@ function App() {
                             <LoginPage
                                 onLoginSuccess={(identifier) => {
                                     setUserIdentifier(identifier);
-                                    setToken(localStorage.getItem("token")); // ✅ синхронизация
+                                    setToken(localStorage.getItem("token"));
                                     navigate("/matching");
                                 }}
                             />
@@ -87,7 +85,7 @@ function App() {
                     />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route
-                        path="/chat"
+                        path="/chat/:username"
                         element={token ? <ChatPage /> : <Navigate to="/login" />}
                     />
                     <Route

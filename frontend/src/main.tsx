@@ -6,7 +6,6 @@ import { Buffer } from "buffer";
 import { WebSocketProvider } from "./context/WebSocketContext.tsx";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./utils/apiClient";
-import { BrowserRouter } from "react-router-dom";
 
 
 (window as any).global = window;

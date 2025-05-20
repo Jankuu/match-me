@@ -18,7 +18,7 @@ type User = {
 interface Props {
   user: User;
   onCardClick: (username: string) => void;
-  onChatClick: (e: React.MouseEvent, id: number, username: string) => void;
+  onChatClick: (e: React.MouseEvent, username: string) => void;
   onDeleteClick: (e: React.MouseEvent, id: number) => void;
   onSwipeLeft: () => void;
   isDeleting: boolean;
@@ -72,7 +72,7 @@ const SwipeableUserCard: React.FC<Props> = ({
             <div className="d-flex flex-row gap-3">
               <Button
                 variant="link"
-                onClick={(e) => onChatClick(e, user.id, user.username)}
+                onClick={(e) => onChatClick(e, user.username)}
                 className="p-0"
               >
                 <FaComment size={18} />

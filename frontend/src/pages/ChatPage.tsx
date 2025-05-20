@@ -4,34 +4,34 @@ import { Container, Button, Form } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "react-bootstrap-icons";
 import '../styles/ChatPage.css';
-
-type MessageDTO = {
-    sender: string;
-    receiver: string;
-    content: string;
-    timestamp?: string;
-};
+import { MessageDTO } from "../types/MessageDTO";
 
 const ChatPage = () => {
-    const { userId } = useParams<{ userId: string }>();
     const { username } = useParams<{ username: string }>();
+    const currentUsername = JSON.parse(localStorage.getItem("user") || "{}")?.username || "me";
+
     const { sendMessage, messages, isConnected } = useWebSocket();
 
     const [text, setText] = useState("");
     const navigate = useNavigate();
-    const currentUsername = localStorage.getItem("user.username") || "me";
+    // const currentUsername = storedUser ? JSON.parse(storedUser).username : "me";
 
     const handleSend = () => {
         if (isConnected && text.trim()) {
             const messageDTO: MessageDTO = {
-                sender: currentUsername,
-                receiver: username!,
+                senderUsername: currentUsername,
+                receiverUsername: username!,
                 content: text,
             };
             sendMessage(messageDTO);
             setText("");
         }
     };
+
+    useEffect(() => {
+        const el = document.querySelector(".chat-messages");
+        if (el) el.scrollTop = el.scrollHeight;
+    }, [messages]);
 
     return (
         <div className="chat-page">
@@ -45,23 +45,25 @@ const ChatPage = () => {
                 <h3 className="text-center mb-3">Chat with {username}</h3>
 
                 <div className="chat-messages flex-grow-1">
-                    {messages.length === 0 ? (
-                        <div className="text-muted text-center">No messages</div>
-                    ) : (
-                        messages.map((msg: MessageDTO, i: number) => {
-                            const isMine = msg.sender === currentUsername;
-                            return (
-                                <div
-                                    key={i}
-                                    className={`message-bubble ${isMine ? "mine" : "theirs"}`}
-                                >
-                                    <div className="sender-name">{msg.sender}</div>
-                                    <div className="message-content">{msg.content}</div>
-                                </div>
-                            );
-                        })
+    {messages.length === 0 ? (
+        <div className="text-muted text-center">No messages</div>
+    ) : (
+        messages.map((msg: MessageDTO, i: number) => {
+            const isMine = msg.senderUsername === currentUsername;
+            return (
+                <div
+                    key={i}
+                    className={`message-bubble ${isMine ? "mine" : "theirs"}`}
+                >
+                    {!isMine && (
+                        <div className="sender-name">{msg.senderUsername}</div>
                     )}
+                    <div className="message-content">{msg.content}</div>
                 </div>
+            );
+        })
+    )}
+</div>
             </Container>
 
             <div className="chat-input d-flex px-3 py-2 bg-white border-top">

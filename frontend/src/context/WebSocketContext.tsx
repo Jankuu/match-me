@@ -6,12 +6,13 @@ import React, {
     useState,
 } from "react";
 import { Client, IMessage } from "@stomp/stompjs";
+import { MessageDTO } from "../types/MessageDTO";
 
 interface WebSocketContextType {
-    sendMessage: (message: string, receiverUsername: string) => void;
+    sendMessage: (message: MessageDTO) => void;
     isConnected: boolean;
     client: Client | null;
-    messages: string[];
+    messages: MessageDTO[];
     connectionNotification: string[];
     connectionRequestNotification: string[];
 }
@@ -23,7 +24,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
     const client = useRef<Client | null>(null);
     const [isConnected, setIsConnected] = useState(false);
-    const [messages, setMessages] = useState<string[]>([]);
+    const [messages, setMessages] = useState<MessageDTO[]>([]);
     const [connectionNotification, setConnectionNotification] = useState<
         string[]
     >([]);
@@ -47,13 +48,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 console.log("✅ Connected to WebSocket");
                 setIsConnected(true);
 
-                stompClient.subscribe(
-                    "/user/queue/messages",
-                    (msg: IMessage) => {
-                        console.log("New message:", msg.body);
-                        setMessages((prev) => [...prev, msg.body]);
+                stompClient.subscribe("/user/queue/messages", (msg: IMessage) => {
+                    try {
+                        const parsed: MessageDTO = JSON.parse(msg.body);
+                        console.log("New message:", parsed);
+                        setMessages((prev) => [...prev, parsed]);
+                    } catch (e) {
+                        console.error("Failed to parse message", msg.body);
                     }
-                );
+                });
 
                 stompClient.subscribe(
                     "/user/queue/notifications/connection",
@@ -91,16 +94,13 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         };
     }, []);
 
-    const sendMessage = (message: string, receiverUsername: string) => {
+    const sendMessage = (message: MessageDTO) => {
         if (client.current && isConnected) {
-            const formattedMessage = `@${receiverUsername} ${message}`;
-
             client.current.publish({
                 destination: "/app/send",
-                body: formattedMessage,
+                body: JSON.stringify(message),
             });
-
-            console.log("Send message:", formattedMessage);
+            console.log("Sent message:", message);
         } else {
             console.warn("WebSocket not connected");
         }

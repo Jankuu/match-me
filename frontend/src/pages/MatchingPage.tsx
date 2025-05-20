@@ -76,9 +76,9 @@ const MatchingPage: React.FC = () => {
     }
   };
 
-  const handleChatClick = (e: React.MouseEvent, userId: number, username: string) => {
+  const handleChatClick = (e: React.MouseEvent, username: string) => {
     e.stopPropagation();
-    navigate(`/chat/${userId}/${username}`);
+    navigate(`/chat/${username}`);
   };
 
   const handleDeleteClick = (e: React.MouseEvent, userId: number) => {
