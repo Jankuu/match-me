@@ -3,7 +3,6 @@ package com.example.demo.services;
 import com.example.demo.dTOs.MessageDTO;
 import com.example.demo.entities.Message;
 import com.example.demo.entities.User;
-import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.MessageRepository;
 import com.example.demo.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -39,7 +38,7 @@ public class MessageService {
 
     // POST
     @Transactional
-    public MessageDTO sendMessage(MessageDTO messageDTO) {
+    public MessageDTO saveMessage(MessageDTO messageDTO) {
         User sender = userService.getUserByUsername(messageDTO.getSenderUsername());
         User receiver = userService.getUserByUsername(messageDTO.getReceiverUsername());
 
@@ -55,13 +54,6 @@ public class MessageService {
 
         userRepository.saveAll(List.of(sender, receiver));
 
-        return new MessageDTO(message);
-    }
-
-    // DELETE
-    public MessageDTO deleteMessage(Long messageId) {
-        Message message = messageRepository.findById(messageId).orElseThrow(() -> new ResourceNotFoundException("Could not find message by id", messageId));
-        messageRepository.delete(message);
         return new MessageDTO(message);
     }
 }

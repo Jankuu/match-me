@@ -48,8 +48,8 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll() // WebSocket connections
                         .requestMatchers("/games").permitAll() // Games
                         // Debugging
-                        //        .requestMatchers("/auth/test/login").permitAll()
-                        //        .requestMatchers("/users/all").permitAll()
+                        .requestMatchers("/auth/test/login").permitAll()
+                        .requestMatchers("/users/all").permitAll()
                         //       .requestMatchers("/connections/**").permitAll()
                         //       .requestMatchers("/messages/**").permitAll()
                         .anyRequest().authenticated()

@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.dTOs.ConnectionDTO;
+import com.example.demo.dTOs.UserProfileDTO;
 import com.example.demo.entities.Connection;
 import com.example.demo.entities.User;
 import com.example.demo.exceptions.ConnectionAlreadyExistsException;
@@ -133,7 +134,7 @@ public class ConnectionsService {
             connectionRepository.delete(request);
             return new ConnectionDTO(request);
         }
-        return null;
+        return new ConnectionDTO(null, new UserProfileDTO(receiver.getProfile()), new UserProfileDTO(sender.getProfile()), null);
     }
 
     // DELETE

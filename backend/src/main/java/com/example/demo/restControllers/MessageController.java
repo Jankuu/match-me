@@ -17,7 +17,7 @@ public class MessageController {
     }
 
     // GET
-    @PostMapping
+    @GetMapping
     public Page<MessageDTO> getMessagesBetweenUsers(
             @RequestParam Long otherUserProfileId,
             @RequestParam(defaultValue = "0") int page,
@@ -28,8 +28,9 @@ public class MessageController {
     }
 
     // POST
+    // Not needed for production, dev only
     @PostMapping("/send")
     public MessageDTO sendMessage(@RequestBody MessageDTO messageDTO) {
-        return messageService.sendMessage(messageDTO);
+        return messageService.saveMessage(messageDTO);
     }
 }

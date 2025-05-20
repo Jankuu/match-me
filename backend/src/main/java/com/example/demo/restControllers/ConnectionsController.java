@@ -41,6 +41,7 @@ public class ConnectionsController {
         return connectionsService.getConnections(currentUsername);
     }
 
+    // Not needed for production, dev only
     @GetMapping("/rejected")
     public List<User> getRejected() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

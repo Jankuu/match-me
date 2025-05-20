@@ -88,6 +88,10 @@ public class AuthService {
 
             System.out.println("Generated token for test login: " + token.substring(0, Math.min(20, token.length())) + "...");
 
+            // Matching
+            user.setRecommendedUserProfiles(userService.getFilteredRecommendations(user.getUsername()));
+            userRepository.save(user);
+
             // Return response with token and user details
             return new AuthResponseDTO(token, new UserDTO(user));
         } catch (Exception e) {
