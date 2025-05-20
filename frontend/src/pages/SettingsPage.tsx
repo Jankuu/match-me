@@ -4,13 +4,18 @@ import React from "react";
 import { Container, Button, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
-const SettingsPage: React.FC = () => {
+interface SettingsPageProps {
+    onLogout: () => void;
+}
+
+const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        navigate("/login");
+        onLogout(); // inform parent component
+        navigate("/");
     };
 
     return (

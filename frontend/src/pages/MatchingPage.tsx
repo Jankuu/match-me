@@ -30,12 +30,19 @@ const MatchingPage: React.FC = () => {
   const currentUserId = userData ? userData.id : null;
 
   useEffect(() => {
+    
+    console.log(localStorage.getItem("token"));
+  }, []);
+
+  useEffect(() => {
     if (currentUserId) {
       fetchUserConnections();
       fetchRecommendations();
       fetchConnectionRequests();
     }
   }, [currentUserId]);
+
+  
 
   const fetchUserConnections = async () => {
 

@@ -28,7 +28,7 @@ const LocationSelector = ({ value, onChange, isEditable = true }: Props) => {
         if (!window.google || !inputRef.current) return;
 
         autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
-            types: ["(cities)"],
+            types: ["(cities)"], // check for coordinates
             componentRestrictions: { country: "ee" },
         });
 

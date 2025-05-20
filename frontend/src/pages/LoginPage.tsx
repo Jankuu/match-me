@@ -23,44 +23,44 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }, [navigate]);
 
     const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError("");
-        setLoading(true);
-      
-        try {
+      e.preventDefault();
+      setError("");
+      setLoading(true);
+  
+      try {
           const response = await fetch("http://localhost:8080/auth/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              usernameOrEmail,
-              password,
-            }),
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                  usernameOrEmail,
+                  password,
+              }),
           });
-      
+  
           const data = await response.json();
-      
+  
           if (!response.ok) {
-            throw new Error(data.message || "Login failed");
+              throw new Error(data.message || "Login failed");
           }
-      
+  
           const token = data.token;
           localStorage.setItem("token", token);
           setToken(token);
-      
+  
           const userResponse = await fetch("http://localhost:8080/users/me", {
-            headers: {
-              "Authorization": `Bearer ${token}`,
-            },
+              headers: {
+                  "Authorization": `Bearer ${token}`,
+              },
           });
-      
+  
           const userData = await userResponse.json();
-      
+  
           if (!userResponse.ok) {
-            throw new Error(userData.message || "Failed to fetch user");
+              throw new Error(userData.message || "Failed to fetch user");
           }
-      
+  
           localStorage.setItem("user", JSON.stringify(userData));
 
           // Call the onLoginSuccess callback with the user identifier
@@ -71,14 +71,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
           setUsernameOrEmail("");
           setPassword("");
-          console.log("navigating to /matching")
-          navigate("/matching");
-        } catch (err: any) {
+  
+          onLoginSuccess(userData.identifier); // ✅ передаём наверх
+  
+      } catch (err: any) {
           setError("Invalid username/email or password");
-        } finally {
+      } finally {
           setLoading(false);
-        }
-      };
+      }
+  };
 
     return (
         <Container className="mt-5" style={{ maxWidth: "400px" }}>

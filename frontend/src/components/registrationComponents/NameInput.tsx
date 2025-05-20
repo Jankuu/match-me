@@ -16,7 +16,7 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
         return parts.every((part) => /^[A-Z][a-z]*$/.test(part));
     };
 
-    const isLongEnough = value.trim().length > 2;
+    const isLongEnough = value.trim().length > 1;
     const structureValid = isStructureValid(value);
     const isUsernameValid = isLongEnough && structureValid;
 
@@ -61,7 +61,7 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
             {/* Show length hint if too short */}
             {value.length > 0 && !isLongEnough && (
                 <Form.Text className="text-danger d-block">
-                    Name must be more than 2 characters long.
+                    Name must be more than 1 characters long.
                 </Form.Text>
             )}
         </Form.Group>
