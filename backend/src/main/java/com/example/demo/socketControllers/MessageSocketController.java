@@ -65,27 +65,4 @@ public class MessageSocketController {
     public void registerUser(@Payload String username, SimpMessageHeaderAccessor headerAccessor) {
         Objects.requireNonNull(headerAccessor.getSessionAttributes()).put("username", username);
     }
-
-    @MessageMapping("/testSendMessage")
-    @SendTo("/topic/testReceiveMessage")
-    public MessageDTO sendMessage(@Payload MessageDTO messageDTO, SimpMessageHeaderAccessor headerAccessor) {
-        return messageService.sendMessage(messageDTO);
-    }
-
-    @MessageMapping("/send2") // Maps to /app/send
-    @SendTo("/topic/messages") // Optional: echo back to frontend
-    public String receiveAMessage(@Payload String message, SimpMessageHeaderAccessor headerAccessor) {
-        if ("pass".equals(message)) {
-
-            // messagingTemplate.convertAndSendToUser(
-            //            accessor.getSessionId(),
-            //            "/queue/online-users",
-            //            payload
-            //        );
-
-            // 👇 Broadcast to all clients
-            messagingTemplate.convertAndSend("/topic/broadcast", "🚨 Someone sent '11'!");
-        }
-        return "You said: " + message; // Optional echo to all subscribers
-    }
 }

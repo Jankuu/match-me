@@ -73,7 +73,7 @@ public class UserController {
     }
 
     // POST
-    @PostMapping
+    @PostMapping("/register")
     public UserDTO registerUser(
             @Valid @RequestBody UserRegistrationDTO userRegistrationDTO) {
         return userService.registerNewUser(userRegistrationDTO);
@@ -88,8 +88,7 @@ public class UserController {
     }
 
     @PatchMapping("/profile")
-    public UserProfileDTO patchUserProfile(
-            @Valid @RequestBody UserProfileDTO userProfileDTO) {
+    public UserProfileDTO patchUserProfile(@Valid @RequestBody UserProfileDTO userProfileDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         return userService.patchUserProfile(currentUsername, userProfileDTO);
@@ -101,23 +100,6 @@ public class UserController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         return userService.deleteUser(currentUsername);
-    }
-
-    @DeleteMapping("/profile")
-    public UserDTO deleteUserProfile(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email) {
-        return userService.deleteUserProfile(id, username, email);
-    }
-
-    @DeleteMapping("/interestsVector")
-    public UserDTO deleteUserInterestsVector(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email
-    ) {
-        return userService.deleteUserInterestsVector(id, username, email);
     }
 
     //testing jwt

@@ -1,4 +1,4 @@
-package com.example.demo.validators;
+package com.example.demo.utilities;
 
 public class FormatName {
     /**

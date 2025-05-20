@@ -7,9 +7,6 @@ import com.example.demo.exceptions.ConnectionAlreadyExistsException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;
 import com.example.demo.repositories.UserRepository;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -54,15 +51,6 @@ public class ConnectionsService {
                 .map(ConnectionDTO::new)
                 .toList();
     }
-
-    /*
-    private FullConnection getFullConnection(UserLinkDTO userLinkDTO) {
-        User sender = userService.getUser(userLinkDTO.getSenderId(), userLinkDTO.getSenderUsername(), userLinkDTO.getSenderEmail());
-        User receiver = userService.getUser(userLinkDTO.getReceiverId(), userLinkDTO.getReceiverUsername(), userLinkDTO.getReceiverEmail());
-        Connection connection = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find the connection between users", userLinkDTO));
-        return new FullConnection(sender, receiver, connection);
-    }
-*/
 
     public List<User> getRejected(String username) {
         User user = userService.getUserByUsername(username);
@@ -161,15 +149,5 @@ public class ConnectionsService {
 
         connectionRepository.delete(connection);
         new ConnectionDTO(connection);
-    }
-
-    // HELPER METHODS
-    @Setter
-    @Getter
-    @AllArgsConstructor
-    public static class FullConnection {
-        private User sender;
-        private User receiver;
-        private Connection connection;
     }
 }

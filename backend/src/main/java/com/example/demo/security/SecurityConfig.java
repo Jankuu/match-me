@@ -44,14 +44,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/users").permitAll() // Allow registration
-                        .requestMatchers("/auth/test/login").permitAll()
+                        .requestMatchers("/users/register").permitAll() // Allow registration
                         .requestMatchers("/ws/**").permitAll() // WebSocket connections
                         .requestMatchers("/games").permitAll() // Games
                         // Debugging
-                        .requestMatchers("/users/**").permitAll()
-                        .requestMatchers("/connections/**").permitAll()
-                        .requestMatchers("/messages/**").permitAll()
+                        //        .requestMatchers("/auth/test/login").permitAll()
+                        //        .requestMatchers("/users/all").permitAll()
+                        //       .requestMatchers("/connections/**").permitAll()
+                        //       .requestMatchers("/messages/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

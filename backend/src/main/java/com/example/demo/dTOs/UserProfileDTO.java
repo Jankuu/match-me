@@ -6,15 +6,13 @@ import com.example.demo.constraints.ValidGender;
 import com.example.demo.constraints.ValidHeight;
 import com.example.demo.constraints.ValidName;
 import com.example.demo.entities.UserProfile;
-import com.example.demo.validators.FormatName;
-import jakarta.persistence.Column;
+import com.example.demo.utilities.FormatName;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Base64;
-import java.util.Optional;
 
 @Getter
 @NoArgsConstructor
