@@ -1,14 +1,11 @@
 package com.example.demo.restControllers;
 
 import com.example.demo.dTOs.MessageDTO;
-import com.example.demo.dTOs.UserLinkDTO;
 import com.example.demo.services.MessageService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/messages")

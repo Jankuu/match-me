@@ -23,194 +23,14 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserService(
-            UserRepository userRepository, 
-            ConnectionRepository connectionRepository, 
+            UserRepository userRepository,
+            ConnectionRepository connectionRepository,
             @Lazy ConnectionsService connectionsService,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.connectionRepository = connectionRepository;
         this.connectionsService = connectionsService;
         this.passwordEncoder = passwordEncoder;
-    }
-
-    // GET
-    public Page<User> getUsers(Pageable pageable) {
-        return userRepository.findAll(pageable);
-    }
-
-    public UserDTO getUserDTO(Long id, String username, String email) {
-        User currentUser = getUser(id, username, email);
-        return new UserDTO(currentUser);
-    }
-
-    public User getUser(Long id, String username, String email) {
-        if (id != null) {
-            return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find user by id: ", id));
-        }
-
-        if (username != null && !username.isBlank()) {
-            return userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("Could not find user by username: ", username));
-        }
-
-        if (email != null && !email.isBlank()) {
-            return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Could not find user by email: ", email));
-        }
-
-        throw new ResourceNotFoundException("Could not find user by id, username or email: ", null);
-    }
-
-    public String getUserProfilePicture(Long id, String username, String email) {
-        UserProfile userProfile = getUser(id, username, email).getProfile();
-
-        if (userProfile.getProfilePicture() == null) {
-            return null;
-        }
-
-        return Base64.getEncoder().encodeToString(userProfile.getProfilePicture());
-    }
-
-    public UserProfileDTO getUserProfileDTO(Long id, String username, String email) {
-        User currentUser = getUser(id, username, email);
-        UserProfile userProfile = currentUser.getProfile();
-
-        if (userProfile == null) {
-            throw new ResourceNotFoundException("User profile not found", currentUser);
-        }
-
-        return new UserProfileDTO(userProfile);
-    }
-
-    public UserInterestVectorDTO getUserInterestsVectorDTO(Long id, String username, String email) {
-        User currentUser = getUser(id, username, email);
-        UserInterestVector interestVector = currentUser.getInterestVector();
-
-        if (interestVector == null) {
-            throw new ResourceNotFoundException("User interests vector not found", currentUser);
-        }
-
-        return new UserInterestVectorDTO(interestVector);
-    }
-
-    public UserMatchesDTO getUserMatches(long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find user by id", id));
-
-        UserMatchesDTO dto = new UserMatchesDTO();
-        dto.setRecommendedUserProfiles(user.getRecommendedUserProfiles());
-        dto.setRejectedUsers(user.getRejectedUsers());
-
-        return dto;
-    }
-
-    // POST
-    public UserDTO registerNewUser(UserRegistrationDTO dto) {
-        if (dto.getUsername() != null && !dto.getUsername().isBlank() && userRepository.findByUsername(dto.getUsername()).isPresent()) {
-            throw new DuplicateResourceException("User with this username already exists", dto.getUsername());
-        }
-
-        if (dto.getEmail() != null && !dto.getEmail().isBlank() && userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new DuplicateResourceException("User with this email already exists", dto.getEmail());
-        }
-
-        User newUser = assignUserValues(dto);
-        if (dto.getProfile() != null) {
-            newUser.setProfile(assignUserProfileValues(null, dto.getProfile()));
-        } else {
-            newUser.setProfile(new UserProfile());
-        }
-
-        if (dto.getInterestedGames() != null) {
-            newUser.setInterestVector(assignUserInterestVectorValues(null, dto.getInterestedGames()));
-        } else {
-            newUser.setInterestVector(new UserInterestVector());
-        }
-
-        return new UserDTO(userRepository.save(newUser));
-    }
-
-    // PATCH
-    public UserDTO patchUser(Long id, String username, String email, UserDTO userDTO) {
-        User currentUser = getUser(id, username, email);
-        currentUser = assignUserValues(currentUser, userDTO);
-
-        if (userDTO.getProfile() != null) {
-            currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), userDTO.getProfile()));
-        }
-
-        if (userDTO.getInterestedGames() != null) {
-            currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userDTO.getInterestedGames()));
-        }
-
-        return new UserDTO(userRepository.save(currentUser));
-    }
-
-    public UserProfileDTO patchUserProfile(Long id, String username, String email, UserProfileDTO profileDTO) {
-        User currentUser = getUser(id, username, email);
-        if (currentUser.getProfile() == null) {
-            currentUser.setProfile(new UserProfile());
-        }
-        currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), profileDTO));
-        return new UserProfileDTO(userRepository.save(currentUser).getProfile());
-    }
-
-    public UserInterestVectorDTO patchUserInterestsVector(Long id, String username, String email, UserInterestVectorDTO userInterestVectorDTO) {
-        User currentUser = getUser(id, username, email);
-        if (currentUser.getInterestVector() == null) {
-            currentUser.setInterestVector(new UserInterestVector(userInterestVectorDTO));
-        }
-        //currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userInterestVectorDTO));
-        return new UserInterestVectorDTO(userRepository.save(currentUser).getInterestVector());
-    }
-
-    // DELETE
-    public UserDTO deleteUser(Long id, String username, String email) {
-        User currentUser = getUser(id, username, email);
-
-        List<Connection> connections = connectionRepository.findByReceiverOrSender(currentUser.getProfile());
-        connections.forEach(connectionsService::deleteConnection);
-
-        userRepository.deleteById(currentUser.getId());
-        return new UserDTO(currentUser);
-    }
-
-    public UserDTO deleteUserProfile(Long id, String username, String email) {
-        User currentUser = getUser(id, username, email);
-
-        List<Connection> connections = connectionRepository.findByReceiverOrSender(currentUser.getProfile());
-        connections.forEach(connectionsService::deleteConnection);
-
-        currentUser.setProfile(null);
-        return new UserDTO(userRepository.save(currentUser));
-    }
-
-    public UserDTO deleteUserInterestsVector(Long id, String username, String email) {
-        User currentUser = getUser(id, username, email);
-        currentUser.setInterestVector(null);
-        return new UserDTO(userRepository.save(currentUser));
-    }
-
-    // HELPER METHODS
-    private User assignUserValues(UserRegistrationDTO dto) {
-        User user = new User();
-        if (dto.getUsername() != null && !dto.getUsername().isBlank()) user.setUsername(dto.getUsername());
-        if (dto.getEmail() != null && !dto.getEmail().isBlank()) user.setEmail(dto.getEmail());
-        if (dto.getPassword() != null && !dto.getPassword().isBlank()) user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        if (dto.getInterestedMinAge() != null) user.setInterestedMinAge(dto.getInterestedMinAge());
-        if (dto.getInterestedMaxAge() != null) user.setInterestedMaxAge(dto.getInterestedMaxAge());
-        if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
-        return user;
-    }
-
-    private User assignUserValues(User user, UserDTO dto) {
-        if (user == null) {
-            user = new User();
-        }
-        if (dto.getUsername() != null && !dto.getUsername().isBlank()) user.setUsername(dto.getUsername());
-        if (dto.getEmail() != null && !dto.getEmail().isBlank()) user.setEmail(dto.getEmail());
-        if (dto.getPassword() != null && !dto.getPassword().isBlank()) user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        if (dto.getInterestedMinAge() != null) user.setInterestedMinAge(dto.getInterestedMinAge());
-        if (dto.getInterestedMaxAge() != null) user.setInterestedMaxAge(dto.getInterestedMaxAge());
-        if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
-        return user;
     }
 
     private static UserProfile assignUserProfileValues(UserProfile profile, UserProfileDTO profileDTO) {
@@ -261,5 +81,189 @@ public class UserService {
         interestVector.setComplex(complexSum / total);
 
         return interestVector;
+    }
+
+    // GET
+    public Page<User> getUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    public UserDTO getUserDTO(String username) {
+        User currentUser = getUserByUsername(username);
+        return new UserDTO(currentUser);
+    }
+
+    public String getUserProfilePicture(String username) {
+        UserProfile userProfile = getUserByUsername(username).getProfile();
+
+        if (userProfile.getProfilePicture() == null) {
+            return null;
+        }
+
+        return Base64.getEncoder().encodeToString(userProfile.getProfilePicture());
+    }
+
+    public UserProfileDTO getUserProfileDTO(String username) {
+        User currentUser = getUserByUsername(username);
+        UserProfile userProfile = currentUser.getProfile();
+
+        if (userProfile == null) {
+            throw new ResourceNotFoundException("User profile not found", currentUser);
+        }
+
+        return new UserProfileDTO(userProfile);
+    }
+
+    public UserInterestVectorDTO getUserInterestsVectorDTO(String username) {
+        User currentUser = getUserByUsername(username);
+        UserInterestVector interestVector = currentUser.getInterestVector();
+
+        if (interestVector == null) {
+            throw new ResourceNotFoundException("User interests vector not found", currentUser);
+        }
+
+        return new UserInterestVectorDTO(interestVector);
+    }
+
+    public UserMatchesDTO getUserMatches(String username) {
+        User user = getUserByUsername(username);
+
+        UserMatchesDTO dto = new UserMatchesDTO();
+        dto.setRecommendedUserProfiles(user.getRecommendedUserProfiles());
+        dto.setRejectedUsers(user.getRejectedUsers());
+
+        return dto;
+    }
+
+    public List<UserProfile> getFilteredRecommendations(String username) {
+        User user = getUserByUsername(username);
+        if (user.getIsGpsUser()) {
+            return userRepository.getFilteredRecommendations(user.getId())
+                    .stream()
+                    .map(User::getProfile)
+                    .toList();
+        }
+        return null;
+    }
+
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("Could not find user by username", username));
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Could not find user by email", email));
+    }
+
+    public User getUserByProfile(UserProfile profile) {
+        return userRepository.findByProfile(profile).orElseThrow(() -> new ResourceNotFoundException("Could not find user by profile", profile));
+    }
+
+    public User getUserByProfileId(Long profileId) {
+        return userRepository.findByProfile_Id(profileId).orElseThrow(() -> new ResourceNotFoundException("Could not find user by profile id", profileId));
+    }
+
+    // POST
+    public UserDTO registerNewUser(UserRegistrationDTO dto) {
+        if (dto.getUsername() != null && !dto.getUsername().isBlank() && userRepository.findByUsername(dto.getUsername()).isPresent()) {
+            throw new DuplicateResourceException("User with this username already exists", dto.getUsername());
+        }
+
+        if (dto.getEmail() != null && !dto.getEmail().isBlank() && userRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new DuplicateResourceException("User with this email already exists", dto.getEmail());
+        }
+
+        User newUser = assignUserValues(dto);
+        if (dto.getProfile() != null) {
+            newUser.setProfile(assignUserProfileValues(null, dto.getProfile()));
+        } else {
+            newUser.setProfile(new UserProfile());
+        }
+
+        if (dto.getInterestedGames() != null) {
+            newUser.setInterestVector(assignUserInterestVectorValues(null, dto.getInterestedGames()));
+        } else {
+            newUser.setInterestVector(new UserInterestVector());
+        }
+
+        return new UserDTO(userRepository.save(newUser));
+    }
+
+    // PATCH
+    public UserDTO patchUser(String username, UserDTO userDTO) {
+        User currentUser = getUserByUsername(username);
+        currentUser = assignUserValues(currentUser, userDTO);
+
+        if (userDTO.getProfile() != null) {
+            currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), userDTO.getProfile()));
+        }
+
+        if (userDTO.getInterestedGames() != null) {
+            currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userDTO.getInterestedGames()));
+        }
+
+        return new UserDTO(userRepository.save(currentUser));
+    }
+
+    public UserProfileDTO patchUserProfile(String username, UserProfileDTO profileDTO) {
+        User currentUser = getUserByUsername(username);
+        if (currentUser.getProfile() == null) {
+            currentUser.setProfile(new UserProfile());
+        }
+        currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), profileDTO));
+        return new UserProfileDTO(userRepository.save(currentUser).getProfile());
+    }
+
+    // DELETE
+    public UserDTO deleteUser(String username) {
+        User currentUser = getUserByUsername(username);
+
+        List<Connection> connections = connectionRepository.findByReceiverOrSender(currentUser.getProfile());
+        connections.forEach(connectionsService::deleteConnection);
+
+        userRepository.deleteById(currentUser.getId());
+        return new UserDTO(currentUser);
+    }
+
+    public UserDTO deleteUserProfile(Long id, String username, String email) {
+        User currentUser = getUserByUsername(username);
+
+        List<Connection> connections = connectionRepository.findByReceiverOrSender(currentUser.getProfile());
+        connections.forEach(connectionsService::deleteConnection);
+
+        currentUser.setProfile(null);
+        return new UserDTO(userRepository.save(currentUser));
+    }
+
+    public UserDTO deleteUserInterestsVector(Long id, String username, String email) {
+        User currentUser = getUserByUsername(username);
+        currentUser.setInterestVector(null);
+        return new UserDTO(userRepository.save(currentUser));
+    }
+
+    // HELPER METHODS
+    private User assignUserValues(UserRegistrationDTO dto) {
+        User user = new User();
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) user.setUsername(dto.getUsername());
+        if (dto.getEmail() != null && !dto.getEmail().isBlank()) user.setEmail(dto.getEmail());
+        if (dto.getPassword() != null && !dto.getPassword().isBlank())
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        if (dto.getInterestedMinAge() != null) user.setInterestedMinAge(dto.getInterestedMinAge());
+        if (dto.getInterestedMaxAge() != null) user.setInterestedMaxAge(dto.getInterestedMaxAge());
+        if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
+        return user;
+    }
+
+    private User assignUserValues(User user, UserDTO dto) {
+        if (user == null) {
+            user = new User();
+        }
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) user.setUsername(dto.getUsername());
+        if (dto.getEmail() != null && !dto.getEmail().isBlank()) user.setEmail(dto.getEmail());
+        if (dto.getPassword() != null && !dto.getPassword().isBlank())
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        if (dto.getInterestedMinAge() != null) user.setInterestedMinAge(dto.getInterestedMinAge());
+        if (dto.getInterestedMaxAge() != null) user.setInterestedMaxAge(dto.getInterestedMaxAge());
+        if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
+        return user;
     }
 }

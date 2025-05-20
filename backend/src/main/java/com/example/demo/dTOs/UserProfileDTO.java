@@ -20,6 +20,7 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserProfileDTO {
+    private Long id;
     @ValidName
     private String name;
     private String profilePicture;
@@ -32,6 +33,7 @@ public class UserProfileDTO {
     private String description;
 
     public UserProfileDTO(UserProfile profile) {
+        this.id = profile.getId();
         this.name = profile.getName();
         if (profile.getProfilePicture() == null){
             this.profilePicture = null;

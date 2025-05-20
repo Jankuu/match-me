@@ -3,8 +3,6 @@ package com.example.demo.restControllers;
 import com.example.demo.dTOs.*;
 import com.example.demo.entities.User;
 import com.example.demo.entities.UserProfile;
-import com.example.demo.exceptions.TokenAndUserNotMatch;
-import com.example.demo.services.MatchingService;
 import com.example.demo.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -19,11 +17,9 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
-    private final MatchingService matchingService;
 
-    public UserController(UserService userService, MatchingService matchingService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.matchingService = matchingService;
     }
 
     // GET
@@ -35,46 +31,45 @@ public class UserController {
     }
 
     @GetMapping
-    public UserDTO getUser(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email) {
-
-        return userService.getUserDTO(id, username, email);
+    public UserDTO getUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.getUserDTO(currentUsername);
     }
 
     @GetMapping("/profilePicture")
-    public String getUserProfilePicture(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email) {
-        return userService.getUserProfilePicture(id, username, email);
+    public String getUserProfilePicture() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.getUserProfilePicture(currentUsername);
     }
 
     @GetMapping("/profile")
-    public UserProfileDTO getUserProfile(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email) {
-        return userService.getUserProfileDTO(id, username, email);
+    public UserProfileDTO getUserProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.getUserProfileDTO(currentUsername);
     }
 
     @GetMapping("/interestsVector")
-    public UserInterestVectorDTO getUserInterestsVector(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email) {
-        return userService.getUserInterestsVectorDTO(id, username, email);
+    public UserInterestVectorDTO getUserInterestsVector() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.getUserInterestsVectorDTO(currentUsername);
     }
 
     @GetMapping("/userMatches")
-    public UserMatchesDTO getUserMatches(@RequestParam long id) {
-        return userService.getUserMatches(id);
+    public UserMatchesDTO getUserMatches() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.getUserMatches(currentUsername);
     }
 
     @GetMapping("/recommendation")
-    public List<UserProfile> getRecommendations(@RequestParam Long id) {
-        return matchingService.getFilteredRecommendations(id);
+    public List<UserProfile> getRecommendations() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.getFilteredRecommendations(currentUsername);
     }
 
     // POST
@@ -86,39 +81,26 @@ public class UserController {
 
     // PATCH
     @PatchMapping
-    public UserDTO patchUser(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email,
-            @Valid @RequestBody UserDTO userDTO) {
-
+    public UserDTO patchUser(@Valid @RequestBody UserDTO userDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
-        User user = userService.getUser(null, currentUsername, null);
-
-        if (!user.getId().equals(id)) {
-            throw new TokenAndUserNotMatch("Forbidden request", currentUsername);
-        }
-
-        return userService.patchUser(id, username, email, userDTO);
+        return userService.patchUser(currentUsername, userDTO);
     }
 
     @PatchMapping("/profile")
     public UserProfileDTO patchUserProfile(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email,
             @Valid @RequestBody UserProfileDTO userProfileDTO) {
-        return userService.patchUserProfile(id, username, email, userProfileDTO);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.patchUserProfile(currentUsername, userProfileDTO);
     }
 
     // DELETE
     @DeleteMapping
-    public UserDTO deleteUser(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email) {
-        return userService.deleteUser(id, username, email);
+    public UserDTO deleteUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userService.deleteUser(currentUsername);
     }
 
     @DeleteMapping("/profile")
@@ -139,11 +121,12 @@ public class UserController {
     }
 
     //testing jwt
+    /*
     @GetMapping("/me")
     public UserDTO getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
-        return userService.getUserDTO(null, currentUsername, null);
+        return userService.getUserDTO(currentUsername);
     }
 
     @GetMapping("/me/interestsVector")
@@ -165,5 +148,5 @@ public class UserController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         return userService.getUserProfileDTO(null, currentUsername, null);
-    }
+    }*/
 }
