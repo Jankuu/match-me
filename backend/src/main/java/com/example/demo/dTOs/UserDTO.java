@@ -51,5 +51,6 @@ public class UserDTO {
         this.connectionRequests = user.getConnectionRequests();
         this.connections = user.getConnections();
         this.recommendedUserProfiles = user.getRecommendedUserProfiles();
+        this.interestedGames = user.getInterestedGames();
     }
 }

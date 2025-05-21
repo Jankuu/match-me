@@ -58,7 +58,7 @@ public class User implements EmailOrUsernameCarrier {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "game_id")
     )
-    private List<Game> interestedGames;
+    private List<Game> interestedGames = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_interest_vector_id")

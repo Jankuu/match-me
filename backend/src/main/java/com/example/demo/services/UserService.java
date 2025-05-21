@@ -1,6 +1,9 @@
 package com.example.demo.services;
 
-import com.example.demo.dTOs.*;
+import com.example.demo.dTOs.UserDTO;
+import com.example.demo.dTOs.UserInterestVectorDTO;
+import com.example.demo.dTOs.UserProfileDTO;
+import com.example.demo.dTOs.UserRegistrationDTO;
 import com.example.demo.entities.*;
 import com.example.demo.exceptions.DuplicateResourceException;
 import com.example.demo.exceptions.ResourceNotFoundException;
@@ -125,16 +128,6 @@ public class UserService {
         return new UserInterestVectorDTO(interestVector);
     }
 
-    public UserMatchesDTO getUserMatches(String username) {
-        User user = getUserByUsername(username);
-
-        UserMatchesDTO dto = new UserMatchesDTO();
-        dto.setRecommendedUserProfiles(user.getRecommendedUserProfiles());
-        dto.setRejectedUsers(user.getRejectedUsers());
-
-        return dto;
-    }
-
     public List<UserProfile> getFilteredRecommendations(String username) {
         User user = getUserByUsername(username);
         if (user.getIsGpsUser()) {
@@ -163,24 +156,24 @@ public class UserService {
     }
 
     // POST
-    public UserDTO registerNewUser(UserRegistrationDTO dto) {
-        if (dto.getUsername() != null && !dto.getUsername().isBlank() && userRepository.findByUsername(dto.getUsername()).isPresent()) {
-            throw new DuplicateResourceException("User with this username already exists", dto.getUsername());
+    public UserDTO registerNewUser(UserRegistrationDTO registrationDTO) {
+        if (registrationDTO.getUsername() != null && !registrationDTO.getUsername().isBlank() && userRepository.findByUsername(registrationDTO.getUsername()).isPresent()) {
+            throw new DuplicateResourceException("User with this username already exists", registrationDTO.getUsername());
         }
 
-        if (dto.getEmail() != null && !dto.getEmail().isBlank() && userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new DuplicateResourceException("User with this email already exists", dto.getEmail());
+        if (registrationDTO.getEmail() != null && !registrationDTO.getEmail().isBlank() && userRepository.findByEmail(registrationDTO.getEmail()).isPresent()) {
+            throw new DuplicateResourceException("User with this email already exists", registrationDTO.getEmail());
         }
 
-        User newUser = assignUserValues(dto);
-        if (dto.getProfile() != null) {
-            newUser.setProfile(assignUserProfileValues(null, dto.getProfile()));
+        User newUser = assignUserValues(registrationDTO);
+        if (registrationDTO.getProfile() != null) {
+            newUser.setProfile(assignUserProfileValues(null, registrationDTO.getProfile()));
         } else {
             newUser.setProfile(new UserProfile());
         }
 
-        if (dto.getInterestedGames() != null) {
-            newUser.setInterestVector(assignUserInterestVectorValues(null, dto.getInterestedGames()));
+        if (registrationDTO.getInterestedGames() != null && !registrationDTO.getInterestedGames().isEmpty()) {
+            newUser.setInterestVector(assignUserInterestVectorValues(null, registrationDTO.getInterestedGames()));
         } else {
             newUser.setInterestVector(new UserInterestVector());
         }
@@ -197,7 +190,7 @@ public class UserService {
             currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), userDTO.getProfile()));
         }
 
-        if (userDTO.getInterestedGames() != null) {
+        if (userDTO.getInterestedGames() != null && !userDTO.getInterestedGames().isEmpty()) {
             currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userDTO.getInterestedGames()));
         }
 

@@ -58,13 +58,6 @@ public class UserController {
         return userService.getUserInterestsVectorDTO(currentUsername);
     }
 
-    @GetMapping("/userMatches")
-    public UserMatchesDTO getUserMatches() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-        return userService.getUserMatches(currentUsername);
-    }
-
     @GetMapping("/recommendation")
     public List<UserProfile> getRecommendations() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
