@@ -25,7 +25,9 @@ const MatchingPage: React.FC = () => {
   const [deletingUserIds, setDeletingUserIds] = useState<number[]>([]);
   const navigate = useNavigate();
 
-  const currentUserId = localStorage.getItem("user.id");
+  const userDataString = localStorage.getItem("user");
+  const userData = userDataString ? JSON.parse(userDataString) : null;
+  const currentUserId = userData ? userData.id : null;
 
   useEffect(() => {
     if (currentUserId) {

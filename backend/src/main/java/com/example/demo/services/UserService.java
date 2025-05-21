@@ -6,6 +6,9 @@ import com.example.demo.exceptions.DuplicateResourceException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;
 import com.example.demo.repositories.UserRepository;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,16 +24,20 @@ public class UserService {
     private final ConnectionRepository connectionRepository;
     private final ConnectionsService connectionsService;
     private final PasswordEncoder passwordEncoder;
+    private final LocationService locationService;
+    private final GeometryFactory geometryFactory = new GeometryFactory();
 
     public UserService(
             UserRepository userRepository, 
             ConnectionRepository connectionRepository, 
             @Lazy ConnectionsService connectionsService,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            LocationService locationService) {
         this.userRepository = userRepository;
         this.connectionRepository = connectionRepository;
         this.connectionsService = connectionsService;
         this.passwordEncoder = passwordEncoder;
+        this.locationService = locationService;
     }
 
     // GET
@@ -197,6 +204,35 @@ public class UserService {
         if (dto.getInterestedMinAge() != null) user.setInterestedMinAge(dto.getInterestedMinAge());
         if (dto.getInterestedMaxAge() != null) user.setInterestedMaxAge(dto.getInterestedMaxAge());
         if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
+
+        // Process location data
+        if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
+            Boolean isGpsUser = dto.getIsGpsUser() != null ? dto.getIsGpsUser() : false;
+            user.setIsGpsUser(isGpsUser);
+
+            if (Boolean.TRUE.equals(isGpsUser)) {
+                // GPS user: store location and radius
+                if (dto.getLat() != null && dto.getLng() != null) {
+                    Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
+                    point.setSRID(4326);
+                    user.setLocation(point);
+                }
+                user.setRadius(dto.getRadius());
+
+                // Link to city if available
+                if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
+                    City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
+                    user.setCity(city);
+                }
+            } else {
+                // City list user: link to city
+                City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
+                user.setCity(city);
+                user.setLocation(null);
+                user.setRadius(null);
+            }
+        }
+
         return user;
     }
 

@@ -2,6 +2,7 @@ package com.example.demo.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,6 +58,11 @@ public class JwtUtil {
 
     private Claims extractAllClaims(String token) {
         try {
+            // Check if token has valid JWT format before parsing
+            if (token == null || token.isBlank() || !token.contains(".")) {
+                throw new MalformedJwtException("Invalid JWT token format");
+            }
+
             System.out.println("Attempting to extract claims from token: " + token.substring(0, Math.min(10, token.length())) + "...");
             Key signingKey = getSigningKey();
             System.out.println("Signing key algorithm: " + signingKey.getAlgorithm());

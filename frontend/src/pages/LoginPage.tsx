@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button, Form, Container, Spinner, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { isAuthenticated } from "../utils/auth";
+import {getUserIdentifierFromToken, isAuthenticated} from "../utils/auth";
 
 type LoginPageProps = {
     onLoginSuccess: (identifier: string) => void;
@@ -62,7 +62,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           }
       
           localStorage.setItem("user", JSON.stringify(userData));
-      
+
+          // Call the onLoginSuccess callback with the user identifier
+          const identifier = getUserIdentifierFromToken();
+          if (identifier) {
+            onLoginSuccess(identifier);
+          }
+
           setUsernameOrEmail("");
           setPassword("");
           console.log("navigating to /matching")

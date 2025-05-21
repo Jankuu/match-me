@@ -32,7 +32,7 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
         String token = servletRequest.getServletRequest().getParameter("token");
         System.out.println("Token received: " + (token != null ? token.substring(0, Math.min(10, token.length())) + "..." : "null"));
 
-        if (token != null && !token.isBlank()) {
+        if (token != null && !token.isBlank() && token.contains(".")) {
             try {
                 if (jwtUtil.validateToken(token)) {
                     String username = jwtUtil.extractUsername(token);

@@ -12,7 +12,8 @@ type Props = {
     onChange: (
         value: string,
         placeId?: string,
-        coordinates?: Coordinates
+        coordinates?: Coordinates,
+        isGpsUsed?: boolean
     ) => void;
     isEditable?: boolean; // optional, defaults to true
 };
@@ -41,7 +42,7 @@ const LocationSelector = ({ value, onChange, isEditable = true }: Props) => {
                 const placeId = place.place_id;
 
                 setIsValidLocation(true);
-                onChange(address, placeId, { lat, lng });
+                onChange(address, placeId, { lat, lng }, false);
             } else {
                 setIsValidLocation(false);
                 onChange(address);
@@ -79,7 +80,7 @@ const LocationSelector = ({ value, onChange, isEditable = true }: Props) => {
 
                             inputRef.current!.value = cityName;
                             setIsValidLocation(true);
-                            onChange(cityName, placeId, coordinates);
+                            onChange(cityName, placeId, coordinates, true);
 
                             if (autocompleteRef.current) {
                                 autocompleteRef.current.setBounds(new google.maps.LatLngBounds(latLng));

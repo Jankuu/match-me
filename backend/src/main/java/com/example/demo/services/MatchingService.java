@@ -19,23 +19,33 @@ public class MatchingService {
 
     public List<UserProfile> getRecommendations(Long id) {
         User user = userService.getUser(id, null, null);
-        if (user.getIsGpsUser()) {
+        Boolean isGpsUser = user.getIsGpsUser();
+        if (Boolean.TRUE.equals(isGpsUser)) {
+            return userRepository.getRecommendations(id)
+                    .stream()
+                    .map(User::getProfile)
+                    .toList();
+        } else { // TODO: recommendations for non gps users/dunno if its gonna be a separate query but leaving this here for now
             return userRepository.getRecommendations(id)
                     .stream()
                     .map(User::getProfile)
                     .toList();
         }
-        return null;
     }
 
     public List<UserProfile> getFilteredRecommendations(Long id) {
         User user = userService.getUser(id, null, null);
-        if (user.getIsGpsUser()) {
+        Boolean isGpsUser = user.getIsGpsUser();
+        if (Boolean.TRUE.equals(isGpsUser)) {
+            return userRepository.getRecommendations(id)
+                    .stream()
+                    .map(User::getProfile)
+                    .toList();
+        } else { // TODO: recommendations for non gps users
             return userRepository.getRecommendations(id)
                     .stream()
                     .map(User::getProfile)
                     .toList();
         }
-        return null;
     }
 }

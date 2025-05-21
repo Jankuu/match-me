@@ -11,4 +11,12 @@ export interface UserRegistrationDTO {
     interestedMaxAge: number;
     interestedGenders: string[];
     interestVector: UserInterestVectorDTO;
+
+    // Location data
+    isGpsUser?: boolean;
+    cityName?: string;
+    googlePlaceId?: string;
+    lat?: number;
+    lng?: number;
+    radius?: number;
 }

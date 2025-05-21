@@ -37,6 +37,9 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const [ages, setAges] = useState<[number, number]>([18, 120]);
     const [preferredGendersArray, setPreferredGendersArray] = useState<string[]>(["man", "woman"]);
     const [location, setLocation] = useState("");
+    const [placeId, setPlaceId] = useState<string | undefined>(undefined);
+    const [coordinates, setCoordinates] = useState<{lat: number, lng: number} | undefined>(undefined);
+    const [isGpsUsed, setIsGpsUsed] = useState(false);
     const [age, setAge] = useState<number | null>(null);
     const [interest, setInterest] = useState<number[]>([3, 3, 3, 3, 3]); // stub values
 
@@ -122,7 +125,6 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 gender,
                 height,
                 description,
-                location: location,
             },
             interestedMinAge: ages[0],
             interestedMaxAge: ages[1],
@@ -134,6 +136,13 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 story: interest[3],
                 complex: interest[4],
             },
+            // Location data
+            isGpsUser: isGpsUsed, // Set based on whether GPS was used
+            cityName: location,
+            googlePlaceId: placeId,
+            lat: coordinates?.lat,
+            lng: coordinates?.lng,
+            radius: 5000, // Default radius in meters
         };
 
         onSubmit(userPayload);
@@ -198,7 +207,15 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
             <AgeRangeSelector userAge={age} onChange={setAges} />
             <GenderSelector onChange={setGender} selected={gender} isEditable={true}/>
             <HeightSet height={height} setHeight={setHeight} isEditable={true}/>
-            <LocationSelector value={location} onChange={setLocation} />
+            <LocationSelector 
+                value={location} 
+                onChange={(value, placeId, coords, gpsUsed) => {
+                    setLocation(value);
+                    setPlaceId(placeId);
+                    setCoordinates(coords);
+                    setIsGpsUsed(gpsUsed || false);
+                }} 
+            />
             <PreferredGenderSelector onChange={setPreferredGendersArray} selected={preferredGendersArray} />
             <Description description={description} setDescription={setDescription} />
 
