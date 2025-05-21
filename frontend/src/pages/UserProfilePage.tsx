@@ -92,13 +92,22 @@ const UserProfilePage = () => {
 
     const handleSave = async () => {
         try {
-            if (!profile?.id) return;
-            await apiClient.patch(`/users/profile?id=${profile.id}`, profile.profile);
-            setEditing(false);
+          if (!profile) return;
+          await apiClient.patch("/users/profile", profile.profile); //
+          setEditing(false);
         } catch (error) {
-            console.error("Failed to save profile", error);
+          console.error("Failed to save profile", error);
         }
-    };
+      };
+    // const handleSave = async () => {
+    //     try {
+    //         if (!profile?.id) return;
+    //         await apiClient.patch(`/users/profile?id=${profile.id}`, profile.profile);
+    //         setEditing(false);
+    //     } catch (error) {
+    //         console.error("Failed to save profile", error);
+    //     }
+    // };
 
     if (loading) {
         return (
