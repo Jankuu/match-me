@@ -72,7 +72,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           setUsernameOrEmail("");
           setPassword("");
   
-          onLoginSuccess(userData.identifier); // ✅ передаём наверх
+          onLoginSuccess(userData.identifier); // ✅ send up
   
       } catch (err: any) {
           setError("Invalid username/email or password");
