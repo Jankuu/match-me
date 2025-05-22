@@ -45,7 +45,7 @@ public class MessageSocketController {
                 messageDTO
         );
 
-        messageService.sendMessage(messageDTO);
+        messageService.saveMessage(messageDTO);
     }
 
     // @MessageMapping("/send") // Maps to /app/send
