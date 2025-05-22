@@ -93,7 +93,7 @@ const UserProfilePage = () => {
     const handleSave = async () => {
         try {
           if (!profile) return;
-          await apiClient.patch("/users/profile", profile.profile); //
+          await apiClient.patch("/users/profile?id=102", profile.profile); //
           setEditing(false);
         } catch (error) {
           console.error("Failed to save profile", error);

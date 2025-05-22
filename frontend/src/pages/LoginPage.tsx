@@ -48,20 +48,22 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           const token = data.token;
           localStorage.setItem("token", token);
           setToken(token);
+
+          localStorage.setItem("user", JSON.stringify(data.user));
   
-          const userResponse = await fetch("http://localhost:8080/users/me", {
-              headers: {
-                  "Authorization": `Bearer ${token}`,
-              },
-          });
+        //   const userResponse = await fetch("http://localhost:8080/users/me", {
+        //       headers: {
+        //           "Authorization": `Bearer ${token}`,
+        //       },
+        //   });
   
-          const userData = await userResponse.json();
+        //   const userData = await userResponse.json();
   
-          if (!userResponse.ok) {
-              throw new Error(userData.message || "Failed to fetch user");
-          }
+        //   if (!userResponse.ok) {
+        //       throw new Error(userData.message || "Failed to fetch user");
+        //   }
   
-          localStorage.setItem("user", JSON.stringify(userData));
+        //   localStorage.setItem("user", JSON.stringify(userData));
 
           // Call the onLoginSuccess callback with the user identifier
           const identifier = getUserIdentifierFromToken();
@@ -72,7 +74,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           setUsernameOrEmail("");
           setPassword("");
   
-          onLoginSuccess(userData.identifier); // ✅ send up
+          onLoginSuccess(data.user.identifier); // ✅ send up
   
       } catch (err: any) {
           setError("Invalid username/email or password");
