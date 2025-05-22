@@ -39,6 +39,9 @@ public class MessageService {
     // POST
     @Transactional
     public MessageDTO saveMessage(MessageDTO messageDTO) {
+        System.out.println("SENDER USERNAME: " + messageDTO.getSenderUsername());
+        System.out.println("RECEIVER USERNAME: " + messageDTO.getReceiverUsername());
+
         User sender = userService.getUserByUsername(messageDTO.getSenderUsername());
         User receiver = userService.getUserByUsername(messageDTO.getReceiverUsername());
 

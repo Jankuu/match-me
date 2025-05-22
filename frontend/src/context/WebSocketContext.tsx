@@ -91,7 +91,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         };
     }, []);
 
-    const sendMessage = (message: string, receiverUsername: string) => {
+    const sendMessage = (receiverUsername: string, message: string) => {
         if (client.current && isConnected) {
             const formattedMessage = `@${receiverUsername} ${message}`;
 
