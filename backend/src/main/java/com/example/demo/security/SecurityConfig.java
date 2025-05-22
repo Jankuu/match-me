@@ -47,6 +47,10 @@ public class SecurityConfig {
                         .requestMatchers("/users").permitAll() // Allow registration
                         .requestMatchers("/auth/test/login").permitAll()
                         .requestMatchers("/ws/**").permitAll() // WebSocket connections
+                        // Debugging
+                        .requestMatchers("/users/**").permitAll()
+                        .requestMatchers("/connections/**").permitAll()
+                        .requestMatchers("/messages/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

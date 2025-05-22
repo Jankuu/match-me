@@ -139,9 +139,9 @@ public class ConnectionsService {
         receiver.getRejectedUsers().add(sender);
         sender.getRejectedUsers().add(receiver);
 
-        connectionRepository.delete(request);
         userRepository.save(receiver);
         userRepository.save(sender);
+        connectionRepository.delete(request);
 
         return new ConnectionDTO(request);
     }

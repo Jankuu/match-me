@@ -37,12 +37,12 @@ public class MatchingService {
         User user = userService.getUser(id, null, null);
         Boolean isGpsUser = user.getIsGpsUser();
         if (Boolean.TRUE.equals(isGpsUser)) {
-            return userRepository.getRecommendations(id)
+            return userRepository.getFilteredRecommendations(id)
                     .stream()
                     .map(User::getProfile)
                     .toList();
         } else { // TODO: recommendations for non gps users
-            return userRepository.getRecommendations(id)
+            return userRepository.getFilteredRecommendations(id)
                     .stream()
                     .map(User::getProfile)
                     .toList();

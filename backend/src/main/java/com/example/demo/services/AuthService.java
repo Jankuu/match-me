@@ -60,7 +60,7 @@ public class AuthService {
             System.out.println("Found user: " + user.getUsername() + " (ID: " + user.getId() + ")");
 
             // Matching
-            user.setRecommendedUserProfiles(matchingService.getRecommendations(user.getId()));
+            user.setRecommendedUserProfiles(matchingService.getFilteredRecommendations(user.getId()));
             userRepository.save(user);
 
             return new AuthResponseDTO(token, new UserDTO(user));
