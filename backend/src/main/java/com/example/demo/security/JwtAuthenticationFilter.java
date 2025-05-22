@@ -24,16 +24,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * Filters incoming HTTP requests to authenticate users based on a JWT token.
+     * <p>
+     * This method checks the "Authorization" header for a Bearer token. If present,
+     * it attempts to extract the username from the token. If the username is successfully
+     * extracted and there is no existing authentication in the security context,
+     * it loads the corresponding user details and validates the token.
+     * <p>
+     * If the token is valid, it sets the authentication in the {@link SecurityContextHolder},
+     * allowing the user to be considered authenticated for the remainder of the request processing.
+     * Regardless of whether authentication is successful, the request is passed along the filter chain.
+     *
+     * @param request     the incoming {@link HttpServletRequest}
+     * @param response    the outgoing {@link HttpServletResponse}
+     * @param filterChain the filter chain to continue processing the request
+     * @throws ServletException if an exception occurs that interferes with the filter's operation
+     * @throws IOException      if an I/O error occurs during request processing
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-/*
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            response.setStatus(HttpServletResponse.SC_OK);
-            return;
-        }
-*/
         final String authorizationHeader = request.getHeader("Authorization");
 
         String username = null;

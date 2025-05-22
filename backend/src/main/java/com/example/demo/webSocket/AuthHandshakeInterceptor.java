@@ -10,6 +10,12 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import java.util.Map;
 
+/**
+ * Intercepts WebSocket handshake requests to perform JWT-based authentication.
+ * <p>
+ * Extracts a token from the handshake request's query parameters, validates it using {@link JwtUtil},
+ * and, if valid, attaches the authenticated username to the WebSocket session attributes.
+ */
 @Component
 public class AuthHandshakeInterceptor implements HandshakeInterceptor {
 
@@ -19,6 +25,19 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
         this.jwtUtil = jwtUtil;
     }
 
+    /**
+     * Called before the WebSocket handshake is completed.
+     * <p>
+     * This method extracts the JWT token from the request parameters, validates it using {@link JwtUtil},
+     * and stores the associated username in the session attributes if the token is valid.
+     *
+     * @param request    the HTTP request initiating the handshake
+     * @param response   the HTTP response
+     * @param wsHandler  the WebSocket handler
+     * @param attributes a map to store attributes for the WebSocket session
+     * @return true if the handshake should proceed (valid token), false otherwise
+     * @throws Exception in case of unexpected validation errors
+     */
     @Override
     public boolean beforeHandshake(ServerHttpRequest request,
                                    ServerHttpResponse response,
@@ -53,6 +72,16 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
         return false;
     }
 
+    /**
+     * Called after the WebSocket handshake is done.
+     * <p>
+     * This implementation does not perform any actions, but the method is required by the interface.
+     *
+     * @param request   the HTTP request
+     * @param response  the HTTP response
+     * @param wsHandler the WebSocket handler
+     * @param exception any exception raised during the handshake, if any
+     */
     @Override
     public void afterHandshake(ServerHttpRequest request,
                                ServerHttpResponse response,

@@ -31,6 +31,26 @@ public class AuthService {
         this.userService = userService;
     }
 
+    /**
+     * Authenticates a user based on the provided login credentials and issues a JWT token upon success.
+     * <p>
+     * This method performs the following steps:
+     * <ul>
+     *     <li>Authenticates the user using {@link AuthenticationManager} with username/email and password.</li>
+     *     <li>Generates a JWT token for the authenticated user.</li>
+     *     <li>Retrieves the full {@link User} entity from the database using either username or email.</li>
+     *     <li>Generates and attaches recommended user profiles to the user entity.</li>
+     *     <li>Returns an {@link AuthResponseDTO} containing the JWT token and user information.</li>
+     * </ul>
+     * <p>
+     * If authentication fails due to bad credentials, a {@link BadCredentialsException} is thrown.
+     * Any other unexpected errors during the process are rethrown after logging.
+     *
+     * @param loginDTO the login request data containing username/email and password
+     * @return an {@link AuthResponseDTO} containing the JWT token and user information
+     * @throws BadCredentialsException if authentication fails due to invalid credentials
+     * @throws RuntimeException        for any other unexpected errors
+     */
     public AuthResponseDTO authenticate(LoginDTO loginDTO) {
         try {
             System.out.println("Authenticating user: " + loginDTO.getUsernameOrEmail());
