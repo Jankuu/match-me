@@ -1,16 +1,13 @@
 package com.example.demo.services;
 
 import com.example.demo.dTOs.ConnectionDTO;
-import com.example.demo.dTOs.UserLinkDTO;
+import com.example.demo.dTOs.UserProfileDTO;
 import com.example.demo.entities.Connection;
 import com.example.demo.entities.User;
 import com.example.demo.exceptions.ConnectionAlreadyExistsException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;
 import com.example.demo.repositories.UserRepository;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -31,15 +28,15 @@ public class ConnectionsService {
     }
 
     // GET
-    public Map<String, List<ConnectionDTO>> getUserConnections(Long id, String username, String email) {
+    public Map<String, List<ConnectionDTO>> getUserConnections(String username) {
         Map<String, List<ConnectionDTO>> userConnections = new HashMap<>();
-        userConnections.put("Connections", getConnections(id, username, email));
-        userConnections.put("ConnectionRequests", getConnectionRequests(id, username, email));
+        userConnections.put("Connections", getConnections(username));
+        userConnections.put("ConnectionRequests", getConnectionRequests(username));
         return userConnections;
     }
 
-    public List<ConnectionDTO> getConnectionRequests(Long id, String username, String email) {
-        User user = userService.getUser(id, username, email);
+    public List<ConnectionDTO> getConnectionRequests(String username) {
+        User user = userService.getUserByUsername(username);
         return user.getConnectionRequests()
                 .stream()
                 .sorted(Comparator.comparing(Connection::getCreatedAt).reversed())
@@ -47,8 +44,8 @@ public class ConnectionsService {
                 .toList();
     }
 
-    public List<ConnectionDTO> getConnections(Long id, String username, String email) {
-        User user = userService.getUser(id, username, email);
+    public List<ConnectionDTO> getConnections(String username) {
+        User user = userService.getUserByUsername(username);
         return user.getConnections()
                 .stream()
                 .sorted(Comparator.comparing(Connection::getCreatedAt).reversed())
@@ -56,23 +53,15 @@ public class ConnectionsService {
                 .toList();
     }
 
-    private FullConnection getFullConnection(UserLinkDTO userLinkDTO) {
-        User sender = userService.getUser(userLinkDTO.getSenderId(), userLinkDTO.getSenderUsername(), userLinkDTO.getSenderEmail());
-        User receiver = userService.getUser(userLinkDTO.getReceiverId(), userLinkDTO.getReceiverUsername(), userLinkDTO.getReceiverEmail());
-        Connection connection = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find the connection between users", userLinkDTO));
-        return new FullConnection(sender, receiver, connection);
-    }
-
-
-    public List<User> getRejected(Long id) {
-        User user = userService.getUser(id, null, null);
+    public List<User> getRejected(String username) {
+        User user = userService.getUserByUsername(username);
         return user.getRejectedUsers();
     }
 
     // POST
-    public ConnectionDTO sendRequest(UserLinkDTO userLinkDTO) {
-        User sender = userService.getUser(userLinkDTO.getSenderId(), userLinkDTO.getSenderUsername(), userLinkDTO.getSenderEmail());
-        User receiver = userService.getUser(userLinkDTO.getReceiverId(), userLinkDTO.getSenderUsername(), userLinkDTO.getReceiverEmail());
+    public ConnectionDTO sendRequest(String senderUsername, Long receiverProfileId) {
+        User sender = userService.getUserByUsername(senderUsername);
+        User receiver = userService.getUserByProfileId(receiverProfileId);
 
         Optional<Connection> existing = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile());
         if (existing.isPresent()) {
@@ -99,11 +88,11 @@ public class ConnectionsService {
         return connectionDTO;
     }
 
-    public ConnectionDTO acceptRequest(UserLinkDTO userLinkDTO) {
-        FullConnection fullConnection = getFullConnection(userLinkDTO);
-        User sender = fullConnection.sender;
-        User receiver = fullConnection.receiver;
-        Connection request = fullConnection.connection;
+    public ConnectionDTO acceptRequest(String receiverUsername, Long senderProfileId) {
+        User receiver = userService.getUserByUsername(receiverUsername);
+        User sender = userService.getUserByProfileId(senderProfileId);
+
+        Connection request = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElseThrow(() -> new ResourceNotFoundException("Could not find connection between users", null));
 
         if (receiver.getConnections().contains(request)) {
             throw new ConnectionAlreadyExistsException("Connection between users already exists.", request);
@@ -129,30 +118,27 @@ public class ConnectionsService {
         return new ConnectionDTO(request);
     }
 
-    public ConnectionDTO rejectRequest(UserLinkDTO userLinkDTO) {
-        FullConnection fullConnection = getFullConnection(userLinkDTO);
-        User sender = fullConnection.sender;
-        User receiver = fullConnection.receiver;
-        Connection request = fullConnection.connection;
+    public ConnectionDTO rejectRequest(String receiverUsername, Long senderProfileId) {
+        User receiver = userService.getUserByUsername(receiverUsername);
+        User sender = userService.getUserByProfileId(senderProfileId);
 
-        receiver.getConnectionRequests().remove(request);
         receiver.getRejectedUsers().add(sender);
         sender.getRejectedUsers().add(receiver);
 
         userRepository.save(receiver);
         userRepository.save(sender);
-        connectionRepository.delete(request);
 
-        return new ConnectionDTO(request);
+        Connection request = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElse(null);
+        if (request != null) {
+            receiver.getConnectionRequests().remove(request);
+            connectionRepository.delete(request);
+            return new ConnectionDTO(request);
+        }
+        return new ConnectionDTO(null, new UserProfileDTO(receiver.getProfile()), new UserProfileDTO(sender.getProfile()), null);
     }
 
     // DELETE
-    public ConnectionDTO deleteConnection(UserLinkDTO userLinkDTO) {
-        Connection connection = getFullConnection(userLinkDTO).connection;
-        return deleteConnection(connection);
-    }
-
-    public ConnectionDTO deleteConnection(Connection connection) {
+    public void deleteConnection(Connection connection) {
         User sender = userRepository.findByProfile(connection.getSender()).orElseThrow(() -> new ResourceNotFoundException("Could not find sender in connection", connection));
         User receiver = userRepository.findByProfile(connection.getReceiver()).orElseThrow(() -> new ResourceNotFoundException("Could not find receiver in connection", connection));
 
@@ -163,16 +149,6 @@ public class ConnectionsService {
         receiver.getConnectionRequests().remove(connection);
 
         connectionRepository.delete(connection);
-        return new ConnectionDTO(connection);
-    }
-
-    // HELPER METHODS
-    @Setter
-    @Getter
-    @AllArgsConstructor
-    public static class FullConnection {
-        private User sender;
-        private User receiver;
-        private Connection connection;
+        new ConnectionDTO(connection);
     }
 }

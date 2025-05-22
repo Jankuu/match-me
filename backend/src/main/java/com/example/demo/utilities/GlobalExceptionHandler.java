@@ -2,6 +2,7 @@ package com.example.demo.utilities;
 
 import com.example.demo.exceptions.EmailAlreadyExistsException;
 import com.example.demo.exceptions.ResourceNotFoundException;
+import com.example.demo.exceptions.TokenAndUserNotMatch;
 import com.example.demo.exceptions.UsernameAlreadyExistsException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -60,5 +61,14 @@ public class GlobalExceptionHandler {
                 errorMessages,
                 ex);
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TokenAndUserNotMatch.class)
+    public ResponseEntity<ApiError> HandleTokenAndUserNotMatch(TokenAndUserNotMatch ex) {
+        ApiError error = new ApiError(
+                "403 FORBIDDEN",
+                "Forbidden request",
+                ex);
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 }

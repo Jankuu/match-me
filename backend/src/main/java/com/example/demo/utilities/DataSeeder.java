@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -99,7 +100,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void generateGames() {
-        List<Game> games = List.of(
+        List<Game> games = new ArrayList<>(List.of(
                 new Game("Animal Crossing: New Horizons", 80, 0, 5, 15, 10),
                 new Game("Assassin's Creed Odyssey", 10, 10, 85, 90, 35),
                 new Game("Fez", 80, 0, 5, 5, 20),
@@ -150,8 +151,8 @@ public class DataSeeder implements CommandLineRunner {
                 new Game("Fall Guys", 70, 90, 5, 5, 90),
                 new Game("Overwatch", 60, 90, 50, 15, 50),
                 new Game("Valorant", 80, 100, 75, 0, 50)
-        );
-
+        ));
+        games.sort(Comparator.comparing(Game::getName));
         gameRepository.saveAll(games);
     }
 

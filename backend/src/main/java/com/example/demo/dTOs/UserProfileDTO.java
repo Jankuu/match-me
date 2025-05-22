@@ -6,20 +6,19 @@ import com.example.demo.constraints.ValidGender;
 import com.example.demo.constraints.ValidHeight;
 import com.example.demo.constraints.ValidName;
 import com.example.demo.entities.UserProfile;
-import com.example.demo.validators.FormatName;
-import jakarta.persistence.Column;
+import com.example.demo.utilities.FormatName;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Base64;
-import java.util.Optional;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserProfileDTO {
+    private Long id;
     @ValidName
     private String name;
     private String profilePicture;
@@ -32,6 +31,7 @@ public class UserProfileDTO {
     private String description;
 
     public UserProfileDTO(UserProfile profile) {
+        this.id = profile.getId();
         this.name = profile.getName();
         if (profile.getProfilePicture() == null){
             this.profilePicture = null;

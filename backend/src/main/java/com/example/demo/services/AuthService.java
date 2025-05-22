@@ -4,7 +4,6 @@ import com.example.demo.dTOs.AuthResponseDTO;
 import com.example.demo.dTOs.LoginDTO;
 import com.example.demo.dTOs.UserDTO;
 import com.example.demo.entities.User;
-import com.example.demo.entities.UserProfile;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.UserRepository;
 import com.example.demo.security.JwtUtil;
@@ -13,28 +12,23 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class AuthService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-    private final MatchingService matchingService;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     public AuthService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
-            JwtUtil jwtUtil, MatchingService matchingService, PasswordEncoder passwordEncoder) {
+            JwtUtil jwtUtil, UserService userService) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
-        this.matchingService = matchingService;
-        this.passwordEncoder = passwordEncoder;
+        this.userService = userService;
     }
 
     public AuthResponseDTO authenticate(LoginDTO loginDTO) {
@@ -60,7 +54,7 @@ public class AuthService {
             System.out.println("Found user: " + user.getUsername() + " (ID: " + user.getId() + ")");
 
             // Matching
-            user.setRecommendedUserProfiles(matchingService.getFilteredRecommendations(user.getId()));
+            user.setRecommendedUserProfiles(userService.getFilteredRecommendations(user.getUsername()));
             userRepository.save(user);
 
             return new AuthResponseDTO(token, new UserDTO(user));
@@ -93,6 +87,10 @@ public class AuthService {
                     .build());
 
             System.out.println("Generated token for test login: " + token.substring(0, Math.min(20, token.length())) + "...");
+
+            // Matching
+            user.setRecommendedUserProfiles(userService.getFilteredRecommendations(user.getUsername()));
+            userRepository.save(user);
 
             // Return response with token and user details
             return new AuthResponseDTO(token, new UserDTO(user));

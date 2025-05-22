@@ -1,14 +1,11 @@
 package com.example.demo.restControllers;
 
 import com.example.demo.dTOs.MessageDTO;
-import com.example.demo.dTOs.UserLinkDTO;
 import com.example.demo.services.MessageService;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/messages")
@@ -20,51 +17,20 @@ public class MessageController {
     }
 
     // GET
-    @PostMapping
+    @GetMapping
     public Page<MessageDTO> getMessagesBetweenUsers(
-            @RequestBody UserLinkDTO userLinkDTO,
+            @RequestParam Long otherUserProfileId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return messageService.getMessagesBetweenUsers(userLinkDTO, page, size);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return messageService.getMessagesBetweenUsers(currentUsername, otherUserProfileId, page, size);
     }
-/*
-    @GetMapping("/search")
-    public Page<MessageDTO> getSearchedMessages(
-            @RequestBody SearchMessages searchMessages,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return messageService.getSearchedMessages(searchMessages, page, size);
-    }
-*/
+
     // POST
+    // Not needed for production, dev only
     @PostMapping("/send")
     public MessageDTO sendMessage(@RequestBody MessageDTO messageDTO) {
-        return messageService.sendMessage(messageDTO);
-    }
-
-    /*
-    @PostMapping("/save")
-    public List<MessageDTO> saveMessages(@RequestBody List<MessageDTO> messageDTOS) {
-        return messageService.saveMessages(messageDTOS);
-    }
-*/
-    // PATCH
-    @PatchMapping
-    public MessageDTO patchMessage(@RequestParam Long messageId, @RequestBody String content) {
-        return messageService.patchMessage(messageId, content);
-    }
-
-    // DELETE
-    @DeleteMapping
-    public MessageDTO deleteMessage(@RequestParam Long messageId){
-        return messageService.deleteMessage(messageId);
-    }
-
-    // HELPER METHODS
-    @Getter
-    @AllArgsConstructor
-    public static class SearchMessages {
-        private UserLinkDTO userLinkDTO;
-        private String searchTerm;
+        return messageService.saveMessage(messageDTO);
     }
 }

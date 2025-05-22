@@ -20,6 +20,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByProfile(UserProfile profile);
 
+    Optional<User> findByProfile_Id(Long profileId);
+
+
     // query for nearby gps users, rounded to 2 decimals
     @Query(value = """
                 SELECT u.id, u.username,
