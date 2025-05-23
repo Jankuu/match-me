@@ -13,6 +13,8 @@ import Description from "./Description";
 import { UserRegistrationDTO } from "../../dto/UserRegistrationDTO";
 import { CheckCircleFill, XCircleFill } from "react-bootstrap-icons";
 import UsernameInput from "./UsernameInput";
+import { Game } from "../../dto/Game";
+import axios from "axios";
 
 type Props = {
     onSubmit: (data: UserRegistrationDTO) => void;
@@ -35,13 +37,16 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const [description, setDescription] = useState<string>("");
 
     const [ages, setAges] = useState<[number, number]>([18, 120]);
-    const [preferredGendersArray, setPreferredGendersArray] = useState<string[]>(["man", "woman"]);
+    const [preferredGendersArray, setPreferredGendersArray] = useState<
+        string[]
+    >(["man", "woman"]);
     const [location, setLocation] = useState("");
     const [placeId, setPlaceId] = useState<string | undefined>(undefined);
-    const [coordinates, setCoordinates] = useState<{lat: number, lng: number} | undefined>(undefined);
+    const [coordinates, setCoordinates] = useState<
+        { lat: number; lng: number } | undefined
+    >(undefined);
     const [isGpsUsed, setIsGpsUsed] = useState(false);
     const [age, setAge] = useState<number | null>(null);
-    const [interest, setInterest] = useState<number[]>([3, 3, 3, 3, 3]); // stub values
 
     const [usernameValid, setUsernameValid] = useState(false);
     const [nameValid, setNameValid] = useState(false);
@@ -51,13 +56,43 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const emailMatch = email.length > 0 && repeatedEmail === email;
     const passwordMatch = password.length > 0 && repeatedPassword === password;
 
+    // Games
+    const [games, setGames] = useState<Game[]>([]);
+    const [selectedGames, setSelectedGames] = useState<Set<Game>>(new Set());
+
+    useEffect(() => {
+        axios
+            .get<Game[]>("http://localhost:8080/games")
+            .then((response) => {
+                setGames(response.data);
+            })
+            .catch((error) => {
+                console.error("Error fetching games:", error);
+            });
+    }, []);
+
+    const toggleGame = (game: Game) => {
+        setSelectedGames((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(game)) {
+                newSet.delete(game);
+            } else {
+                newSet.add(game);
+            }
+            return newSet;
+        });
+    };
+
     useEffect(() => {
         if (birthDateUi) {
             const birth = new Date(birthDateUi);
             const today = new Date();
             let userAge = today.getFullYear() - birth.getFullYear();
             const monthDiff = today.getMonth() - birth.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            if (
+                monthDiff < 0 ||
+                (monthDiff === 0 && today.getDate() < birth.getDate())
+            ) {
                 userAge--;
             }
             setAge(userAge);
@@ -73,7 +108,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         }
     }, [birthDateUi]);
 
-    const isFormValid = 
+    const isFormValid =
         usernameValid &&
         nameValid &&
         isEmailValid &&
@@ -129,13 +164,8 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
             interestedMinAge: ages[0],
             interestedMaxAge: ages[1],
             interestedGenders: preferredGendersArray,
-            interestVector: {
-                fantasy: interest[0],
-                competitive: interest[1],
-                action: interest[2],
-                story: interest[3],
-                complex: interest[4],
-            },
+            interestedGames: Array.from(selectedGames.values()),
+
             // Location data
             isGpsUser: isGpsUsed, // Set based on whether GPS was used
             cityName: location,
@@ -150,7 +180,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
 
     return (
         <Form onSubmit={handleSubmit}>
-            <UsernameInput 
+            <UsernameInput
                 value={username}
                 onChange={setUsername}
                 onValidate={setUsernameValid}
@@ -171,7 +201,9 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 loading={loading}
             />
             <Form.Group className="mb-3">
-            <Form.Label>Date of Birth <span style={{ color: "red" }}>*</span></Form.Label>
+                <Form.Label>
+                    Date of Birth <span style={{ color: "red" }}>*</span>
+                </Form.Label>
                 <InputGroup>
                     <Form.Control
                         type="date"
@@ -179,17 +211,32 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                         onChange={(e) => setBirthDateUi(e.target.value)}
                         required
                         disabled={loading}
-                        min={new Date(new Date().setFullYear(new Date().getFullYear() - 120)).toISOString().split("T")[0]}
-                        max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
+                        min={
+                            new Date(
+                                new Date().setFullYear(
+                                    new Date().getFullYear() - 120
+                                )
+                            )
+                                .toISOString()
+                                .split("T")[0]
+                        }
+                        max={
+                            new Date(
+                                new Date().setFullYear(
+                                    new Date().getFullYear() - 18
+                                )
+                            )
+                                .toISOString()
+                                .split("T")[0]
+                        }
                     />
                     <InputGroup.Text>
-                        {birthDateUi && (
-                            age && age >= 18 && age <= 120 ? (
+                        {birthDateUi &&
+                            (age && age >= 18 && age <= 120 ? (
                                 <CheckCircleFill color="green" />
                             ) : (
                                 <XCircleFill color="red" />
-                            )
-                        )}
+                            ))}
                     </InputGroup.Text>
                 </InputGroup>
                 {birthDateError && (
@@ -205,28 +252,69 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 disabled={loading}
             />
             <AgeRangeSelector userAge={age} onChange={setAges} />
-            <GenderSelector onChange={setGender} selected={gender} isEditable={true}/>
-            <HeightSet height={height} setHeight={setHeight} isEditable={true}/>
-            <LocationSelector 
-                value={location} 
+            <GenderSelector
+                onChange={setGender}
+                selected={gender}
+                isEditable={true}
+            />
+            <HeightSet
+                height={height}
+                setHeight={setHeight}
+                isEditable={true}
+            />
+            <LocationSelector
+                value={location}
                 onChange={(value, placeId, coords, gpsUsed) => {
                     setLocation(value);
                     setPlaceId(placeId);
                     setCoordinates(coords);
                     setIsGpsUsed(gpsUsed || false);
-                }} 
+                }}
             />
-            <PreferredGenderSelector onChange={setPreferredGendersArray} selected={preferredGendersArray} />
-            <Description description={description} setDescription={setDescription} />
+            <PreferredGenderSelector
+                onChange={setPreferredGendersArray}
+                selected={preferredGendersArray}
+            />
+            <Description
+                description={description}
+                setDescription={setDescription}
+            />
 
             <ImageUpload image={image} setImage={setImage} loading={loading} />
+
+            <div className="scrollContainer">
+                {games.map((game) => (
+                    <Button
+                        key={game.name}
+                        onClick={() => toggleGame(game)}
+                        style={{
+                            backgroundColor: selectedGames.has(game)
+                                ? "#4caf50"
+                                : "#f0f0f0",
+                            color: selectedGames.has(game) ? "white" : "black",
+                            border: "1px solid #ccc",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                        }}
+                        className="gameButton"
+                    >
+                        {game.name}
+                    </Button>
+                ))}
+            </div>
 
             <Button
                 variant="success"
                 type="submit"
                 disabled={loading || !isFormValid}
             >
-                {loading ? <><Spinner animation="border" size="sm" /> Creating...</> : "Create Account"}
+                {loading ? (
+                    <>
+                        <Spinner animation="border" size="sm" /> Creating...
+                    </>
+                ) : (
+                    "Create Account"
+                )}
             </Button>
         </Form>
     );
