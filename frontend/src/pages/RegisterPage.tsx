@@ -15,7 +15,11 @@ const RegisterPage = () => {
         setLoading(true);
 
         try {
-            const response = await apiClient.post("/users/register", userPayload);
+            console.log(userPayload);
+            const response = await apiClient.post(
+                "/users/register",
+                userPayload
+            );
 
             if (response.status !== 200 && response.status !== 201) {
                 throw new Error("Registration failed");
@@ -23,7 +27,11 @@ const RegisterPage = () => {
 
             navigate("/login");
         } catch (err: any) {
-            setError(err.response?.data?.message || err.message || "Something went wrong");
+            setError(
+                err.response?.data?.message ||
+                    err.message ||
+                    "Something went wrong"
+            );
         } finally {
             setLoading(false);
         }
@@ -34,7 +42,12 @@ const RegisterPage = () => {
             <h2 className="mb-4">Registration</h2>
             {error && <Alert variant="danger">{error}</Alert>}
             <RegisterForm onSubmit={handleSubmit} loading={loading} />
-            <Button variant="link" onClick={() => navigate("/login")} className="mt-3" disabled={loading}>
+            <Button
+                variant="link"
+                onClick={() => navigate("/login")}
+                className="mt-3"
+                disabled={loading}
+            >
                 Back to login
             </Button>
         </Container>

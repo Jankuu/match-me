@@ -2,12 +2,11 @@
     border: 1px solid black;
     max-width: 90vw;
     min-height: 200px;
-    margin: 20px;
     overflow-wrap: break-word;
 }
 .scrollContainer {
     max-height: 400px;
-    width: 80%;
+    max-width: 500px;
     margin: auto;
     overflow-y: auto;
     border: 1px solid black;

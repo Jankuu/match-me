@@ -185,6 +185,7 @@ public class UserService {
 
         if (registrationDTO.getInterestedGames() != null && !registrationDTO.getInterestedGames().isEmpty()) {
             newUser.setInterestVector(assignUserInterestVectorValues(null, registrationDTO.getInterestedGames()));
+            newUser.setInterestedGames(registrationDTO.getInterestedGames());
         } else {
             newUser.setInterestVector(new UserInterestVector());
         }
