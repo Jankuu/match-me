@@ -260,25 +260,20 @@ public class UserService {
             Boolean isGpsUser = dto.getIsGpsUser() != null ? dto.getIsGpsUser() : false;
             user.setIsGpsUser(isGpsUser);
 
-            if (isGpsUser) {
-                // GPS user: store location and radius
-                if (dto.getLat() != null && dto.getLng() != null) {
+            if (dto.getLat() != null && dto.getLng() != null) {
                     Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
                     point.setSRID(4326);
                     user.setLocation(point);
                 }
-                user.setRadius(dto.getRadius());
 
-                // Link to city if available
-                if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
+            // Check if city exists and link to it, if not then add
+            if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
                     City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
                     user.setCity(city);
                 }
+            if (isGpsUser) {
+                user.setRadius(dto.getRadius());
             } else {
-                // City list user: link to city
-                City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
-                user.setCity(city);
-                user.setLocation(null);
                 user.setRadius(null);
             }
         }
