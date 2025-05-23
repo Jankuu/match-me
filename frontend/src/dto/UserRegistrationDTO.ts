@@ -1,6 +1,6 @@
-
-import { UserInterestVectorDTO } from "./UserInterestVectorDTO";
+import { Game } from "./Game"
 import { UserProfileDTO } from "./UserProfile.DTO";
+
 
 export interface UserRegistrationDTO {
     username: string;
@@ -10,7 +10,7 @@ export interface UserRegistrationDTO {
     interestedMinAge: number;
     interestedMaxAge: number;
     interestedGenders: string[];
-    interestVector: UserInterestVectorDTO;
+    interestedGames: Game[];
 
     // Location data
     isGpsUser?: boolean;

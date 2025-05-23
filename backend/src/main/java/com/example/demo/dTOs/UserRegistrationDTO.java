@@ -39,7 +39,7 @@ public class UserRegistrationDTO implements EmailOrUsernameCarrier {
     @ValidInterestedGenders
     private String[] interestedGenders;
 
-    private UserInterestVectorDTO interestVector;
+    //private UserInterestVectorDTO interestVector;
 
     private List<Game> interestedGames;
 
