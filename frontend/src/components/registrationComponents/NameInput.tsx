@@ -40,7 +40,7 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
                     disabled={disabled}
                     isInvalid={value.length > 0 && !isUsernameValid}
                 />
-                <InputGroup.Text>
+                {!disabled && (<InputGroup.Text>
                     {value && (
                         isUsernameValid ? (
                             <CheckCircleFill color="green" />
@@ -48,7 +48,7 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
                             <XCircleFill color="red" />
                         )
                     )}
-                </InputGroup.Text>
+                </InputGroup.Text>)}
             </InputGroup>
 
             {/* Show structure hint if structure invalid */}
