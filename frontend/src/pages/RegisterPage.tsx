@@ -15,7 +15,7 @@ const RegisterPage = () => {
         setLoading(true);
 
         try {
-            const response = await apiClient.post("/users", userPayload);
+            const response = await apiClient.post("/users/register", userPayload);
 
             if (response.status !== 200 && response.status !== 201) {
                 throw new Error("Registration failed");

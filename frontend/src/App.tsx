@@ -16,10 +16,11 @@ import { useMediaQuery } from "react-responsive";
 import { useState, useEffect } from "react";
 import SettingsPage from "./pages/SettingsPage";
 import MatchingPage from "./pages/MatchingPage";
-import UserProfilePage from "./pages/UserProfilePage";
+import MyProfilePage from "./pages/MyProfilePage";
 import JwtTestPage from "./pages/JwtTestPage";
 import TestChat from "./pages/TestChat";
 import { getUserIdentifierFromToken } from "./utils/auth";
+import UserProfilePage from "./pages/UserProfielPage";
 
 // Обёртка для использования хуков (navigate/location) внутри App
 function AppWrapper() {
@@ -89,9 +90,10 @@ function App() {
                         element={token ? <ChatPage /> : <Navigate to="/login" />}
                     />
                     <Route
-                        path="/user_profile/username/:identifier"
-                        element={token ? <UserProfilePage /> : <Navigate to="/login" />}
+                    path="/user_profile/username/:identifier"
+                    element={token ? <MyProfilePage /> : <Navigate to="/login" />}
                     />
+                    
                     <Route
                         path="/user_profile/id/:identifier"
                         element={token ? <UserProfilePage /> : <Navigate to="/login" />}

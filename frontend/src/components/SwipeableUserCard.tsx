@@ -1,55 +1,82 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, Button, Row, Col, Image } from 'react-bootstrap';
-import { FaComment, FaTrashAlt } from 'react-icons/fa';
+import { FaComment, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { useSwipeable } from 'react-swipeable';
 
-type User = {
+type UserProfile = {
   id: number;
-  username: string;
-  email: string;
-  profile?: {
-    name?: string;
-    gender?: string;
-    birthDate?: string;
-    profilePicture?: string;
-  };
+  name: string;
+  profilePicture?: string;
+  birthDate?: string;
+  gender?: 'man' | 'woman' | string;
+  height?: number;
+  description?: string;
 };
 
 interface Props {
-  user: User;
-  onCardClick: (username: string) => void;
-  onChatClick: (e: React.MouseEvent, username: string) => void;
-  onDeleteClick: (e: React.MouseEvent, id: number) => void;
-  onSwipeLeft: () => void;
-  isDeleting: boolean;
+  user: UserProfile;
+  cardType: 'connections' | 'recommendations' | 'requests';
+  onCardClick: (id: number) => void;
+  onPrimaryAction: (e: React.MouseEvent) => void;
+  onSecondaryAction: (e: React.MouseEvent) => void;
+  isDeleting?: boolean;
   getProfilePicture: (base64: string | undefined) => string;
   calculateAge: (birthDate: string | undefined) => string | number;
 }
 
 const SwipeableUserCard: React.FC<Props> = ({
   user,
+  cardType,
   onCardClick,
-  onChatClick,
-  onDeleteClick,
-  onSwipeLeft,
-  isDeleting,
+  onPrimaryAction,
+  onSecondaryAction,
   getProfilePicture,
   calculateAge,
 }) => {
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleSwipeLeft = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      // Вызываем onSecondaryAction с фиктивным React.MouseEvent (null, любой объект)
+      onSecondaryAction({} as React.MouseEvent);
+    }, 500);
+  };
+
+  const handleRejectClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsAnimating(true);
+    setTimeout(() => onSecondaryAction(e), 500);
+  };
+
   const swipeHandlers = useSwipeable({
-    onSwipedLeft: onSwipeLeft,
+    onSwipedLeft: handleSwipeLeft,
     preventScrollOnSwipe: true,
     trackMouse: true,
   });
 
-  const name = user.profile?.name || user.username;
-  const gender = user.profile?.gender || 'Unknown';
-  const age = calculateAge(user.profile?.birthDate);
-  const profilePic = getProfilePicture(user.profile?.profilePicture);
+  const name = user.name || 'Noname';
+  const gender = user.gender || 'ellien';
+  const age = calculateAge(user.birthDate);
+  const profilePic = getProfilePicture(user.profilePicture);
+
+  const renderPrimaryIcon = () => {
+    if (cardType === 'connections') return <FaComment size={30} />;
+    return <FaCheckCircle size={30} color="green" />;
+  };
+
+  const renderSecondaryIcon = () => {
+    return <FaTimesCircle size={30} color="red" />;
+  };
 
   return (
-    <div {...swipeHandlers} onClick={() => onCardClick(user.username)} style={{ cursor: 'pointer' }}>
-      <Card className={`mb-3 shadow-sm ${isDeleting ? 'slide-out-left' : ''}`}>
+    <div
+      {...swipeHandlers}
+      onClick={() => onCardClick(user.id)}
+      className={isAnimating ? 'slide-out-left' : ''}
+      style={{ cursor: 'pointer' }}
+    >
+      <Card className="mb-3 shadow-sm">
         <Row className="align-items-center g-0">
           <Col xs={3} md={2} className="text-center">
             <Image
@@ -70,19 +97,11 @@ const SwipeableUserCard: React.FC<Props> = ({
           </Col>
           <Col xs={3} md={2} className="d-flex justify-content-end align-items-center pe-3">
             <div className="d-flex flex-row gap-3">
-              <Button
-                variant="link"
-                onClick={(e) => onChatClick(e, user.username)}
-                className="p-0"
-              >
-                <FaComment size={18} />
+              <Button variant="link" onClick={onPrimaryAction} className="p-0">
+                {renderPrimaryIcon()}
               </Button>
-              <Button
-                variant="link"
-                onClick={(e) => onDeleteClick(e, user.id)}
-                className="p-0"
-              >
-                <FaTrashAlt size={18} />
+              <Button variant="link" onClick={handleRejectClick} className="p-0">
+                {renderSecondaryIcon()}
               </Button>
             </div>
           </Col>
