@@ -73,7 +73,7 @@ const SwipeableUserCard: React.FC<Props> = ({
     <div
       {...swipeHandlers}
       onClick={() => onCardClick(user.id)}
-      className={isAnimating ? 'slide-out-left' : ''}
+      className={isAnimating ? 'slide-out-left bgc-light' : ''}
       style={{ cursor: 'pointer' }}
     >
       <Card className="mb-3 shadow-sm">

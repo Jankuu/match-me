@@ -7,6 +7,8 @@ import MatchingSection from '../components/MatchingSection';
 import type { UserProfile } from '../types/UserProfile';
 import type { SwipeEventData } from 'react-swipeable';
 
+import "../styles/ColorPallette.css";
+
 const MatchingPage: React.FC = () => {
   const [userConnections, setUserConnections] = useState<UserProfile[]>([]);
   const [userRecommendations, setUserRecommendations] = useState<UserProfile[]>([]);
@@ -93,7 +95,7 @@ const MatchingPage: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <Accordion alwaysOpen>
+      <Accordion alwaysOpen >
         <MatchingSection
           title="Connections"
           users={userConnections}
