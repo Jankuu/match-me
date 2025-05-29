@@ -1,0 +1,42 @@
+.bgc-beez {
+    background-color: #D5BF86;
+}
+
+.accordion-header.bgc-beez {
+    background-color: #D5BF86 !important;
+}
+.c-beez {
+    color: #D5BF86;
+}
+
+.bgc-light {
+    background-color: #F1F0CC;
+}
+
+.c-light {
+    color: #F1F0CC;
+}
+
+.bgc-grayish {
+    background-color: #8D775F;
+}
+
+.c-grayish {
+    color: #8D775F;
+}
+
+.bgc-cherry {
+    background-color: #A71D31;
+}
+
+.c-cherry {
+    color: #A71D31;
+}
+
+.bgc-darkred {
+    background-color: #3F0D12;
+}
+
+.c-darkred {
+    color: #3F0D12;
+}

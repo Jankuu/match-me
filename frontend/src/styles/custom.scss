@@ -1,0 +1,30 @@
+// Main colors
+$primary:     #157A6E;
+$secondary:   #77B28C;
+$success:     #499F68;
+$info:        #C2C5BB;
+$danger:      #B4654A;
+$warning:     #B4654A;
+$light:       #F8F9FA;
+$dark:        #121212;
+
+// Bodu colors
+$body-bg:     #F8F9FA;
+$body-color:  #121212;
+
+// Inputs
+$input-bg:                      #FFFFFF;
+$input-color:                   #121212;
+$input-border-color:            #77B28C;
+$input-focus-border-color:      #157A6E;
+$input-focus-box-shadow:        0 0 0 0.25rem rgba(21, 122, 110, 0.25);
+
+// Disabled-inputs
+$input-disabled-bg:             #E9ECEF;
+$input-disabled-color:          #6C757D;
+$input-disabled-border-color:   #CED4DA;
+
+
+$font-size-base: 1.5rem;
+// Import BootstrapI
+@import "bootstrap/scss/bootstrap";

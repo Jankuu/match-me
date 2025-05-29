@@ -4,6 +4,7 @@ import SwipeableUserCard from './SwipeableUserCard';
 import { UserProfile } from '../types/UserProfile';
 import { calculateAge, getProfilePicture } from '../utils/userUtils';
 import { SwipeEventData } from 'react-swipeable';
+import "../styles/ColorPallette.css";
 
 type Props = {
   title: string;
@@ -15,9 +16,9 @@ type Props = {
 };
 
 const MatchingSection: React.FC<Props> = ({ title, users, cardType, onPrimary, onSecondary, onCardClick }) => (
-  <Accordion.Item eventKey={title}>
-    <Accordion.Header>{title} ({users.length})</Accordion.Header>
-    <Accordion.Body>
+  <Accordion.Item eventKey={title}  >
+    <Accordion.Header >{title} ({users.length} )</Accordion.Header>
+    <Accordion.Body >
       {users.map(user => (
         <SwipeableUserCard
           key={user.id}
