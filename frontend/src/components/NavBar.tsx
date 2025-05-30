@@ -39,7 +39,7 @@ const NavBar = () => {
         <div className="nav-wrapper">
             <Container>
                 <Nav className="justify-content-between nav-icons">
-                    <Nav.Link as="button" onClick={handleProfileClick} style={{ background: "none", border: "none" }}>
+                    <Nav.Link as="button" onClick={handleProfileClick}>
                         <FaUser  size={30} />
                     </Nav.Link>
                     <Nav.Link href="/matching">

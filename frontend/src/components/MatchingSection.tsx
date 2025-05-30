@@ -17,7 +17,7 @@ type Props = {
 
 const MatchingSection: React.FC<Props> = ({ title, users, cardType, onPrimary, onSecondary, onCardClick }) => (
   <Accordion.Item eventKey={title}  >
-    <Accordion.Header >{title} ({users.length} )</Accordion.Header>
+    <Accordion.Header >{title} ({users.length})</Accordion.Header>
     <Accordion.Body >
       {users.map(user => (
         <SwipeableUserCard
