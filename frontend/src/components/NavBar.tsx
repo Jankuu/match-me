@@ -28,7 +28,7 @@ const NavBar = () => {
                 return;
             }
 
-            navigate(`/user_profile/username/${username}`);
+            navigate(`/myprofile`);
         } catch (e) {
             console.error("Invalid user data in localStorage", e);
             navigate("/login");

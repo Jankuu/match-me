@@ -1,0 +1,10 @@
+.scrollContainer {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.game-button {
+    min-width: 100px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
