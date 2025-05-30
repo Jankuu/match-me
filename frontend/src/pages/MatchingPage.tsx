@@ -97,7 +97,7 @@ const MatchingPage: React.FC = () => {
     <div className="container mt-4">
       <Accordion alwaysOpen >
         <MatchingSection
-          title="Connections"
+          title="CONNECTIONS"
           users={userConnections}
           cardType="connections"
           onPrimary={handleChatClick}
@@ -105,7 +105,7 @@ const MatchingPage: React.FC = () => {
           onCardClick={handleCardClick}
         />
         <MatchingSection
-          title="Recommendations"
+          title="RECOMMENDATIONS"
           users={userRecommendations}
           cardType="recommendations"
           onPrimary={handleSendRequest}
@@ -113,7 +113,7 @@ const MatchingPage: React.FC = () => {
           onCardClick={handleCardClick}
         />
         <MatchingSection
-          title="Connection Requests"
+          title="CONNECTION REQUESTS"
           users={connectionRequests}
           cardType="requests"
           onPrimary={handleAcceptRequest}
