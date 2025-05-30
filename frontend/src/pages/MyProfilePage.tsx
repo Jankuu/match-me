@@ -16,24 +16,53 @@ const MyProfilePage = () => {
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      setLoading(false);
-      return;
-    }
-
-    const user = JSON.parse(storedUser) as User;
-
-    if (
-      user.profile.profilePicture &&
-      !user.profile.profilePicture.startsWith("data:image")
-    ) {
-      user.profile.profilePicture = `data:image/jpeg;base64,${user.profile.profilePicture}`;
-    }
-
-    setUser(user);
-    setLoading(false);
+    console.log('Use effect');
+    const loadUser = async () => {
+      
+      const storedUser = localStorage.getItem("user");
+  
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser) as User;
+  
+        // Picture
+        if (
+          parsedUser.profile.profilePicture &&
+          !parsedUser.profile.profilePicture.startsWith("data:image")
+        ) {
+          parsedUser.profile.profilePicture = `data:image/jpeg;base64,${parsedUser.profile.profilePicture}`;
+        }
+  
+        setUser(parsedUser);
+        setLoading(false);
+      } else if (localStorage.getItem("token")) {
+        console.log("No user found, but token exists");
+        try {
+          const res = await apiClient.get<User>("/users");
+  
+          const fetchedUser = res.data;
+  
+          if (
+            fetchedUser.profile.profilePicture &&
+            !fetchedUser.profile.profilePicture.startsWith("data:image")
+          ) {
+            fetchedUser.profile.profilePicture = `data:image/jpeg;base64,${fetchedUser.profile.profilePicture}`;
+          }
+  
+          setUser(fetchedUser);
+          localStorage.setItem("user", JSON.stringify(fetchedUser));
+        } catch (error) {
+          console.error("Failed to load user from server", error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+  
+    loadUser();
   }, []);
+  
 
   const handleChange = (field: keyof User["profile"], value: any) => {
     if (!user) return;
@@ -67,10 +96,10 @@ const MyProfilePage = () => {
     );
   }
 
-  if (!user) {
+  if (!user || !user.profile) {
     return (
       <Container className="mt-5 text-center">
-        <p>Profile not found.</p>
+        <p>Profile not found or incomplete.</p>
       </Container>
     );
   }

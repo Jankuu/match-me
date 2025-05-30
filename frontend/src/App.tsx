@@ -90,7 +90,7 @@ function App() {
                         element={token ? <ChatPage /> : <Navigate to="/login" />}
                     />
                     <Route
-                    path="/user_profile/username/:identifier"
+                    path="/myprofile"
                     element={token ? <MyProfilePage /> : <Navigate to="/login" />}
                     />
                     
