@@ -57,14 +57,17 @@ function App() {
         setToken(storedToken);
     }, []); 
 
-    const paddingStyle = {
-        paddingTop: isMobile ? "0" : "60px",
-        paddingBottom: isMobile ? "60px" : "0",
+    const layoutStyle: React.CSSProperties = {
+        paddingTop: isMobile ? 0 : 68,
+        paddingBottom: isMobile ? 60 : 0,
+        minHeight: "100vh",
+        boxSizing: "border-box", 
     };
 
     return (
         <>
-            <div style={paddingStyle}>
+            {token && !hideNavBar && <NavBar />}
+            <div style={layoutStyle}>
                 <Routes>
                     <Route
                         path="/"
@@ -86,7 +89,7 @@ function App() {
                     />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route
-                        path="/chat/:username"
+                        path="/chat/:id/:name"
                         element={token ? <ChatPage /> : <Navigate to="/login" />}
                     />
                     <Route
@@ -94,10 +97,10 @@ function App() {
                     element={token ? <MyProfilePage /> : <Navigate to="/login" />}
                     />
                     
-                    <Route
+                    {/* <Route
                         path="/user_profile/id/:identifier"
                         element={token ? <UserProfilePage /> : <Navigate to="/login" />}
-                    />
+                    /> */}
                     <Route
                         path="/settings"
                         element={
@@ -124,7 +127,7 @@ function App() {
                     <Route path="/testchat" element={<TestChat />} />
                 </Routes>
             </div>
-            {token && !hideNavBar && <NavBar />}
+            
         </>
     );
 }

@@ -110,18 +110,17 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     }, [birthDateUi]);
 
     const isFormValid =
-        usernameValid &&
-        nameValid &&
+        
         isEmailValid &&
         emailMatch &&
         isPasswordValid &&
-        passwordMatch &&
-        birthDateUi &&
-        age !== null &&
-        age >= 18 &&
-        age <= 120 &&
-        location !== null &&
-        selectedGames !== null;
+        passwordMatch;
+        // birthDateUi &&
+        // age !== null &&
+        // age >= 18 &&
+        // age <= 120 &&
+        // location !== null &&
+        // selectedGames !== null;
 
     const readImageAsBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
@@ -139,7 +138,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!ages) return;
+        // if (!ages) return;
 
         let base64Image: string | undefined = undefined;
         if (image) {
@@ -211,7 +210,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                         type="date"
                         value={birthDateUi}
                         onChange={(e) => setBirthDateUi(e.target.value)}
-                        required
+                        // required
                         disabled={loading}
                         min={
                             new Date(

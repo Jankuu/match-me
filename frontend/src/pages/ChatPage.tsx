@@ -6,7 +6,10 @@ import { ArrowLeft } from "react-bootstrap-icons";
 import '../styles/ChatPage.css';
 
 const ChatPage = () => {
-    const { receiverName } = useParams<{ receiverName: string }>();
+    const { id, name } = useParams<{ id: string; name: string }>();
+
+    const receiverId = Number(id);
+    const receiverName = name || "unknown";
     const currentUsername = JSON.parse(localStorage.getItem("user") || "{}")?.username || "me";
   
     const { sendMessage, messages, isConnected } = useWebSocket();
@@ -16,7 +19,7 @@ const ChatPage = () => {
   
     const handleSend = () => {
       if (isConnected && text.trim()) {
-        sendMessage(receiverName!, text);
+        sendMessage(receiverId, text);
         setText("");
       }
     };
@@ -59,7 +62,7 @@ const ChatPage = () => {
         </div>
             </Container>
 
-            <div className="chat-input d-flex px-3 py-2 bg-white border-top">
+            <div className="chat-input d-flex px-3 py-2 border-top">
                 <Form.Control
                     value={text}
                     onChange={(e) => setText(e.target.value)}
