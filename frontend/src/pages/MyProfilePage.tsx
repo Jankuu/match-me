@@ -62,23 +62,32 @@ const MyProfilePage = () => {
   
     loadUser();
   }, []);
-  
 
-  const handleChange = (field: keyof User["profile"], value: any) => {
-    if (!user) return;
-    setUser({
-      ...user,
-      profile: {
-        ...user.profile,
-        [field]: value,
-      },
-    });
-  };
+  //user.profile.***
+const handleProfileChange = (field: keyof User["profile"], value: any) => {
+  if (!user) return;
+  setUser({
+    ...user,
+    profile: {
+      ...user.profile,
+      [field]: value,
+    },
+  });
+};
+
+//user.***
+const handleRootChange = (field: keyof User, value: any) => {
+  if (!user) return;
+  setUser({
+    ...user,
+    [field]: value,
+  });
+};
 
   const handleSave = async () => {
     if (!user?.id) return;
     try {
-      await apiClient.patch(`/users/profile?id=${user.id}`, user.profile);
+      await apiClient.patch(`/users`, user);
 
       localStorage.setItem("user", JSON.stringify(user));
 
@@ -133,7 +142,8 @@ const MyProfilePage = () => {
         <ProfileForm
           profile={user}
           editing={editing}
-          onChange={handleChange}
+          onProfileChange={handleProfileChange}
+          onRootChange={handleRootChange}
           onSave={handleSave}
         />
       </Container>

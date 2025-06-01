@@ -4,18 +4,21 @@ import { User } from "../../types/User";
 import HeightSet from "../registrationComponents/HeightSet";
 import GenderSelector from "../registrationComponents/GenderSelection";
 import NameInput from "../registrationComponents/NameInput";
+import PreferredGenderSelector from "../registrationComponents/PreferredGenderSelector";
 
 interface ProfileFormProps {
   profile: User;
   editing: boolean;
-  onChange: (field: keyof User["profile"], value: any) => void;
+  onProfileChange: (field: keyof User["profile"], value: any) => void;
+  onRootChange: (field: keyof User, value: any) => void;
   onSave: () => void;
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({
   profile,
   editing,
-  onChange,
+  onProfileChange,
+  onRootChange,
   onSave,
 }) => {
   const [isNameValid, setIsNameValid] = useState(true);
@@ -27,48 +30,54 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
 
   return (
     <Form>
+      {/* Username (read-only) */}
       <Form.Group className="mb-3">
         <Form.Label>Username</Form.Label>
         <Form.Control type="text" value={profile.username} disabled />
       </Form.Group>
 
+      {/* Email (read-only) */}
       <Form.Group className="mb-3">
         <Form.Label>Email</Form.Label>
         <Form.Control type="email" value={profile.email} disabled />
       </Form.Group>
 
+      {/* Birth Date (read-only) */}
       <Form.Group className="mb-3">
         <Form.Label>Birth Date</Form.Label>
         <Form.Control type="date" value={profile.profile.birthDate} disabled />
       </Form.Group>
 
+      {/* Name */}
       <NameInput
         value={profile.profile.name}
-        onChange={(value) => onChange("name", value)}
+        onChange={(value) => onProfileChange("name", value)}
         onValidate={setIsNameValid}
         disabled={!editing}
       />
 
+      {/* Gender */}
       <GenderSelector
         selected={profile.profile.gender}
-        onChange={(value) => onChange("gender", value)}
+        onChange={(value) => onProfileChange("gender", value)}
         isEditable={editing}
       />
 
+      {/* Height */}
       <HeightSet
         height={profile.profile.height}
-        setHeight={(value) => onChange("height", value)}
+        setHeight={(value) => onProfileChange("height", value)}
         isEditable={editing}
       />
 
-      {/* Prefered Gender */}
+      {/* Preferred Gender */}
+      <PreferredGenderSelector
+        selected={profile.interestedGenders}
+        onChange={(genders) => onRootChange("interestedGenders", genders)} isEditable={false}        // isEditable={editing}
+        // disabled={!editing}
+      />
 
-      {/* Prefered Age */}
-
-      {/* Location */}
-
-      {/* Games */}
-
+      {/* Description */}
       <Form.Group className="mb-3">
         <Form.Label>Description</Form.Label>
         <Form.Control
@@ -76,12 +85,16 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
           rows={3}
           value={profile.profile.description || ""}
           disabled={!editing}
-          onChange={(e) => onChange("description", e.target.value)}
+          onChange={(e) => onProfileChange("description", e.target.value)}
         />
       </Form.Group>
 
       {editing && (
-        <Button variant="success" onClick={handleSaveInternal} disabled={!isNameValid}>
+        <Button
+          variant="success"
+          onClick={handleSaveInternal}
+          disabled={!isNameValid}
+        >
           Save Changes
         </Button>
       )}
