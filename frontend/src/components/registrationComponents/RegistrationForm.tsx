@@ -16,6 +16,8 @@ import UsernameInput from "./UsernameInput";
 import { Game } from "../../dto/Game";
 import axios from "axios";
 import "../../styles/GameSelector.css";
+import BirthDateSelector from "./BirthdateSelector";
+import GameSelector from "./GameSelector";
 
 type Props = {
     onSubmit: (data: UserRegistrationDTO) => void;
@@ -47,6 +49,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         { lat: number; lng: number } | undefined
     >(undefined);
     const [isGpsUsed, setIsGpsUsed] = useState(false);
+    const [radius, setRadius] = useState<number>(5000);
     const [age, setAge] = useState<number | null>(null);
 
     const [usernameValid, setUsernameValid] = useState(false);
@@ -110,12 +113,9 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     }, [birthDateUi]);
 
     const isFormValid =
-        
-        isEmailValid &&
-        emailMatch &&
-        isPasswordValid &&
-        passwordMatch;
-        // birthDateUi &&
+        (((isEmailValid && emailMatch) || usernameValid) || 
+        ((isEmailValid && emailMatch) && usernameValid)) &&
+        (passwordMatch && isPasswordValid);
         // age !== null &&
         // age >= 18 &&
         // age <= 120 &&
@@ -172,7 +172,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
             googlePlaceId: placeId,
             lat: coordinates?.lat,
             lng: coordinates?.lng,
-            radius: 5000,
+            radius: radius,
         };
 
         onSubmit(userPayload);
@@ -180,12 +180,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
 
     return (
         <Form onSubmit={handleSubmit}>
-            <UsernameInput
-                value={username}
-                onChange={setUsername}
-                onValidate={setUsernameValid}
-                disabled={loading}
-            />
+            
             <EmailInput
                 email={email}
                 repeatedEmail={repeatedEmail}
@@ -193,6 +188,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 setRepeatedEmail={setRepeatedEmail}
                 loading={loading}
             />
+    
             <PasswordInput
                 password={password}
                 repeatedPassword={repeatedPassword}
@@ -200,58 +196,31 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 setRepeatedPassword={setRepeatedPassword}
                 loading={loading}
             />
-            <Form.Group className="mb-3">
-                <Form.Label>
-                    Date of Birth <span style={{ color: "red" }}>*</span>
-                </Form.Label>
-                <InputGroup>
-                    <Form.Control
-                        type="date"
-                        value={birthDateUi}
-                        onChange={(e) => setBirthDateUi(e.target.value)}
-                        // required
-                        disabled={loading}
-                        min={
-                            new Date(
-                                new Date().setFullYear(
-                                    new Date().getFullYear() - 120
-                                )
-                            )
-                                .toISOString()
-                                .split("T")[0]
-                        }
-                        max={
-                            new Date(
-                                new Date().setFullYear(
-                                    new Date().getFullYear() - 18
-                                )
-                            )
-                                .toISOString()
-                                .split("T")[0]
-                        }
-                    />
-                    <InputGroup.Text>
-                        {birthDateUi &&
-                            (age && age >= 18 && age <= 120 ? (
-                                <CheckCircleFill color="green" />
-                            ) : (
-                                <XCircleFill color="red" />
-                            ))}
-                    </InputGroup.Text>
-                </InputGroup>
-                {birthDateError && (
-                    <Form.Text className="text-danger d-block">
-                        {birthDateError}
-                    </Form.Text>
-                )}
-            </Form.Group>
+
+            <UsernameInput
+                value={username}
+                onChange={setUsername}
+                onValidate={setUsernameValid}
+                disabled={loading}
+            />
+
+            <BirthDateSelector
+                birthDate={birthDateUi}
+                onChange={setBirthDateUi}
+            />
+
             <NameInput
                 value={name}
                 onChange={setName}
                 onValidate={setNameValid}
                 disabled={loading}
             />
-            <AgeRangeSelector userAge={age} onChange={setAges} />
+            
+            <AgeRangeSelector 
+                userAge={age} 
+                onChange={setAges}
+            />
+
             <GenderSelector
                 onChange={setGender}
                 selected={gender}
@@ -271,33 +240,34 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                     setIsGpsUsed(gpsUsed || false);
                 }}
             />
+            <RadiusSelector 
+                value={radius}
+                onChange={setRadius}
+                isEditable={true}
+            />
             <PreferredGenderSelector
                 onChange={setPreferredGendersArray}
-                selected={preferredGendersArray}
+                selected={preferredGendersArray} 
+                isEditable={false} // fix it
             />
+
             <Description
                 description={description}
                 setDescription={setDescription}
             />
 
-            <ImageUpload image={image} setImage={setImage} loading={loading} />
+            <ImageUpload 
+                image={image} 
+                setImage={setImage} 
+                loading={loading}
+            />
 
             {/* Game selector */}
-            <div className="scrollContainer d-flex flex-wrap gap-2 mb-3 p-2 border rounded overflow-auto">
-                {games.map((game) => {
-                    const isSelected = selectedGames.has(game);
-                    return (
-                        <Button
-                            key={game.name}
-                            variant={isSelected ? "success" : "outline-primary"}
-                            onClick={() => toggleGame(game)}
-                            className="game-button"
-                        >
-                            {game.name}
-                        </Button>
-                    );
-                })}
-            </div>
+            <GameSelector
+                games={games}
+                selectedGames={selectedGames}
+                onToggle={toggleGame}
+            />
 
             <Button
                 variant="success"

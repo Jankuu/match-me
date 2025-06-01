@@ -33,4 +33,5 @@ export type User = {
         };
         isGpsUsed: boolean;
     };
+    radius: number;
 };

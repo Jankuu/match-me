@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Container, Alert, Spinner, Button } from "react-bootstrap";
+import { useState } from "react";
+import { Container, Alert, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import RegisterForm from "../components/registrationComponents/RegistrationForm";
 import { UserRegistrationDTO } from "../dto/UserRegistrationDTO";

@@ -22,7 +22,8 @@ const UsernameInput = ({ value, onChange, onValidate, disabled }: Props) => {
     return (
         <Form.Group className="mb-3">
             <Form.Label>
-                Username <span style={{ color: "red" }}>*</span>
+                Username 
+                {/* <span style={{ color: "red" }}>*</span> */}
             </Form.Label>
             <InputGroup>
                 <Form.Control

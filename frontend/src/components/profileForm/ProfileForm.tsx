@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Button } from "react-bootstrap";
 import { User } from "../../types/User";
 import HeightSet from "../registrationComponents/HeightSet";
 import GenderSelector from "../registrationComponents/GenderSelection";
 import NameInput from "../registrationComponents/NameInput";
 import PreferredGenderSelector from "../registrationComponents/PreferredGenderSelector";
-import LocationSelector from "../registrationComponents/LocationSelector";
-
+import BirthDateSelector from "../registrationComponents/BirthdateSelector";
+import GameSelector from "../registrationComponents/GameSelector";
+import { Game } from "../../dto/Game";
+import axios from "axios";
 
 interface ProfileFormProps {
   profile: User;
@@ -22,9 +24,51 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
   editing,
   onProfileChange,
   onRootChange,
-  onSave, onLocationDataChange
+  onSave,
+  onLocationDataChange
 }) => {
   const [isNameValid, setIsNameValid] = useState(true);
+
+  const [games, setGames] = useState<Game[]>([]);
+  const [selectedGames, setSelectedGames] = useState<Set<Game>>(new Set());
+
+  useEffect(() => {
+    axios.get<Game[]>("http://localhost:8080/games")
+      .then((response) => {
+        setGames(response.data);
+
+        // Set selected games from profile (matching by name or id if available)
+        const selected = new Set<Game>();
+        response.data.forEach((game) => {
+          if (
+            profile.interestedGames?.some(
+              (selectedGame) =>
+                selectedGame.id === game.id || selectedGame.name === game.name
+            )
+          ) {
+            selected.add(game);
+          }
+        });
+        setSelectedGames(selected);
+      })
+      .catch((error) => {
+        console.error("Failed to load games", error);
+      });
+  }, [profile.interestedGames]);
+
+  const toggleGame = (game: Game) => {
+    setSelectedGames((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(game)) {
+        newSet.delete(game);
+      } else {
+        newSet.add(game);
+      }
+      // Update root object
+      onRootChange("interestedGames", Array.from(newSet));
+      return newSet;
+    });
+  };
 
   const handleSaveInternal = () => {
     if (!isNameValid) return;
@@ -45,11 +89,12 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         <Form.Control type="email" value={profile.email} disabled />
       </Form.Group>
 
-      {/* Birth Date (read-only) */}
-      <Form.Group className="mb-3">
-        <Form.Label>Birth Date</Form.Label>
-        <Form.Control type="date" value={profile.profile.birthDate} disabled />
-      </Form.Group>
+      {/* Birth Date */}
+      <BirthDateSelector
+        birthDate={profile.profile.birthDate || ""}
+        onChange={(value) => onProfileChange("birthDate", value)}
+        disabled={!editing}
+      />
 
       {/* Name */}
       <NameInput
@@ -72,15 +117,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         setHeight={(value) => onProfileChange("height", value)}
         isEditable={editing}
       />
-
-      {/* Preferred Gender */}
-      <PreferredGenderSelector
-        selected={profile.interestedGenders}
-        onChange={(genders) => onRootChange("interestedGenders", genders)} isEditable={false}        // isEditable={editing}
-        // disabled={!editing}
-      />
-
-        <LocationSelector
+      {/* Location */}
+       {/* <LocationSelector
             value={profile.profile.location || ""}
             onChange={(value, placeId, coordinates, isGpsUsed) => {
                 onProfileChange("location", value);
@@ -97,7 +135,21 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
             }}
             isEditable={editing}
             locationData={profile.locationData}
-        />
+        /> */}
+
+      <RadiusSelector 
+        value={profile.radius}
+        onChange={(value) => onRootChange("radius", value)}
+        isEditable={true}
+      />
+
+      {/* Preferred Gender */}
+      <PreferredGenderSelector
+        selected={profile.interestedGenders}
+        onChange={(genders) => onRootChange("interestedGenders", genders)}
+        isEditable={editing}
+      />
+
       {/* Description */}
       <Form.Group className="mb-3">
         <Form.Label>Description</Form.Label>
@@ -110,14 +162,20 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         />
       </Form.Group>
 
-            {editing && (
-                <Button variant="success" onClick={onSave}>
-                    Save Changes
-                </Button>
-            )}
-        </Form>
-    );
+      {/* Games */}
+      <GameSelector
+        games={games}
+        selectedGames={selectedGames}
+        onToggle={toggleGame}
+      />
+
+      {editing && (
+        <Button variant="success" onClick={handleSaveInternal}>
+          Save Changes
+        </Button>
+      )}
+    </Form>
+  );
 };
 
 export default ProfileForm;
-

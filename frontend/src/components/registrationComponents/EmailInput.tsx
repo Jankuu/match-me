@@ -22,7 +22,7 @@ const EmailInput = ({ email, repeatedEmail, setEmail, setRepeatedEmail, loading 
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            required
+                            // required
                             disabled={loading}
                             isInvalid={email.length > 0 && !isEmailValid}
                         />
@@ -50,7 +50,7 @@ const EmailInput = ({ email, repeatedEmail, setEmail, setRepeatedEmail, loading 
                             type="email"
                             value={repeatedEmail}
                             onChange={(e) => setRepeatedEmail(e.target.value)}
-                            required
+                            // required
                             disabled={loading || !isEmailValid}
                             isInvalid={repeatedEmail.length > 0 && repeatedEmail !== email}
                         />

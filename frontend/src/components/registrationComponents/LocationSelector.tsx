@@ -119,7 +119,8 @@ const LocationSelector = ({ value, onChange, isEditable = true, locationData }: 
     return (
         <Form.Group className="mb-3">
             <Form.Label>
-                Location {isEditable && <span style={{ color: "red" }}>*</span>}
+                Location 
+                {/* {isEditable && <span style={{ color: "red" }}>*</span>} */}
             </Form.Label>
             <InputGroup>
                 <Form.Control
