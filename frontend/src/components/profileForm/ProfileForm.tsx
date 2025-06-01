@@ -61,6 +61,14 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         isEditable={editing}
       />
 
+      {/* Prefered Gender */}
+
+      {/* Prefered Age */}
+
+      {/* Location */}
+
+      {/* Games */}
+
       <Form.Group className="mb-3">
         <Form.Label>Description</Form.Label>
         <Form.Control

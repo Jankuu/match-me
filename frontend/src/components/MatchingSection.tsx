@@ -10,7 +10,7 @@ type Props = {
   title: string;
   users: UserProfile[];
   cardType: 'connections' | 'recommendations' | 'requests';
-  onPrimary: (e: React.MouseEvent | SwipeEventData, id: number) => void;
+  onPrimary: (e: React.MouseEvent | SwipeEventData, id: number, name: string) => void;
   onSecondary: (e: React.MouseEvent | SwipeEventData, id: number) => void;
   onCardClick: (id: number) => void;
 };
@@ -25,7 +25,7 @@ const MatchingSection: React.FC<Props> = ({ title, users, cardType, onPrimary, o
           user={user}
           cardType={cardType}
           onCardClick={onCardClick}
-          onPrimaryAction={(e) => onPrimary(e, user.id)}
+          onPrimaryAction={(e) => onPrimary(e, user.id, user.name)}
         onSecondaryAction={(e) => onSecondary(e, user.id)}
           isDeleting={false}
           getProfilePicture={getProfilePicture}

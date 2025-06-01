@@ -124,7 +124,7 @@ const LocationSelector = ({ value, onChange, isEditable = true }: Props) => {
                     defaultValue={value}
                     placeholder="Start typing your city"
                     disabled={!isEditable}
-                    required={isEditable}
+                    // required={isEditable}
                     isInvalid={!isValidLocation && value.length > 0}
                 />
 

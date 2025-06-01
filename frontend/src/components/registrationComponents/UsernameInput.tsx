@@ -30,7 +30,7 @@ const UsernameInput = ({ value, onChange, onValidate, disabled }: Props) => {
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder="Enter your username"
-                    required
+                    // required
                     disabled={disabled}
                     isInvalid={value.length < 1}
                 />

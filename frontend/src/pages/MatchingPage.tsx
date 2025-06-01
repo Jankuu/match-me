@@ -49,10 +49,10 @@ const MatchingPage: React.FC = () => {
     setConnectionRequests(res.data.map((r: any) => r.sender));
   };
 
-  const handleChatClick = (e: React.MouseEvent | SwipeEventData, id: number) => {
+  const handleChatClick = (e: React.MouseEvent | SwipeEventData, id: number, name: string) => {
     if ('stopPropagation' in e) e.stopPropagation();
     // TODO Chat has to take ID.
-    navigate(`/chat/${id}`);
+    navigate(`/chat/${id}/${name}`);
   };
 
   const handleCardClick = (id: number) => {
