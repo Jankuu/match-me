@@ -6,10 +6,13 @@ import com.example.demo.entities.Connection;
 import com.example.demo.entities.Game;
 import com.example.demo.entities.User;
 import com.example.demo.entities.UserProfile;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.locationtech.jts.geom.Point;
 
+import java.awt.*;
 import java.util.List;
 
 @Getter
@@ -37,6 +40,16 @@ public class UserDTO {
 
     private List<Connection> connectionRequests;
     private List<Connection> connections;
+    @JsonIgnore
+    private Point location;
+
+    //detailed location data
+    private Boolean isGpsUser;
+    private String cityName;
+    private String googlePlaceId;
+    private Double lat;
+    private Double lng;
+    private Integer radius;
 
     public UserDTO(User user) {
         this.id = user.getId();
@@ -44,6 +57,11 @@ public class UserDTO {
         this.email = user.getEmail();
         this.password = user.getPassword();
         this.profile = new UserProfileDTO(user.getProfile());
+
+        if (user.getCity() != null) {
+            this.profile.setLocation(user.getCity().getName());
+        }
+
         this.interestedMinAge = user.getInterestedMinAge();
         this.interestedMaxAge = user.getInterestedMaxAge();
         this.interestedGenders = user.getInterestedGenders();
@@ -52,5 +70,6 @@ public class UserDTO {
         this.connections = user.getConnections();
         this.recommendedUserProfiles = user.getRecommendedUserProfiles();
         this.interestedGames = user.getInterestedGames();
+        this.location = user.getLocation();
     }
 }

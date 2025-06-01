@@ -13,13 +13,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "userProfiles")
+@Table(name = "user_profiles")
 public class UserProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,4 +38,10 @@ public class UserProfile {
     private Integer height;
     @Column(length = 300)
     private String description;
+
+    private String location;
+
+    // Reference to interested games from User entity
+    @Transient
+    private List<Game> interestedGames;
 }

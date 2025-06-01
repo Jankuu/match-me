@@ -12,6 +12,7 @@ import com.example.demo.repositories.UserRepository;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,6 +61,8 @@ public class UserService {
         if (profileDTO.getHeight() != null) profile.setHeight(profileDTO.getHeight());
         if (profileDTO.getDescription() != null)
             profile.setDescription(profileDTO.getDescription());
+        if (profileDTO.getLocation() != null) profile.setLocation(profileDTO.getLocation());
+        if (profileDTO.getInterestedGames() != null) profile.setInterestedGames(profileDTO.getInterestedGames());
 
         return profile;
     }
@@ -186,6 +189,7 @@ public class UserService {
         if (registrationDTO.getInterestedGames() != null && !registrationDTO.getInterestedGames().isEmpty()) {
             newUser.setInterestVector(assignUserInterestVectorValues(null, registrationDTO.getInterestedGames()));
             newUser.setInterestedGames(registrationDTO.getInterestedGames());
+            newUser.getProfile().setInterestedGames(registrationDTO.getInterestedGames());
         } else {
             newUser.setInterestVector(new UserInterestVector());
         }
@@ -202,8 +206,16 @@ public class UserService {
             currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), userDTO.getProfile()));
         }
 
-        if (userDTO.getInterestedGames() != null && !userDTO.getInterestedGames().isEmpty()) {
-            currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userDTO.getInterestedGames()));
+        if (userDTO.getInterestedGames() != null) {
+            currentUser.setInterestedGames(userDTO.getInterestedGames());
+
+            if (currentUser.getProfile() != null) {
+                currentUser.getProfile().setInterestedGames(userDTO.getInterestedGames());
+            }
+
+            if (!userDTO.getInterestedGames().isEmpty()) {
+                currentUser.setInterestVector(assignUserInterestVectorValues(currentUser.getInterestVector(), userDTO.getInterestedGames()));
+            }
         }
 
         return new UserDTO(userRepository.save(currentUser));
@@ -214,7 +226,7 @@ public class UserService {
         if (currentUser.getProfile() == null) {
             currentUser.setProfile(new UserProfile());
         }
-        currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), profileDTO));
+        assignUserProfileValues(currentUser.getProfile(), profileDTO);
         return new UserProfileDTO(userRepository.save(currentUser).getProfile());
     }
 
@@ -288,11 +300,34 @@ public class UserService {
         }
         if (dto.getUsername() != null && !dto.getUsername().isBlank()) user.setUsername(dto.getUsername());
         if (dto.getEmail() != null && !dto.getEmail().isBlank()) user.setEmail(dto.getEmail());
-        if (dto.getPassword() != null && !dto.getPassword().isBlank())
-            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+       // if (dto.getPassword() != null) user.setPassword(passwordEncoder.encode(dto.getPassword()));
         if (dto.getInterestedMinAge() != null) user.setInterestedMinAge(dto.getInterestedMinAge());
         if (dto.getInterestedMaxAge() != null) user.setInterestedMaxAge(dto.getInterestedMaxAge());
         if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
+
+        // location data stuff
+        if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
+            Boolean isGpsUser = dto.getIsGpsUser() != null ? dto.getIsGpsUser() : false;
+            user.setIsGpsUser(isGpsUser);
+
+            if (dto.getLat() != null && dto.getLng() != null) {
+                Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
+                point.setSRID(4326);
+                user.setLocation(point);
+            }
+
+            if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
+                City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
+                user.setCity(city);
+            }
+
+            if (isGpsUser) {
+                user.setRadius(dto.getRadius());
+            } else {
+                user.setRadius(null);
+            }
+        }
+
         return user;
     }
 }

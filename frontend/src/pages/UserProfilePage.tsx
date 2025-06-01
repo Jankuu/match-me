@@ -4,6 +4,7 @@ import { FaEdit } from "react-icons/fa";
 import ProfileForm from "../components/profileForm/ProfileForm";
 import ProfilePicture from "../components/profileForm/ProfilePicture";
 import { User } from "../types/User";
+import { Game } from "../dto/Game";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "react-bootstrap-icons";
 import apiClient from "../utils/apiClient";
@@ -13,11 +14,8 @@ const UserProfilePage = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Memoize currentUser to avoid creating a new object on every render
-    const currentUser = useMemo(() => {
-        const storedUser = localStorage.getItem("user");
-        return storedUser ? (JSON.parse(storedUser) as User) : null;
-    }, []);
+    const storedUser = localStorage.getItem("user");
+    const currentUser = storedUser ? (JSON.parse(storedUser) as User) : null;
 
     const isUsername = location.pathname.includes("/username/");
     const isId = location.pathname.includes("/id/");
@@ -90,24 +88,54 @@ const UserProfilePage = () => {
         });
     };
 
+    const handleGameChange = (games) => {
+        setProfile((prev) => ({
+            ...prev,
+            interestedGames: games,
+            profile: {
+                ...prev.profile,
+                interestedGames: games
+            }
+        }));
+    };
+
+    const handleLocationDataChange = (locationData) => {
+        setProfile((prev) => ({
+            ...prev,
+            locationData
+        }));
+    };
+
     const handleSave = async () => {
         try {
           if (!profile) return;
-          await apiClient.patch("/users/profile?id=102", profile.profile); //
+            // Map locationData to the fields expected by the backend
+            const profileToSend = {
+                ...profile,
+                cityName: profile.profile.location,
+                googlePlaceId: profile.locationData?.placeId,
+                lat: profile.locationData?.coordinates?.lat,
+                lng: profile.locationData?.coordinates?.lng,
+                isGpsUser: profile.locationData?.isGpsUsed
+            };
+          await apiClient.patch(`/users`, profileToSend);
           setEditing(false);
+
+          // Fetch the latest user data from the server and update localStorage
+          if (currentUser && currentUser.id === profile.id) {
+            try {
+              const response = await apiClient.get<User>(`/users`);
+              localStorage.setItem('user', JSON.stringify(response.data));
+              // Update the profile state with the latest data
+              setProfile(response.data);
+            } catch (error) {
+              console.error("Failed to fetch updated user data", error);
+            }
+          }
         } catch (error) {
           console.error("Failed to save profile", error);
         }
       };
-    // const handleSave = async () => {
-    //     try {
-    //         if (!profile?.id) return;
-    //         await apiClient.patch(`/users/profile?id=${profile.id}`, profile.profile);
-    //         setEditing(false);
-    //     } catch (error) {
-    //         console.error("Failed to save profile", error);
-    //     }
-    // };
 
     if (loading) {
         return (
@@ -149,6 +177,8 @@ const UserProfilePage = () => {
                     profile={profile}
                     editing={editing}
                     onChange={handleChange}
+                    onGameChange={handleGameChange}
+                    onLocationDataChange={handleLocationDataChange}
                     onSave={handleSave}
                 />
             </Container>

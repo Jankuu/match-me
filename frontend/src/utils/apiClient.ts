@@ -16,5 +16,17 @@ apiClient.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+//Handles 403 forbidden errors by redirecting to login page
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 403) {
+            console.warn('403 Forbidden - Redirecting to login');
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default apiClient;

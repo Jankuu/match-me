@@ -166,13 +166,12 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
             interestedGenders: preferredGendersArray,
             interestedGames: Array.from(selectedGames.values()),
 
-            // Location data
-            isGpsUser: isGpsUsed, // Set based on whether GPS was used
+            isGpsUser: isGpsUsed,
             cityName: location,
             googlePlaceId: placeId,
             lat: coordinates?.lat,
             lng: coordinates?.lng,
-            radius: 5000, // Default radius in meters
+            radius: 5000,
         };
 
         onSubmit(userPayload);

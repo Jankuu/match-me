@@ -8,6 +8,8 @@ import com.example.demo.projections.NearbyGpsUserProjection;
 import com.example.demo.repositories.UserRepository;
 import com.example.demo.services.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,9 +22,10 @@ public class UserLocationController {
     @Autowired
     private UserRepository userRepository;
 
-    //just for testing
     private User getCurrentUser() {
-        return userRepository.findById(2L).orElseThrow();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return userRepository.findByUsername(currentUsername).orElseThrow();
     }
 
     @PostMapping

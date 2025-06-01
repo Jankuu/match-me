@@ -1,3 +1,5 @@
+import { Game } from "../dto/Game";
+
 export type User = {
     id: number;
     username: string;
@@ -15,11 +17,20 @@ export type User = {
     interestedMinAge: number;
     interestedMaxAge: number;
     interestedGenders: string[];
+    interestedGames?: Game[];
     interestVector: {
         fantasy: number;
         competitive: number;
         action: number;
         story: number;
         complex: number;
+    };
+    locationData?: {
+        placeId: string;
+        coordinates: {
+            lat: number;
+            lng: number;
+        };
+        isGpsUsed: boolean;
     };
 };
