@@ -1,33 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Accordion } from 'react-bootstrap';
-import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
-import '../styles/UserList.css';
-import SwipeableUserCard from '../components/SwipeableUserCard';
 import apiClient from '../utils/apiClient';
+import MatchingSection from '../components/MatchingSection';
 
-type User = {
-  id: number;
-  username: string;
-  email: string;
-  profile?: {
-    name?: string;
-    gender?: string;
-    birthDate?: string;
-    profilePicture?: string;
-  };
-};
+import type { UserProfile } from '../types/UserProfile';
+import type { SwipeEventData } from 'react-swipeable';
+
+import "../styles/ColorPallette.css";
 
 const MatchingPage: React.FC = () => {
-  const [userConnections, setUserConnections] = useState<User[]>([]);
-  const [userRecommendations, setUserRecommendations] = useState<User[]>([]);
-  const [connectionRequests, setConnectionRequests] = useState<User[]>([]);
-  const [deletingUserIds, setDeletingUserIds] = useState<number[]>([]);
+  const [userConnections, setUserConnections] = useState<UserProfile[]>([]);
+  const [userRecommendations, setUserRecommendations] = useState<UserProfile[]>([]);
+  const [connectionRequests, setConnectionRequests] = useState<UserProfile[]>([]);
   const navigate = useNavigate();
 
-  const userDataString = localStorage.getItem("user");
-  const userData = userDataString ? JSON.parse(userDataString) : null;
-  const currentUserId = userData ? userData.id : null;
+  const userData = JSON.parse(localStorage.getItem("user") || "{}");
+  const currentUserId = userData?.id || userData?.profile?.id;
 
   useEffect(() => {
     if (currentUserId) {
@@ -37,99 +26,100 @@ const MatchingPage: React.FC = () => {
     }
   }, [currentUserId]);
 
-  
-
   const fetchUserConnections = async () => {
+    const res = await apiClient.get(`/connections/userConnections`);
+    const raw = Array.isArray(res.data.Connections) ? res.data.Connections : [];
 
-    try {
-      const res = await apiClient.get(`/connections/userConnections?id=${currentUserId}`);
-      const allConnections: User[] = [
-        ...(res.data.sentConnections || []),
-        ...(res.data.receivedConnections || []),
-      ];
-      setUserConnections(allConnections);
-    } catch (err) {
-      console.error('Failed to fetch userConnections:', err);
-    }
+    const otherUsers = raw.map((connection: any) =>
+      connection.sender?.id === currentUserId ? connection.receiver
+      : connection.receiver?.id === currentUserId ? connection.sender
+      : null
+    ).filter(Boolean) as UserProfile[];
+
+    setUserConnections(otherUsers);
   };
 
   const fetchRecommendations = async () => {
-    try {
-      const res = await apiClient.get(`/connections/connections?id=${currentUserId}`);
-      setUserRecommendations(res.data || []);
-    } catch (err) {
-      console.error('Failed to fetch recommendations:', err);
-    }
+    const res = await apiClient.get(`/users/recommendation`);
+    setUserRecommendations(res.data || []);
   };
 
   const fetchConnectionRequests = async () => {
-    try {
-      const res = await apiClient.get(`/connections/connectionRequests?id=${currentUserId}`);
-      setConnectionRequests(res.data || []);
-    } catch (err) {
-      console.error('Failed to fetch connectionRequests:', err);
+    const res = await apiClient.get(`/connections/connectionRequests`);
+    setConnectionRequests(res.data.map((r: any) => r.sender));
+  };
+
+  const handleChatClick = (e: React.MouseEvent | SwipeEventData, id: number, name: string) => {
+    if ('stopPropagation' in e) e.stopPropagation();
+    // TODO Chat has to take ID.
+    navigate(`/chat/${id}/${name}`);
+  };
+
+  const handleCardClick = (id: number) => {
+    const profile = [...userConnections, ...userRecommendations, ...connectionRequests]
+      .find((u) => u.id === id);
+  
+    if (profile) {
+      navigate(`/user_profile/id/${id}`, { state: { profile } });
     }
   };
+  
 
-  const handleChatClick = (e: React.MouseEvent, username: string) => {
-    e.stopPropagation();
-    navigate(`/chat/${username}`);
+  const handleSendRequest = async (e: React.MouseEvent | SwipeEventData, id: number) => {
+    if ('stopPropagation' in e) e.stopPropagation();
+    await apiClient.post(`/connections/send?receiverProfileId=${id}`);
+    fetchRecommendations();
   };
 
-  const handleDeleteClick = (e: React.MouseEvent, userId: number) => {
-    e.stopPropagation();
-    setDeletingUserIds(prev => [...prev, userId]);
-
-    setTimeout(() => {
-      setUserConnections(prev => prev.filter(user => user.id !== userId));
-      setUserRecommendations(prev => prev.filter(user => user.id !== userId));
-      setConnectionRequests(prev => prev.filter(user => user.id !== userId));
-      setDeletingUserIds(prev => prev.filter(id => id !== userId));
-    }, 300);
+  const handleAcceptRequest = async (e: React.MouseEvent | SwipeEventData, senderId: number) => {
+    if ('stopPropagation' in e) e.stopPropagation();
+    await apiClient.post(`/connections/accept?senderProfileId=${senderId}`);
+    fetchConnectionRequests();
+    fetchUserConnections();
   };
 
-  const handleCardClick = (username: string) => {
-    navigate(`/user_profile/username/${username}`, { state: { username } });
-  };
+  const handleRejectRequest = async (e: React.MouseEvent | SwipeEventData, senderId: number) => {
+    if ('stopPropagation' in e) e.stopPropagation();
 
-  const calculateAge = (birthDate?: string) => {
-    return birthDate ? dayjs().diff(dayjs(birthDate), 'year') : '?';
-  };
+    // const confirmed = window.confirm("Are you sure you want to reject?");
 
-  const getProfilePicture = (base64?: string) => {
-    return base64 ? `data:image/jpeg;base64,${base64}` : 'https://via.placeholder.com/50';
+    // if (!confirmed) {
+    //   fetchConnectionRequests();
+    //   fetchRecommendations();
+    //   return;
+    // }
+    await apiClient.post(`/connections/reject?senderProfileId=${senderId}`);
+    fetchConnectionRequests();
+    fetchRecommendations();
   };
-
-  const renderUserCards = (users: User[]) =>
-    users.map(user => (
-      <SwipeableUserCard
-        key={user.id}
-        user={user}
-        onCardClick={handleCardClick}
-        onChatClick={handleChatClick}
-        onDeleteClick={handleDeleteClick}
-        onSwipeLeft={() => handleDeleteClick(null as any, user.id)}
-        isDeleting={deletingUserIds.includes(user.id)}
-        getProfilePicture={getProfilePicture}
-        calculateAge={calculateAge}
-      />
-    ));
 
   return (
     <div className="container mt-4">
-      <Accordion alwaysOpen>
-        <Accordion.Item eventKey="0">
-          <Accordion.Header>Connections ({userConnections.length})</Accordion.Header>
-          <Accordion.Body>{renderUserCards(userConnections)}</Accordion.Body>
-        </Accordion.Item>
-        <Accordion.Item eventKey="1">
-          <Accordion.Header>Recommendations ({userRecommendations.length})</Accordion.Header>
-          <Accordion.Body>{renderUserCards(userRecommendations)}</Accordion.Body>
-        </Accordion.Item>
-        <Accordion.Item eventKey="2">
-          <Accordion.Header>Connection Requests ({connectionRequests.length})</Accordion.Header>
-          <Accordion.Body>{renderUserCards(connectionRequests)}</Accordion.Body>
-        </Accordion.Item>
+      <Accordion alwaysOpen >
+        <MatchingSection
+          title="CONNECTIONS"
+          users={userConnections}
+          cardType="connections"
+          onPrimary={handleChatClick}
+          onSecondary={() => {}} // TODO: Implement delete connection
+          onCardClick={handleCardClick}
+        />
+        <MatchingSection
+          title="RECOMMENDATIONS"
+          users={userRecommendations}
+          cardType="recommendations"
+          onPrimary={handleSendRequest}
+          onSecondary={handleRejectRequest}
+          onCardClick={handleCardClick}
+        />
+        <MatchingSection
+          title="CONNECTION REQUESTS"
+          users={connectionRequests}
+          cardType="requests"
+          onPrimary={handleAcceptRequest}
+          onSecondary={handleRejectRequest}
+          onCardClick={handleCardClick}
+        />
       </Accordion>
     </div>
   );

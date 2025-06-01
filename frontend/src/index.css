@@ -1,3 +1,13 @@
 :root {
-    /* color: rgba(255, 255, 255, 0.87); */
-}
+    /* --bs-primary: #A71D31; */
+    /* --bs-secondary: #D5BF86; */
+    /* --bs-success: #3F0D12; */
+    /* --bs-info: #8D775F; */
+    /* --bs-warning: #F1F0CC; */
+    /* --bs-danger: #C1121F; */
+    /* --bs-light: #F8F9FA; */
+    /* --bs-dark: #121212; */
+  
+    /* --bs-body-bg: #F1F0CC;
+    --bs-body-color: #3F0D12; */
+  }

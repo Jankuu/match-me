@@ -1,47 +1,54 @@
 .chat-page {
+    position: fixed;
+    top: 68px; /* Высота navbar */
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    padding-bottom: 60px;
+    z-index: 1;
+}
+
+/* для мобильных — NavBar снизу */
+@media (max-width: 767px) {
+    .chat-page {
+        top: 0;
+        bottom: 60px; /* высота NavBar */
+    }
+}
+
+.chat-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* важный момент */
 }
 
 .chat-messages {
+    flex: 1;
     overflow-y: auto;
     padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    padding-bottom: 1rem;
 }
 
-.message-bubble {
-    max-width: 70%;
-    padding: 10px 14px;
-    border-radius: 12px;
-    word-wrap: break-word;
-    position: relative;
+.chat-input {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    background-color: #157A6E;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid #77B28C;
+    bottom: 68px; /* по умолчанию — над NavBar */
 }
 
-.message-bubble.mine {
-    align-self: flex-end;
-    background-color: #d1e7dd;
-    border-top-right-radius: 0;
-    text-align: right;
-}
-
-.message-bubble.theirs {
-    align-self: flex-start;
-    background-color: #f8d7da;
-    border-top-left-radius: 0;
-    text-align: left;
-}
-
-.sender-name {
-    font-weight: bold;
-    font-size: 0.8rem;
-    margin-bottom: 2px;
-    color: #6c757d;
-}
-
-.message-content {
-    font-size: 1rem;
+/* Широкий экран: input внизу, а NavBar — сверху */
+@media (min-width: 768px) {
+    .chat-input {
+        bottom: 0;
+    }
 }

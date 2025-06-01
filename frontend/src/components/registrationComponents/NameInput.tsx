@@ -28,7 +28,8 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
     return (
         <Form.Group className="mb-3">
             <Form.Label>
-                Name <span style={{ color: "red" }}>*</span>
+                Name 
+                {!disabled && (<span style={{ color: "red" }}>*</span>)}
             </Form.Label>
             <InputGroup>
                 <Form.Control
@@ -36,11 +37,11 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder="Enter your name"
-                    required
+                    // required
                     disabled={disabled}
                     isInvalid={value.length > 0 && !isUsernameValid}
                 />
-                <InputGroup.Text>
+                {!disabled && (<InputGroup.Text>
                     {value && (
                         isUsernameValid ? (
                             <CheckCircleFill color="green" />
@@ -48,7 +49,7 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
                             <XCircleFill color="red" />
                         )
                     )}
-                </InputGroup.Text>
+                </InputGroup.Text>)}
             </InputGroup>
 
             {/* Show structure hint if structure invalid */}

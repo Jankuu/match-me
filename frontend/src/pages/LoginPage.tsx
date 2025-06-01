@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Button, Form, Container, Spinner, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import {getUserIdentifierFromToken, isAuthenticated} from "../utils/auth";
+import "../styles/ColorPallette.css";
+
 
 type LoginPageProps = {
     onLoginSuccess: (identifier: string) => void;
@@ -51,21 +53,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
           localStorage.setItem("user", JSON.stringify(data.user));
   
-        //   const userResponse = await fetch("http://localhost:8080/users/me", {
-        //       headers: {
-        //           "Authorization": `Bearer ${token}`,
-        //       },
-        //   });
-  
-        //   const userData = await userResponse.json();
-  
-        //   if (!userResponse.ok) {
-        //       throw new Error(userData.message || "Failed to fetch user");
-        //   }
-  
-        //   localStorage.setItem("user", JSON.stringify(userData));
-
-          // Call the onLoginSuccess callback with the user identifier
           const identifier = getUserIdentifierFromToken();
           if (identifier) {
             onLoginSuccess(identifier);

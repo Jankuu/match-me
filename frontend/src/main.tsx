@@ -1,11 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
 import App from "./App.tsx";
 import { Buffer } from "buffer";
 import { WebSocketProvider } from "./context/WebSocketContext.tsx";
-import 'bootstrap/dist/css/bootstrap.min.css';
+// import 'bootstrap/dist/css/bootstrap.min.css';
 import "./utils/apiClient";
+import "./index.css";
+import './styles/custom.scss';
+
+
 
 
 (window as any).global = window;

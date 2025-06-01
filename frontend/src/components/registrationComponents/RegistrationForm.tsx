@@ -15,6 +15,7 @@ import { CheckCircleFill, XCircleFill } from "react-bootstrap-icons";
 import UsernameInput from "./UsernameInput";
 import { Game } from "../../dto/Game";
 import axios from "axios";
+import "../../styles/GameSelector.css";
 
 type Props = {
     onSubmit: (data: UserRegistrationDTO) => void;
@@ -109,17 +110,17 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     }, [birthDateUi]);
 
     const isFormValid =
-        usernameValid &&
-        nameValid &&
+        
         isEmailValid &&
         emailMatch &&
         isPasswordValid &&
-        passwordMatch &&
-        birthDateUi &&
-        age !== null &&
-        age >= 18 &&
-        age <= 120 &&
-        location !== null;
+        passwordMatch;
+        // birthDateUi &&
+        // age !== null &&
+        // age >= 18 &&
+        // age <= 120 &&
+        // location !== null &&
+        // selectedGames !== null;
 
     const readImageAsBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
@@ -137,7 +138,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!ages) return;
+        // if (!ages) return;
 
         let base64Image: string | undefined = undefined;
         if (image) {
@@ -208,7 +209,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                         type="date"
                         value={birthDateUi}
                         onChange={(e) => setBirthDateUi(e.target.value)}
-                        required
+                        // required
                         disabled={loading}
                         min={
                             new Date(
@@ -281,25 +282,21 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
 
             <ImageUpload image={image} setImage={setImage} loading={loading} />
 
-            <div className="scrollContainer">
-                {games.map((game) => (
-                    <Button
-                        key={game.name}
-                        onClick={() => toggleGame(game)}
-                        style={{
-                            backgroundColor: selectedGames.has(game)
-                                ? "#4caf50"
-                                : "#f0f0f0",
-                            color: selectedGames.has(game) ? "white" : "black",
-                            border: "1px solid #ccc",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                        }}
-                        className="gameButton"
-                    >
-                        {game.name}
-                    </Button>
-                ))}
+            {/* Game selector */}
+            <div className="scrollContainer d-flex flex-wrap gap-2 mb-3 p-2 border rounded overflow-auto">
+                {games.map((game) => {
+                    const isSelected = selectedGames.has(game);
+                    return (
+                        <Button
+                            key={game.name}
+                            variant={isSelected ? "success" : "outline-primary"}
+                            onClick={() => toggleGame(game)}
+                            className="game-button"
+                        >
+                            {game.name}
+                        </Button>
+                    );
+                })}
             </div>
 
             <Button

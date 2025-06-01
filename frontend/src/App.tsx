@@ -16,10 +16,11 @@ import { useMediaQuery } from "react-responsive";
 import { useState, useEffect } from "react";
 import SettingsPage from "./pages/SettingsPage";
 import MatchingPage from "./pages/MatchingPage";
-import UserProfilePage from "./pages/UserProfilePage";
+import MyProfilePage from "./pages/MyProfilePage";
 import JwtTestPage from "./pages/JwtTestPage";
 import TestChat from "./pages/TestChat";
 import { getUserIdentifierFromToken } from "./utils/auth";
+import UserProfilePage from "./pages/UserProfielPage";
 
 // Обёртка для использования хуков (navigate/location) внутри App
 function AppWrapper() {
@@ -56,14 +57,17 @@ function App() {
         setToken(storedToken);
     }, []); 
 
-    const paddingStyle = {
-        paddingTop: isMobile ? "0" : "60px",
-        paddingBottom: isMobile ? "60px" : "0",
+    const layoutStyle: React.CSSProperties = {
+        paddingTop: isMobile ? 0 : 68,
+        paddingBottom: isMobile ? 60 : 0,
+        minHeight: "100vh",
+        boxSizing: "border-box", 
     };
 
     return (
         <>
-            <div style={paddingStyle}>
+            {token && !hideNavBar && <NavBar />}
+            <div style={layoutStyle}>
                 <Routes>
                     <Route
                         path="/"
@@ -85,17 +89,18 @@ function App() {
                     />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route
-                        path="/chat/:username"
+                        path="/chat/:id/:name"
                         element={token ? <ChatPage /> : <Navigate to="/login" />}
                     />
                     <Route
-                        path="/user_profile/username/:identifier"
-                        element={token ? <UserProfilePage /> : <Navigate to="/login" />}
+                    path="/myprofile"
+                    element={token ? <MyProfilePage /> : <Navigate to="/login" />}
                     />
-                    <Route
+                    
+                    {/* <Route
                         path="/user_profile/id/:identifier"
                         element={token ? <UserProfilePage /> : <Navigate to="/login" />}
-                    />
+                    /> */}
                     <Route
                         path="/settings"
                         element={
@@ -122,7 +127,7 @@ function App() {
                     <Route path="/testchat" element={<TestChat />} />
                 </Routes>
             </div>
-            {token && !hideNavBar && <NavBar />}
+            
         </>
     );
 }

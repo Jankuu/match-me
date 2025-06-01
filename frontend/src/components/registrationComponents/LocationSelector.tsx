@@ -127,7 +127,7 @@ const LocationSelector = ({ value, onChange, isEditable = true, locationData }: 
                     ref={inputRef}
                     value={value}
                     disabled={!isEditable}
-                    required={isEditable}
+                    // required={isEditable}
                     isInvalid={!isValidLocation && value.length > 0}
                     onChange={(e) => {
                         const newValue = e.target.value;

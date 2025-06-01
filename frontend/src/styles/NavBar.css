@@ -1,7 +1,10 @@
 .nav-wrapper {
     position: fixed;
+    z-index: 1000;
+    left: 0;
+    right: 0;
     width: 100%;
-    background-color: white;
+    background-color: 8D775F;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     z-index: 1000;
 }
@@ -13,6 +16,7 @@
 @media (max-width: 767px) {
     .nav-wrapper {
         bottom: 0; /* Mobile: bottom fixed */
+        top: auto;
     }
     .nav-icons {
         flex-direction: row;
@@ -22,7 +26,8 @@
 @media (min-width: 768px) {
     .nav-wrapper {
         top: 0; /* Desktop: top fixed */
-        border-bottom: 1px solid #ddd;
+        bottom: auto;
+        border-bottom: 1px solid #157A6E;
     }
     .nav-icons {
         flex-direction: row;
