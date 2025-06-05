@@ -8,9 +8,10 @@ type Props = {
     games: Game[];
     selectedGames: Set<Game>;
     onToggle: (game: Game) => void;
+    disabled: boolean;
 };
 
-const GameSelector = ({ games, selectedGames, onToggle }: Props) => {
+const GameSelector = ({ games, selectedGames, onToggle, disabled }: Props) => {
     return (
         <div className="scrollContainer d-flex flex-wrap gap-2 mb-3 p-2 border rounded overflow-auto">
             {games.map((game) => {
@@ -21,6 +22,7 @@ const GameSelector = ({ games, selectedGames, onToggle }: Props) => {
                         variant={isSelected ? "success" : "outline-primary"}
                         onClick={() => onToggle(game)}
                         className="game-button"
+                        disabled={disabled}
                     >
                         {game.name}
                     </Button>

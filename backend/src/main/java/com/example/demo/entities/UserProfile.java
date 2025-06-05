@@ -25,8 +25,8 @@ public class UserProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotNull(message = "User name must not be null!")
-    @NotBlank(message = "User name must not be blank!")
+    // @NotNull(message = "User name must not be null!")
+    // @NotBlank(message = "User name must not be blank!")
     @ValidName
     private String name;
     private byte[] profilePicture;

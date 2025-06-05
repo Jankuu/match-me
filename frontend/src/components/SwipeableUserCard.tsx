@@ -38,7 +38,6 @@ const SwipeableUserCard: React.FC<Props> = ({
   const handleSwipeLeft = () => {
     setIsAnimating(true);
     setTimeout(() => {
-      // Вызываем onSecondaryAction с фиктивным React.MouseEvent (null, любой объект)
       onSecondaryAction({} as React.MouseEvent);
     }, 500);
   };
@@ -80,7 +79,7 @@ const SwipeableUserCard: React.FC<Props> = ({
         <Row className="align-items-center g-0">
           <Col xs={3} md={2} className="text-center">
             <Image
-              src={profilePic || 'https://via.placeholder.com/50'}
+              src={profilePic || '../public/Profile-Placeholder.jpg'}
               roundedCircle
               width="50"
               height="50"

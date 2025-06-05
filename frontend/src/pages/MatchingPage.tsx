@@ -79,7 +79,7 @@ const MatchingPage: React.FC = () => {
   };
 
   const handleRejectRequest = async (e: React.MouseEvent | SwipeEventData, senderId: number) => {
-    if ('stopPropagation' in e) e.stopPropagation();
+    if ('stopPropagation' in e) e.stopPropagation(); // same
 
     // const confirmed = window.confirm("Are you sure you want to reject?");
 

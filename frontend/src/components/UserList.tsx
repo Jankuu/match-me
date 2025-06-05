@@ -60,7 +60,7 @@ const UserList: React.FC = () => {
   };
 
   const getProfilePicture = (base64: string | undefined) => {
-    if (!base64) return 'https://via.placeholder.com/50';
+    if (!base64) return '../public/Profile-Placeholder.jpg';
     return `data:image/jpeg;base64,${base64}`;
   };
 

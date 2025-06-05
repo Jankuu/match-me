@@ -1,12 +1,11 @@
 .nav-wrapper {
     position: fixed;
-    z-index: 1000;
     left: 0;
     right: 0;
     width: 100%;
-    background-color: 8D775F;
+    background-color: #C2C5BB;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
+    z-index: 9999;
 }
 
 .nav-icons {

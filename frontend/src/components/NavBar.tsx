@@ -48,7 +48,6 @@ const NavBar = () => {
                     <Nav.Link href="/settings">
                         <FaCog size={30} />
                     </Nav.Link>
-                    {/*Make active c-cherry class  */}
                 </Nav>
             </Container>
         </div>
