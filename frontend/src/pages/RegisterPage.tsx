@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Container, Alert, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import RegisterForm from "../components/forms/RegistrationForm";
+import RegisterForm from "../components/forms/RegisterForm";
 import { UserRegistrationDTO } from "../dto/UserRegistrationDTO";
 import apiClient from "../utils/apiClient";
 import axios from "axios"; // Good practice for type-guarding with axios.isAxiosError

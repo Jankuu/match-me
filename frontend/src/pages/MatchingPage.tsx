@@ -101,7 +101,7 @@ const MatchingPage: React.FC = () => {
           users={userConnections}
           cardType="connections"
           onPrimary={handleChatClick}
-          onSecondary={() => {}} // TODO: Implement delete connection
+          onSecondary={handleRejectRequest}
           onCardClick={handleCardClick}
         />
         <MatchingSection

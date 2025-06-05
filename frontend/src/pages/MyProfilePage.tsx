@@ -1,33 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Container, Button, Spinner, Alert } from "react-bootstrap";
 import { FaEdit } from "react-icons/fa";
 import { ArrowLeft } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 
 import { User } from "../types/User";
+import { Game } from "../dto/Game";
 import apiClient from "../utils/apiClient";
 import ProfilePicture from "../components/formComponents/ProfilePicture";
 import AccountForm from "../components/forms/AccountForm";
-import axios from "axios";
+import axios from "axios"; // Import axios for error checking
 
 const MyProfilePage = () => {
   const navigate = useNavigate();
 
-  // State for user data, loading status, editing mode, errors, and selected image file
+  // State for the currently displayed user profile (from localStorage or API)
   const [user, setUser] = useState<User | null>(null);
+  // State for the draft user profile during editing
+  const [draftUser, setDraftUser] = useState<User | null>(null);
+
+  // Loading, editing, and error states
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // State for the new profile picture file selected by the user
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
-  /**
-   * Helper function to ensure a Base64 string has the 'data:image/jpeg;base64,' prefix.
-   * This is crucial for displaying Base64 images directly in <img> tags.
-   * Assumes JPEG if no prefix is present; might need dynamic MIME type handling for other formats.
-   * @param base64String The Base64 string to check/prefix.
-   * @returns The Base64 string with the data URL prefix, or an empty string if input is null/undefined.
-   */
-  const ensureDataUrlPrefix = (base64String: string | undefined | null): string => {
+  // State to track birth date validation status
+  const [isBirthDateValid, setIsBirthDateValid] = useState(true);
+
+  // Memoized helper function to ensure data URL prefix for base64 images
+  const ensureDataUrlPrefix = useCallback((base64String: string | undefined | null): string => {
     if (!base64String) {
       return '';
     }
@@ -35,52 +38,54 @@ const MyProfilePage = () => {
       return base64String;
     }
     return `data:image/jpeg;base64,${base64String}`;
-  };
+  }, []); // No dependencies, as it's a pure function
 
-  /**
-   * Helper function to remove the 'data:image/jpeg;base64,' prefix from a data URL.
-   * This is necessary when sending Base64 image data to a backend that expects raw Base64.
-   * @param dataUrl The full data URL string.
-   * @returns The raw Base64 part of the string, or an empty string if input is null/undefined.
-   */
-  const removeDataUrlPrefix = (dataUrl: string | undefined | null): string => {
+  // Memoized helper function to remove data URL prefix from base64 images
+  const removeDataUrlPrefix = useCallback((dataUrl: string | undefined | null): string => {
     if (!dataUrl) {
       return '';
     }
     const parts = dataUrl.split(',');
     return parts.length > 1 ? parts[1] : dataUrl;
-  };
+  }, []); // No dependencies
 
-  // Effect hook to load user data on component mount
+  // Memoized helper function to read an image file as a base64 string
+  const readImageAsBase64 = useCallback((file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }, []); // No dependencies
+
+  // Effect to load user profile data on component mount or when navigation changes
   useEffect(() => {
     const loadUser = async () => {
       setError(null);
+      setLoading(true); // Set loading to true at the start of data fetching
+
       const storedUser = localStorage.getItem("user");
 
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser) as User;
-
-        // Ensure profilePicture is correctly formatted for display
+        // Ensure profile picture has data URL prefix for display
         parsedUser.profile.profilePicture = ensureDataUrlPrefix(parsedUser.profile.profilePicture);
-        // Ensure name is a string to prevent potential errors
-        if (!parsedUser.profile.name) {
-            parsedUser.profile.name = '';
-        }
+        parsedUser.profile.name = parsedUser.profile.name || ''; // Ensure name is not null/undefined
 
         setUser(parsedUser);
         setLoading(false);
       } else if (localStorage.getItem("token")) {
-        // If no user in localStorage but a token exists, fetch user from server
         try {
           const res = await apiClient.get<User>("/users");
           const fetchedUser = res.data;
-
-          // Ensure profilePicture is correctly formatted for display
+          // Ensure profile picture has data URL prefix for display
           fetchedUser.profile.profilePicture = ensureDataUrlPrefix(fetchedUser.profile.profilePicture);
-          // Ensure name is a string to prevent potential errors
-          if (!fetchedUser.profile.name) {
-              fetchedUser.profile.name = '';
-          }
+          fetchedUser.profile.name = fetchedUser.profile.name || '';
 
           setUser(fetchedUser);
           localStorage.setItem("user", JSON.stringify(fetchedUser)); // Store fetched user in localStorage
@@ -94,155 +99,175 @@ const MyProfilePage = () => {
               setError("An unknown error occurred while loading profile.");
           }
         } finally {
-          setLoading(false);
+          setLoading(false); // Set loading to false after fetch attempt
         }
       } else {
-        // No user or token, redirect to login
         setLoading(false);
-        navigate("/login");
+        navigate("/login"); // Redirect to login if no user or token is found
       }
     };
-
     loadUser();
-  }, [navigate]); // Dependency array to re-run effect if navigate changes (unlikely for this use case)
+  }, [navigate, ensureDataUrlPrefix]); // Dependencies: navigate and ensureDataUrlPrefix
 
-  /**
-   * Handler for changes within the user.profile object (e.g., name, bio).
-   * Updates the local 'user' state.
-   * @param field The specific field within the 'profile' object to update.
-   * @param value The new value for the field.
-   */
-  const handleProfileChange = (field: keyof User["profile"], value: any) => {
-    if (!user) return;
-    setUser({
-      ...user,
-      profile: {
-        ...user.profile,
-        [field]: value,
-      },
-    });
-  };
-
-  /**
-   * Handler for changes directly on the user object (root level properties, e.g., username).
-   * Updates the local 'user' state.
-   * @param field The specific field on the root 'user' object to update.
-   * @param value The new value for the field.
-   */
-  const handleRootChange = (field: keyof User, value: any) => {
-    if (!user) return;
-    setUser({
-      ...user,
-      [field]: value,
-    });
-  };
-
-  /**
-   * Reads a selected image file and converts it into a raw Base64 string (without the data URL prefix).
-   * @param file The File object selected by the user.
-   * @returns A Promise that resolves with the raw Base64 string.
-   */
-  const readImageAsBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string; // This is the full data URL (e.g., data:image/jpeg;base64,...)
-        const base64 = result.split(",")[1]; // Extracts only the raw Base64 data
-        resolve(base64);
+  // Memoized callback for changing profile (nested) fields in the draft user
+  const handleProfileChange = useCallback((field: keyof User["profile"], value: any) => {
+    setDraftUser(prevDraft => {
+      if (!prevDraft) return null;
+      return {
+        ...prevDraft,
+        profile: {
+          ...prevDraft.profile,
+          [field]: value,
+        },
       };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
     });
-  };
+  }, []); // No dependencies, as setState functional update is used
 
-  /**
-   * Handles saving the user's profile changes to the backend.
-   * Manages image conversion, API patch request, and local state updates.
-   */
-  const handleSave = async () => {
-    if (!user?.id) return; // Prevent saving if user is not loaded
-    setError(null);
+  // Memoized callback for changing root-level user fields in the draft user
+  const handleRootChange = useCallback((field: keyof User, value: any) => {
+    setDraftUser(prevDraft => {
+      if (!prevDraft) return null;
 
-    // Prepare the payload for the backend: initially a copy of current user state.
-    // Ensure profilePicture is in raw Base64 format for the API call.
+      // Special handling for 'interestedGames' to prevent unnecessary re-renders
+      if (field === "interestedGames" && Array.isArray(value)) {
+        const currentGames = prevDraft.interestedGames || [];
+        const newGames = value as Game[];
+
+        // Check if lengths are different, if so, arrays are not equal
+        if (currentGames.length !== newGames.length) {
+            // Lengths are different, so arrays are definitely not equal
+        } else {
+            // Convert both arrays to Sets of IDs for efficient comparison
+            const currentGameIds = new Set(currentGames.map(g => g.id));
+            const newGameIds = new Set(newGames.map(g => g.id));
+
+            let allEqual = true;
+            // Check if set sizes are different
+            if (currentGameIds.size !== newGameIds.size) {
+                allEqual = false;
+            } else {
+                // Check if all new IDs are present in the current IDs set
+                for (const id of newGameIds) {
+                    if (!currentGameIds.has(id)) {
+                        allEqual = false;
+                        break;
+                    }
+                }
+            }
+
+            if (allEqual) {
+                // If content by ID is identical, return the previous draft object
+                // to avoid state update and unnecessary re-render.
+                return prevDraft;
+            }
+        }
+      }
+
+      // For other fields, or if interestedGames truly changed, create a new object with the updated field.
+      return {
+        ...prevDraft,
+        [field]: value,
+      };
+    });
+  }, []); // No dependencies, as setState functional update is used
+
+  // Memoized callback to clear the profile picture
+  const handleClearProfilePicture = useCallback(() => {
+    setDraftUser(prevDraft => {
+      if (!prevDraft) return null;
+      return {
+        ...prevDraft,
+        profile: {
+          ...prevDraft.profile,
+          profilePicture: '', // Set to empty string for the draft
+        },
+      };
+    });
+    setSelectedImageFile(null); // Clear any newly selected file
+  }, []); // No dependencies
+
+  // Memoized callback to save profile changes to the backend
+  const handleSave = useCallback(async () => {
+    // Validate draftUser and birth date
+    if (!draftUser?.id || !isBirthDateValid) {
+        setError("Please ensure all required fields are valid before saving.");
+        return;
+    }
+    setError(null); // Clear previous errors
+
+    // Prepare the payload for the backend from `draftUser`.
+    // Profile picture is sent as raw Base64 (without data URL prefix).
     const userPayloadForBackend = {
-      ...user,
-      profile: {
-        ...user.profile,
-        profilePicture: removeDataUrlPrefix(user.profile.profilePicture),
-      },
+        ...draftUser,
+        profile: {
+            ...draftUser.profile,
+            profilePicture: removeDataUrlPrefix(draftUser.profile.profilePicture) // Use picture from draftUser
+        }
     };
 
-    // If a new image file was selected, process it for upload
+    // If a new image file was selected, it overrides the current picture in the payload.
     if (selectedImageFile) {
-      try {
-        const rawBase64Image = await readImageAsBase64(selectedImageFile); // Get raw Base64
-        userPayloadForBackend.profile.profilePicture = rawBase64Image; // Update payload for backend
-      } catch (error) {
-        console.error("Failed to convert image to Base64", error);
-        setError("Failed to process image for upload.");
-        return; // Stop the save process if image conversion fails
-      }
-    } else if (userPayloadForBackend.profile.profilePicture === '') {
-        // If the user explicitly cleared the image or it was already empty and no new image was selected.
-        // Backend should interpret an empty string as removal or no change for the picture.
+        try {
+            const rawBase64Image = await readImageAsBase64(selectedImageFile);
+            userPayloadForBackend.profile.profilePicture = rawBase64Image;
+        } catch (error) {
+            console.error("Failed to convert image to Base64", error);
+            setError("Failed to process image for upload.");
+            return;
+        }
     }
 
     try {
-      // Send the modified user object to the server using a PATCH request
+      // Send the modified user data to the server
       await apiClient.patch(`/users`, userPayloadForBackend);
 
-      // Update local storage with the user data sent to the backend.
-      // Storing the raw Base64 here is consistent with what the backend expects,
-      // and the useEffect will correctly prefix it for display on next load.
+      // After successful save, update the main 'user' state.
+      // Important: for display in the UI, re-add the Base64 prefix.
+      const updatedUserForDisplay = {
+        ...userPayloadForBackend,
+        profile: {
+          ...userPayloadForBackend.profile,
+          profilePicture: ensureDataUrlPrefix(userPayloadForBackend.profile.profilePicture)
+        }
+      };
+      setUser(updatedUserForDisplay); // Update the main user state
+
+      // Update localStorage with the data sent to the backend (without prefix)
       localStorage.setItem("user", JSON.stringify(userPayloadForBackend));
 
-      // After successful save, update the component's local 'user' state for immediate UI refresh.
-      // This ensures the displayed profile picture is updated without a full page reload.
-      setUser(prevUser => {
-        if (!prevUser) return null;
-
-        let updatedProfilePictureForDisplay = prevUser.profile.profilePicture;
-
-        if (selectedImageFile) {
-          // If a new image was selected, create a temporary object URL for instant display.
-          // This allows immediate preview without waiting for the backend to send back the Base64.
-          updatedProfilePictureForDisplay = URL.createObjectURL(selectedImageFile);
-          // TODO: Consider revoking this object URL when it's no longer needed to free up memory.
-          // This is typically done in a cleanup effect or when the image changes again.
-        } else {
-          // If no new file was selected, use the picture data from the backend payload,
-          // ensuring it has the data URL prefix for display in the <img> tag.
-          updatedProfilePictureForDisplay = ensureDataUrlPrefix(userPayloadForBackend.profile.profilePicture);
-        }
-
-        return {
-          ...prevUser, // Retain other previous user data
-          profile: {
-            ...prevUser.profile,
-            profilePicture: updatedProfilePictureForDisplay, // Update with the display-ready picture
-          },
-        };
-      });
-
-      // Reset the selected image file and exit editing mode
-      setSelectedImageFile(null);
+      // Exit editing mode and reset temporary states
       setEditing(false);
-
+      setDraftUser(null); // Clear the draft
+      setSelectedImageFile(null); // Clear the selected file
     } catch (err: any) {
       console.error("Failed to save profile", err);
-      // Handle and set specific error messages based on the error type
       if (axios.isAxiosError(err)) {
         setError(err.message || "Failed to save profile data.");
       } else if (err instanceof Error) {
         setError(err.message || "An unexpected error occurred while saving profile.");
       } else {
-        setError("An unknown error occurred while saving profile.");
+        setError("An unknown error occurred.");
       }
     }
-  };
+  }, [draftUser, isBirthDateValid, selectedImageFile, removeDataUrlPrefix, readImageAsBase64, ensureDataUrlPrefix]); // Dependencies
 
-  // Display a loading spinner while user data is being fetched
+  // Memoized callback to toggle editing mode
+  const toggleEditing = useCallback(() => {
+    if (editing) { // If currently in editing mode and "Cancel" is clicked
+      setEditing(false);
+      setDraftUser(null); // Discard all changes in the draft
+      setSelectedImageFile(null); // Discard any newly selected file
+    } else { // If not in editing mode and "Edit" is clicked
+      setEditing(true);
+      // Create a deep copy of the current user for editing.
+      if (user) {
+        setDraftUser(JSON.parse(JSON.stringify(user)));
+      }
+      setSelectedImageFile(null); // Ensure no stale selected file
+    }
+  }, [editing, user]); // Dependencies: 'editing' and 'user'
+
+  // Display loading spinner
   if (loading) {
     return (
       <Container className="mt-5 text-center">
@@ -251,27 +276,27 @@ const MyProfilePage = () => {
     );
   }
 
-  // Display an error message if fetching failed
+  // Display error message
   if (error) {
-    return (
-        <Container className="mt-5" style={{ maxWidth: "600px" }}>
-            <Alert variant="danger">
-                {error}
-                <br/>
-                Please try again later.
-            </Alert>
-            <Button
-                variant="primary"
-                onClick={() => navigate("/matching")}
-                className="mt-3"
-            >
-                Go Back
-            </Button>
-        </Container>
-    );
+      return (
+          <Container className="mt-5" style={{ maxWidth: "600px" }}>
+              <Alert variant="danger">
+                  {error}
+                  <br/>
+                  Please try again later.
+              </Alert>
+              <Button
+                  variant="primary"
+                  onClick={() => navigate("/matching")}
+                  className="mt-3"
+              >
+                  Go Back
+              </Button>
+          </Container>
+      );
   }
 
-  // Display a message if user or user profile is not found after loading
+  // Display message if profile not found or incomplete
   if (!user || !user.profile) {
     return (
       <Container className="mt-5 text-center">
@@ -287,11 +312,9 @@ const MyProfilePage = () => {
     );
   }
 
-  // Render the profile page content
   return (
     <>
       <div className="d-flex justify-content-between mb-3 px-3 pt-3">
-        {/* Button to navigate back to the matching page */}
         <Button
           onClick={() => navigate("/matching")}
           className="d-flex align-items-center px-3 py-2 gap-1"
@@ -302,10 +325,9 @@ const MyProfilePage = () => {
           Back
         </Button>
 
-        {/* Button to toggle editing mode */}
         <Button
           variant={editing ? "outline-danger" : "outline-primary"}
-          onClick={() => setEditing(!editing)}
+          onClick={toggleEditing}
           className="d-flex align-items-center px-3 py-2 gap-1"
           style={{ height: "40px" }}
         >
@@ -317,20 +339,22 @@ const MyProfilePage = () => {
       <Container className="mt-5" style={{ maxWidth: "600px" }}>
         <h2 className="mb-3">My Profile</h2>
 
-        {/* Component to display the current profile picture.
-            It expects a full data URL or an empty string. */}
-        <ProfilePicture profilePicture={user.profile.profilePicture} />
+        <ProfilePicture profilePicture={user.profile.profilePicture || ''} />
 
-        {/* Form component for account details and profile editing */}
-        <AccountForm
-          profile={user}
-          editing={editing}
-          onProfileChange={handleProfileChange}
-          onRootChange={handleRootChange}
-          onSave={handleSave}
-          onImageChange={setSelectedImageFile} // Passes setter for the selected image file
-          currentImageFile={selectedImageFile} // Passes the current selected file for display in the form
-        />
+        {/* Render AccountForm with either draftUser (if editing) or user */}
+        {(editing ? draftUser : user) && (
+          <AccountForm
+            profile={editing ? draftUser! : user!} // Pass the correct profile state
+            editing={editing}
+            onProfileChange={handleProfileChange}
+            onRootChange={handleRootChange}
+            onSave={handleSave}
+            onImageChange={setSelectedImageFile}
+            currentImageFile={selectedImageFile}
+            onClearProfilePicture={handleClearProfilePicture}
+            onBirthDateValidationChange={setIsBirthDateValid}
+          />
+        )}
       </Container>
     </>
   );
