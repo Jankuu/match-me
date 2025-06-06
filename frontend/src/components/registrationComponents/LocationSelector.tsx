@@ -12,16 +12,22 @@ type Props = {
     onChange: (
         value: string,
         placeId?: string,
-        coordinates?: Coordinates
+        coordinates?: Coordinates,
+        isGpsUsed?: boolean
     ) => void;
-    isEditable?: boolean; // optional, defaults to true
+    isEditable?: boolean;
+    locationData?: {
+        placeId: string;
+        coordinates: Coordinates;
+        isGpsUsed: boolean;
+    };
 };
 
-const LocationSelector = ({ value, onChange, isEditable = true }: Props) => {
+const LocationSelector = ({ value, onChange, isEditable = true, locationData }: Props) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
     const [isLocationFetching, setIsLocationFetching] = useState(false);
-    const [isValidLocation, setIsValidLocation] = useState(false);
+    const [isValidLocation, setIsValidLocation] = useState(value.length > 0 || (locationData !== undefined));
 
     useEffect(() => {
         if (!window.google || !inputRef.current) return;
@@ -41,7 +47,7 @@ const LocationSelector = ({ value, onChange, isEditable = true }: Props) => {
                 const placeId = place.place_id;
 
                 setIsValidLocation(true);
-                onChange(address, placeId, { lat, lng });
+                onChange(address, placeId, { lat, lng }, false);
             } else {
                 setIsValidLocation(false);
                 onChange(address);
@@ -77,9 +83,8 @@ const LocationSelector = ({ value, onChange, isEditable = true }: Props) => {
                             const placeId = cityResult.place_id;
                             const coordinates = { lat: latitude, lng: longitude };
 
-                            inputRef.current!.value = cityName;
                             setIsValidLocation(true);
-                            onChange(cityName, placeId, coordinates);
+                            onChange(cityName, placeId, coordinates, true);
 
                             if (autocompleteRef.current) {
                                 autocompleteRef.current.setBounds(new google.maps.LatLngBounds(latLng));
@@ -104,7 +109,6 @@ const LocationSelector = ({ value, onChange, isEditable = true }: Props) => {
         }
     };
 
-    // Sync visual state if user manually deletes input
     useEffect(() => {
         if (!value) {
             setIsValidLocation(false);
@@ -120,11 +124,20 @@ const LocationSelector = ({ value, onChange, isEditable = true }: Props) => {
                 <Form.Control
                     type="text"
                     ref={inputRef}
-                    defaultValue={value}
-                    placeholder="Start typing your city"
+                    value={value}
                     disabled={!isEditable}
                     required={isEditable}
                     isInvalid={!isValidLocation && value.length > 0}
+                    onChange={(e) => {
+                        const newValue = e.target.value;
+                        if (newValue === '') {
+                            setIsValidLocation(false);
+                            // clear location data
+                            onChange(newValue, undefined, undefined, undefined);
+                        } else {
+                            onChange(newValue);
+                        }
+                    }}
                 />
 
                 {isEditable && (
