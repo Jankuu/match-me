@@ -145,6 +145,35 @@ const handleRootChange = (field: keyof User, value: any) => {
           onProfileChange={handleProfileChange}
           onRootChange={handleRootChange}
           onSave={handleSave}
+          onLocationDataChange={(locationData) => {
+            if (locationData) {
+              setUser(prevUser => {
+                if (!prevUser) return prevUser;
+                return {
+                  ...prevUser,
+                  locationData,
+                  profile: {
+                    ...prevUser.profile,
+                    location: prevUser.profile.location
+                  }
+                };
+              });
+            } else {
+              setUser(prevUser => {
+                if (!prevUser) return prevUser;
+                const updatedUser = { ...prevUser };
+                delete updatedUser.locationData;
+                return {
+                  ...updatedUser,
+                  profile: {
+                    ...updatedUser.profile,
+                    location: ""
+                  }
+                };
+              });
+            }
+          }}
+
         />
       </Container>
     </>

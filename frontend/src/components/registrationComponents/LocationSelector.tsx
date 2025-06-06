@@ -83,7 +83,6 @@ const LocationSelector = ({ value, onChange, isEditable = true, locationData }: 
                             const placeId = cityResult.place_id;
                             const coordinates = { lat: latitude, lng: longitude };
 
-                            inputRef.current!.value = cityName;
                             setIsValidLocation(true);
                             onChange(cityName, placeId, coordinates, true);
 
@@ -127,14 +126,14 @@ const LocationSelector = ({ value, onChange, isEditable = true, locationData }: 
                     ref={inputRef}
                     value={value}
                     disabled={!isEditable}
-                    // required={isEditable}
+                    required={isEditable}
                     isInvalid={!isValidLocation && value.length > 0}
                     onChange={(e) => {
                         const newValue = e.target.value;
                         if (newValue === '') {
                             setIsValidLocation(false);
                             // clear location data
-                            onChange('', undefined, undefined, undefined);
+                            onChange(newValue, undefined, undefined, undefined);
                         } else {
                             onChange(newValue);
                         }

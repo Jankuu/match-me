@@ -204,6 +204,17 @@ public class UserService {
 
         if (userDTO.getProfile() != null) {
             currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), userDTO.getProfile()));
+
+            if (userDTO.getProfile().getLocation() != null && !userDTO.getProfile().getLocation().isEmpty()) {
+                String locationName = userDTO.getProfile().getLocation();
+
+                City city = locationService.findOrAddCity(locationName, null, null, null);
+                currentUser.setCity(city);
+                currentUser.setIsGpsUser(false);
+                //clear gps specific fields
+                currentUser.setLocation(null);
+                currentUser.setRadius(null);
+            }
         }
 
         if (userDTO.getInterestedGames() != null) {
@@ -227,6 +238,17 @@ public class UserService {
             currentUser.setProfile(new UserProfile());
         }
         assignUserProfileValues(currentUser.getProfile(), profileDTO);
+
+        if (profileDTO.getLocation() != null && !profileDTO.getLocation().isEmpty()) {
+            String locationName = profileDTO.getLocation();
+
+            City city = locationService.findOrAddCity(locationName, null, null, null);
+            currentUser.setCity(city);
+            currentUser.setIsGpsUser(false);
+            currentUser.setLocation(null);
+            currentUser.setRadius(null);
+        }
+
         return new UserProfileDTO(userRepository.save(currentUser).getProfile());
     }
 

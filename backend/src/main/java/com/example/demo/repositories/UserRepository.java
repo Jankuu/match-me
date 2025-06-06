@@ -122,7 +122,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
             JOIN users ref_user ON ref_user.id = :refUserId
             JOIN user_profiles ref_profile ON ref_user.profile_id = ref_profile.id
             JOIN user_interest_vector ref_iv ON ref_user.user_interest_vector_id = ref_iv.id
-            WHERE ST_DWithin(u.location::geography, ref_user.location::geography, ref_user.radius)
+            WHERE (
+                  -- if gps user, filter by distance
+                  (ref_user.is_gps_user = true AND ST_DWithin(u.location::geography, ref_user.location::geography, ref_user.radius))
+                  OR
+                  -- if non-gps user, filter by city
+                  (ref_user.is_gps_user = false AND u.city_id = ref_user.city_id)
+              )
               AND u.id != :refUserId
               AND (
                   DATE_PART('year', AGE(up.birth_date)) BETWEEN ref_user.interested_min_age AND ref_user.interested_max_age
