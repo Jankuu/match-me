@@ -38,12 +38,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     const [connectionRequestNotification, setConnectionRequestNotification] =
         useState<string[]>([]);
 
-    // --- NEW STATE FOR UNREAD FLAGS ---
     const [hasUnreadConnections, setHasUnreadConnections] = useState(false);
     const [hasUnreadConnectionRequests, setHasUnreadConnectionRequests] = useState(false);
-    // --- NEW STATE END ---
 
-    // --- NEW EFFECT FOR UPDATING UNREAD FLAGS ---
     useEffect(() => {
         if (connectionNotification.length > 0) {
             setHasUnreadConnections(true);
@@ -55,9 +52,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             setHasUnreadConnectionRequests(true);
         }
     }, [connectionRequestNotification]);
-    // --- NEW EFFECT END ---
-
-    // --- NEW CALLBACKS FOR MARKING AS READ ---
+   
     const markAllNotificationsAsRead = useCallback(() => {
         setHasUnreadConnections(false);
         setHasUnreadConnectionRequests(false);
@@ -118,7 +113,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 stompClient.subscribe(
                     "/user/queue/notifications/connectionRequest",
                     (con: IMessage) => {
-                        console.log("New connection request:", con.body);
+                        console.log("New connection request received:", con.body);
                         setConnectionRequestNotification((prev) => [
                             ...prev,
                             con.body,
@@ -165,11 +160,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 messages,
                 connectionNotification,
                 connectionRequestNotification,
-                hasUnreadConnections, // NEW
-                hasUnreadConnectionRequests, // NEW
-                markAllNotificationsAsRead, // NEW
-                markConnectionRequestsAsRead, // NEW
-                markConnectionsAsRead, // NEW
+                hasUnreadConnections, 
+                hasUnreadConnectionRequests, 
+                markAllNotificationsAsRead, 
+                markConnectionRequestsAsRead, 
+                markConnectionsAsRead, 
             }}
         >
             {children}

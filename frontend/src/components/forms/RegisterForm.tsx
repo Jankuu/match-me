@@ -84,7 +84,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
             // We need to check if the game with the same ID already exists in the set
             // because Set.has() checks for object reference equality.
             let gameExistsInSet = false;
-            for (let item of newSet) {
+            for (let item of newSet) { //error here wil be fixed but code works
                 if (item.id === game.id) {
                     gameExistsInSet = true;
                     break;

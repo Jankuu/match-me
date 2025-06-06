@@ -84,6 +84,7 @@ public class ConnectionsService {
                 "/queue/notifications/connectionRequest",
                 sender.getProfile()
         );
+        System.out.println("New connection request from " + senderUsername);
 
         return connectionDTO;
     }

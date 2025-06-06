@@ -10,7 +10,7 @@ type AgeRangeSliderProps = {
     onChange: (range: [number, number]) => void;
 };
 
-const AgeRangeSlider: React.FC<AgeRangeSliderProps> = ({ userAge, onChange }) => {
+const AgeRangeSelector: React.FC<AgeRangeSliderProps> = ({ userAge, onChange }) => {
     const [values, setValues] = useState<[number, number]>([MIN, MAX]);
 
     useEffect(() => {
@@ -106,4 +106,4 @@ const AgeRangeSlider: React.FC<AgeRangeSliderProps> = ({ userAge, onChange }) =>
     );
 };
 
-export default AgeRangeSlider;
+export default AgeRangeSelector;

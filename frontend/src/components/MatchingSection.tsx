@@ -32,13 +32,13 @@ const MatchingSection: React.FC<Props> = ({
       {title} ({users.length})
       {hasUnreadRequests && ( // Conditional rendering of the badge
         <Badge
-          bg="danger"
-          pill
-          className="position-absolute top-50 start-0 translate-middle" // Position it on the left of title
-          style={{ fontSize: '0.6em', padding: '0.3em 0.5em', left: '20px' }} // Adjust position
-        >
-          {/* Optional: You can put a count here */}
-        </Badge>
+        bg="danger"
+        pill
+        className="ms-2" // Margin-start for spacing from text
+        style={{ fontSize: '0.7em', padding: '0.3em 0.5em' }} // Adjust font size and padding
+      >
+        New
+      </Badge>
       )}
     </Accordion.Header>
     <Accordion.Body>

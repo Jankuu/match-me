@@ -30,7 +30,7 @@ public class MessageSocketController {
         String sender = principal.getName();
         String receiver = messageDTO.getReceiverUsername();
 
-        messageDTO.setSenderUsername(sender); // перезаписываем на всякий случай
+        messageDTO.setSenderUsername(sender);
 
         messagingTemplate.convertAndSendToUser(
                 receiver,
