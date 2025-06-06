@@ -18,14 +18,17 @@ public class Message {
     private Long id;
 
     @NonNull
-    private String receiverUsername;
+    private Long receiverProfileId;
     @NonNull
-    private String senderUsername;
+    private Long senderProfileId;
 
     @NonNull
     @NotBlank
     @Column(length = 300)
     private String content;
 
-    private LocalDateTime timestamp = LocalDateTime.now();
+    @NonNull
+    private LocalDateTime timestamp;
+
+    private boolean hasReceiverRead;
 }

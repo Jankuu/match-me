@@ -19,7 +19,7 @@ const TestChat = () => {
     const [id, setId] = useState<number>(0);
     const [response, setResponse] = useState<string>("");
     const [message, setMessage] = useState<string>("");
-    const [receiverUsername, setReceiverUsername] = useState<string>("");
+    const [receiverProfileId, setReceiverProfileId] = useState<number>();
 
     // Games
     const [games, setGames] = useState<Game[]>([]);
@@ -72,7 +72,8 @@ const TestChat = () => {
     };
 
     const handleSendMessage = async () => {
-        sendMessage(receiverUsername, message);
+        if (receiverProfileId === undefined) return;
+        sendMessage(receiverProfileId, message);
         /*
         if (client && isConnected) {
             const formattedMessage = `@${receiverUsername} ${message}`;
@@ -88,8 +89,8 @@ const TestChat = () => {
     };
 
     const handleChangeReceiver = () => {
-        setReceiverUsername(receiverUsername);
-        console.log("Set Receiver: " + receiverUsername);
+        setReceiverProfileId(receiverProfileId);
+        console.log("Set Receiver: " + receiverProfileId);
     };
 
     // JWT testing
@@ -157,12 +158,12 @@ const TestChat = () => {
             </div>
 
             <input
-                type="text"
-                value={receiverUsername}
-                onChange={(e) => setReceiverUsername(e.target.value)}
+                type="number"
+                value={receiverProfileId ?? ""}
+                onChange={(e) => setReceiverProfileId(Number(e.target.value))}
             />
             <button onClick={handleChangeReceiver}>Set Receiver</button>
-            <span>{receiverUsername}</span>
+            <span>{receiverProfileId}</span>
             <br />
 
             <input

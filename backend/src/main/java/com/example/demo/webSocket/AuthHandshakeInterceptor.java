@@ -1,6 +1,8 @@
 package com.example.demo.webSocket;
 
+import com.example.demo.entities.User;
 import com.example.demo.security.JwtUtil;
+import com.example.demo.services.UserService;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -18,10 +20,11 @@ import java.util.Map;
  */
 @Component
 public class AuthHandshakeInterceptor implements HandshakeInterceptor {
-
+    private final UserService userService;
     private final JwtUtil jwtUtil;
 
-    public AuthHandshakeInterceptor(JwtUtil jwtUtil) {
+    public AuthHandshakeInterceptor(UserService userService, JwtUtil jwtUtil) {
+        this.userService = userService;
         this.jwtUtil = jwtUtil;
     }
 
@@ -55,8 +58,13 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
             try {
                 if (jwtUtil.validateToken(token)) {
                     String username = jwtUtil.extractUsername(token);
+                    User user = userService.getUserByUsername(username);
+                    Long profileId = user.getProfile().getId();
+
                     attributes.put("username", username);
-                    System.out.println("Handshake valid for user: " + username);
+                    attributes.put("profileId", profileId.toString());
+
+                    System.out.println("Handshake valid: username=" + username + ", profileId=" + profileId);
                     return true;
                 } else {
                     System.out.println("Handshake not valid: Token validation failed");

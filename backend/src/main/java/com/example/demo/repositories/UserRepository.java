@@ -22,6 +22,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByProfile_Id(Long profileId);
 
+    boolean existsByUsername(String username);
 
     // query for nearby gps users, rounded to 2 decimals
     @Query(value = """

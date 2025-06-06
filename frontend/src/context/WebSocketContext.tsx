@@ -4,10 +4,8 @@ import React, {
     useEffect,
     useRef,
     useState,
-    useCallback, // Add useCallback
 } from "react";
 import { Client, IMessage } from "@stomp/stompjs";
-import { MessageDTO } from "../types/MessageDTO";
 
 interface WebSocketContextType {
     sendMessage: (receiverId: number, message: string) => void;
@@ -53,7 +51,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             setHasUnreadConnectionRequests(true);
         }
     }, [connectionRequestNotification]);
-   
+
     const markAllNotificationsAsRead = useCallback(() => {
         setHasUnreadConnections(false);
         setHasUnreadConnectionRequests(false);
@@ -91,15 +89,13 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 console.log("Connected to WebSocket");
                 setIsConnected(true);
 
-                stompClient.subscribe("/user/queue/messages", (msg: IMessage) => {
-                    try {
-                        const parsed: MessageDTO = JSON.parse(msg.body);
-                        console.log("New message:", parsed);
-                        setMessages((prev) => [...prev, parsed]);
-                    } catch (e) {
-                        console.error("Failed to parse message", msg.body);
+                stompClient.subscribe(
+                    "/user/queue/messages",
+                    (msg: IMessage) => {
+                        console.log("New message:", msg.body);
+                        setMessages((prev) => [...prev, msg.body]);
                     }
-                });
+                );
 
                 stompClient.subscribe(
                     "/user/queue/notifications/connection",
@@ -141,13 +137,17 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const sendMessage = (receiverId: number, message: string) => {
         if (client.current && isConnected) {
-            const formattedMessage = `@${receiverId} ${message}`;
+            const payload = {
+                receiverProfileId: receiverId,
+                content: message,
+            };
 
             client.current.publish({
                 destination: "/app/send",
-                body: JSON.stringify(message),
+                body: JSON.stringify(payload),
             });
-            console.log("Sent message:", message);
+
+            console.log("Send message:", payload);
         } else {
             console.warn("WebSocket not connected");
         }
@@ -162,11 +162,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 messages,
                 connectionNotification,
                 connectionRequestNotification,
-                hasUnreadConnections, 
-                hasUnreadConnectionRequests, 
-                markAllNotificationsAsRead, 
-                markConnectionRequestsAsRead, 
-                markConnectionsAsRead, 
+                hasUnreadConnections,
+                hasUnreadConnectionRequests,
+                markAllNotificationsAsRead,
+                markConnectionRequestsAsRead,
+                markConnectionsAsRead,
             }}
         >
             {children}

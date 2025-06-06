@@ -26,11 +26,4 @@ public class MessageController {
         String currentUsername = authentication.getName();
         return messageService.getMessagesBetweenUsers(currentUsername, otherUserProfileId, page, size);
     }
-
-    // POST
-    // Not needed for production, dev only
-    @PostMapping("/send")
-    public MessageDTO sendMessage(@RequestBody MessageDTO messageDTO) {
-        return messageService.saveMessage(messageDTO);
-    }
 }
