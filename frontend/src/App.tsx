@@ -20,6 +20,9 @@ import MyProfilePage from "./pages/MyProfilePage";
 import JwtTestPage from "./pages/JwtTestPage";
 import TestChat from "./pages/TestChat";
 import { getUserIdentifierFromToken } from "./utils/auth";
+import UserProfileComponent from "./components/UserProfileComponent";
+import UserProfilePageLoader from "./components/UserProfilePageLoader";
+import UserProfilePage from "./pages/UserProfilePage";
 
 // Обёртка для использования хуков (navigate/location) внутри App
 function AppWrapper() {
@@ -96,10 +99,10 @@ function App() {
                         element={token ? <MyProfilePage /> : <Navigate to="/login" />}
                         />
                         
-                        {/* <Route
-                            path="/user_profile/id/:identifier"
+                        <Route
+                            path="/user_profile/id/:id"
                             element={token ? <UserProfilePage /> : <Navigate to="/login" />}
-                        /> */}
+                        />
                         <Route
                             path="/settings"
                             element={
