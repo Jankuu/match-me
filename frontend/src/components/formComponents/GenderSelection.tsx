@@ -10,7 +10,8 @@ type Props = {
 const GenderSelector = ({ selected, onChange, isEditable }: Props) => {
   const renderLabel = () => (
     <label className="form-label">
-      Gender {isEditable && <span style={{ color: "red" }}>*</span>}
+      Gender 
+      {/* {isEditable && <span style={{ color: "red" }}>*</span>} */}
     </label>
   );
 

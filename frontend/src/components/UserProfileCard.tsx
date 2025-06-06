@@ -1,14 +1,14 @@
 import React from "react";
 import { Card } from "react-bootstrap";
 
-type UserProfile = {
+export type UserProfile = {
   id: number;
-  name: string;
-  profilePicture: string;
-  birthDate: string;
-  gender: string;
-  height: number;
-  description: string;
+  name?: string | null; // ИЗМЕНЕНО: может быть опциональным или null
+  profilePicture?: string | null; // ИЗМЕНЕНО: может быть опциональным или null
+  birthDate?: string | null; // ИЗМЕНЕНО: может быть опциональным или null
+  gender?: string | null; // ИЗМЕНЕНО
+  height?: number | null; // ИЗМЕНЕНО
+  description?: string | null; // ИЗМЕНЕНО
 };
 
 type Props = {
@@ -36,7 +36,7 @@ const UserProfileCard: React.FC<Props> = ({ profile }) => {
     description,
   } = profile;
 
-  const age = calculateAge(birthDate);
+  const age = birthDate ? calculateAge(birthDate) : '999';
 
   return (
     <Card className="p-3">

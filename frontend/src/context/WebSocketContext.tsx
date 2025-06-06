@@ -4,16 +4,24 @@ import React, {
     useEffect,
     useRef,
     useState,
+    useCallback, // Add useCallback
 } from "react";
 import { Client, IMessage } from "@stomp/stompjs";
 
 interface WebSocketContextType {
-    sendMessage: (receiverId: number, message: string ) => void;
+    sendMessage: (receiverId: number, message: string) => void;
     isConnected: boolean;
     client: Client | null;
     messages: string[];
-    connectionNotification: string[];
-    connectionRequestNotification: string[];
+    connectionNotification: string[]; // Raw connection notifications (e.g., "accepted", "rejected")
+    connectionRequestNotification: string[]; // Raw new connection request notifications
+    // --- NEW ---
+    hasUnreadConnections: boolean; // Indicates if there are new connections (accepted/rejected)
+    hasUnreadConnectionRequests: boolean; // Indicates if there are new requests
+    markAllNotificationsAsRead: () => void; // Clears both types of unread flags
+    markConnectionRequestsAsRead: () => void; // Clears only connection request flag
+    markConnectionsAsRead: () => void; // Clears only connections flag
+    // --- NEW END ---
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
@@ -29,6 +37,41 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     >([]);
     const [connectionRequestNotification, setConnectionRequestNotification] =
         useState<string[]>([]);
+
+    const [hasUnreadConnections, setHasUnreadConnections] = useState(false);
+    const [hasUnreadConnectionRequests, setHasUnreadConnectionRequests] = useState(false);
+
+    useEffect(() => {
+        if (connectionNotification.length > 0) {
+            setHasUnreadConnections(true);
+        }
+    }, [connectionNotification]);
+
+    useEffect(() => {
+        if (connectionRequestNotification.length > 0) {
+            setHasUnreadConnectionRequests(true);
+        }
+    }, [connectionRequestNotification]);
+   
+    const markAllNotificationsAsRead = useCallback(() => {
+        setHasUnreadConnections(false);
+        setHasUnreadConnectionRequests(false);
+        // Optionally, clear the raw notification arrays if you want to reset them
+        // setConnectionNotification([]);
+        // setConnectionRequestNotification([]);
+    }, []);
+
+    const markConnectionRequestsAsRead = useCallback(() => {
+        setHasUnreadConnectionRequests(false);
+        // setConnectionRequestNotification([]); // Clear raw requests if desired
+    }, []);
+
+    const markConnectionsAsRead = useCallback(() => {
+        setHasUnreadConnections(false);
+        // setConnectionNotification([]); // Clear raw connections if desired
+    }, []);
+    // --- NEW CALLBACKS END ---
+
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -63,17 +106,19 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                             ...prev,
                             con.body,
                         ]);
+                        setHasUnreadConnections(true); // Ensure flag is set immediately
                     }
                 );
 
                 stompClient.subscribe(
                     "/user/queue/notifications/connectionRequest",
                     (con: IMessage) => {
-                        console.log("New connection request:", con.body);
+                        console.log("New connection request received:", con.body);
                         setConnectionRequestNotification((prev) => [
                             ...prev,
                             con.body,
                         ]);
+                        setHasUnreadConnectionRequests(true); // Ensure flag is set immediately
                     }
                 );
             },
@@ -115,6 +160,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 messages,
                 connectionNotification,
                 connectionRequestNotification,
+                hasUnreadConnections, 
+                hasUnreadConnectionRequests, 
+                markAllNotificationsAsRead, 
+                markConnectionRequestsAsRead, 
+                markConnectionsAsRead, 
             }}
         >
             {children}

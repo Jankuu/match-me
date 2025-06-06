@@ -1,17 +1,22 @@
+/* App.css */
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 
+@media (max-width: 768px) {
+  .app-wrapper {
+    flex-direction: column-reverse;
+  }
+}
 
-@keyframes slideOutLeft {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(-100%);
-      opacity: 0;
-    }
-  }
-  
-  .slide-out-left {
-    animation: slideOutLeft 0.5s forwards;
-  }
-  
+.navbar-container {
+  flex-shrink: 0;
+  z-index: 1000;
+}
+
+.content-container {
+  flex-grow: 1;
+  overflow-y: auto;
+}

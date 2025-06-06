@@ -29,7 +29,7 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
         <Form.Group className="mb-3">
             <Form.Label>
                 Name 
-                {!disabled && (<span style={{ color: "red" }}>*</span>)}
+                {/* {!disabled && (<span style={{ color: "red" }}>*</span>)} */}
             </Form.Label>
             <InputGroup>
                 <Form.Control

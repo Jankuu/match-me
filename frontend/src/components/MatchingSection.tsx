@@ -1,8 +1,10 @@
+// src/components/MatchingSection.tsx
 import React from 'react';
-import { Accordion } from 'react-bootstrap';
+import { Accordion, Badge } from 'react-bootstrap';
 import SwipeableUserCard from './SwipeableUserCard';
 import { UserProfile } from '../types/UserProfile';
-import { calculateAge, getProfilePicture } from '../utils/userUtils';
+// Remove these imports as they are now handled within SwipeableUserCard
+// import { calculateAge, getProfilePicture } from '../utils/userUtils';
 import { SwipeEventData } from 'react-swipeable';
 import "../styles/ColorPallette.css";
 
@@ -13,12 +15,33 @@ type Props = {
   onPrimary: (e: React.MouseEvent | SwipeEventData, id: number, name: string) => void;
   onSecondary: (e: React.MouseEvent | SwipeEventData, id: number) => void;
   onCardClick: (id: number) => void;
+  hasUnreadRequests?: boolean; // NEW PROP
 };
 
-const MatchingSection: React.FC<Props> = ({ title, users, cardType, onPrimary, onSecondary, onCardClick }) => (
-  <Accordion.Item eventKey={title}  >
-    <Accordion.Header >{title} ({users.length})</Accordion.Header>
-    <Accordion.Body >
+const MatchingSection: React.FC<Props> = ({
+  title,
+  users,
+  cardType,
+  onPrimary,
+  onSecondary,
+  onCardClick,
+  hasUnreadRequests // Use the new prop
+}) => (
+  <Accordion.Item eventKey={title}>
+    <Accordion.Header className="position-relative"> {/* Added position-relative */}
+      {title} ({users.length})
+      {hasUnreadRequests && ( // Conditional rendering of the badge
+        <Badge
+        bg="danger"
+        pill
+        className="ms-2" // Margin-start for spacing from text
+        style={{ fontSize: '0.7em', padding: '0.3em 0.5em' }} // Adjust font size and padding
+      >
+        New
+      </Badge>
+      )}
+    </Accordion.Header>
+    <Accordion.Body>
       {users.map(user => (
         <SwipeableUserCard
           key={user.id}
@@ -26,10 +49,8 @@ const MatchingSection: React.FC<Props> = ({ title, users, cardType, onPrimary, o
           cardType={cardType}
           onCardClick={onCardClick}
           onPrimaryAction={(e) => onPrimary(e, user.id, user.name)}
-        onSecondaryAction={(e) => onSecondary(e, user.id)}
+          onSecondaryAction={(e) => onSecondary(e, user.id)}
           isDeleting={false}
-          getProfilePicture={getProfilePicture}
-          calculateAge={calculateAge}
         />
       ))}
     </Accordion.Body>
