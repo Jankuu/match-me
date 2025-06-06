@@ -49,12 +49,17 @@ public class WebSocketMessageInterceptor implements ChannelInterceptor {
             switch (command) {
                 case CONNECT -> {
                     // Set authenticated user from session attributes
+                    String profileId = (String) accessor.getSessionAttributes().get("profileId");
                     String username = (String) accessor.getSessionAttributes().get("username");
+
+                    // Principal.getName() will give profile id
+                    //  String username = (String) headerAccessor.getSessionAttributes().get("username"); <- use this to get username
+
                     if (username != null) {
-                        logger.info("✅ User [{}] connected via WebSocket", username);
-                        accessor.setUser(new UsernamePasswordAuthenticationToken(username, null, List.of()));
+                        logger.info("✅ WebSocket connected: username=[{}], profileId=[{}]", username, profileId);
+                        accessor.setUser(new UsernamePasswordAuthenticationToken(profileId, null, List.of()));
                     } else {
-                        logger.warn("⚠️ No username found in session attributes during CONNECT");
+                        logger.warn("⚠️ No profileId found in session attributes during CONNECT");
                     }
                 }
                 case SEND -> {

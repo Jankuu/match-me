@@ -12,7 +12,6 @@ import com.example.demo.repositories.UserRepository;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -145,7 +145,7 @@ public class UserService {
                     .stream()
                     .map(User::getProfile)
                     .toList();
-        }else { // TODO: recommendations for non gps users/dunno if its gonna be a separate query but leaving this here for now
+        } else { // TODO: recommendations for non gps users/dunno if its gonna be a separate query but leaving this here for now
             return userRepository.getFilteredRecommendations(user.getId())
                     .stream()
                     .map(User::getProfile)
@@ -171,6 +171,10 @@ public class UserService {
 
     // POST
     public UserDTO registerNewUser(UserRegistrationDTO registrationDTO) {
+        if (registrationDTO.getUsername() == null || registrationDTO.getUsername().isBlank()) {
+            registrationDTO.setUsername(generateUniqueUsername());
+        }
+        
         if (registrationDTO.getUsername() != null && !registrationDTO.getUsername().isBlank() && userRepository.findByUsername(registrationDTO.getUsername()).isPresent()) {
             throw new DuplicateResourceException("User with this username already exists", registrationDTO.getUsername());
         }
@@ -274,16 +278,16 @@ public class UserService {
             user.setIsGpsUser(isGpsUser);
 
             if (dto.getLat() != null && dto.getLng() != null) {
-                    Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
-                    point.setSRID(4326);
-                    user.setLocation(point);
-                }
+                Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
+                point.setSRID(4326);
+                user.setLocation(point);
+            }
 
             // Check if city exists and link to it, if not then add
             if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
-                    City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
-                    user.setCity(city);
-                }
+                City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
+                user.setCity(city);
+            }
             if (isGpsUser) {
                 user.setRadius(dto.getRadius());
             } else {
@@ -300,7 +304,7 @@ public class UserService {
         }
         if (dto.getUsername() != null && !dto.getUsername().isBlank()) user.setUsername(dto.getUsername());
         if (dto.getEmail() != null && !dto.getEmail().isBlank()) user.setEmail(dto.getEmail());
-       // if (dto.getPassword() != null) user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        // if (dto.getPassword() != null) user.setPassword(passwordEncoder.encode(dto.getPassword()));
         if (dto.getInterestedMinAge() != null) user.setInterestedMinAge(dto.getInterestedMinAge());
         if (dto.getInterestedMaxAge() != null) user.setInterestedMaxAge(dto.getInterestedMaxAge());
         if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
@@ -329,5 +333,22 @@ public class UserService {
         }
 
         return user;
+    }
+
+    private String generateUniqueUsername() {
+        String base = "user";
+        String username;
+        int attempt = 0;
+
+        do {
+            username = base + UUID.randomUUID().toString().substring(0, 8);
+            attempt++;
+        } while (userRepository.existsByUsername(username) && attempt < 10);
+
+        if (attempt >= 10) {
+            throw new RuntimeException("Failed to generate a unique username after multiple attempts");
+        }
+
+        return username;
     }
 }

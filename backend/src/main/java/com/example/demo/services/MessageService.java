@@ -29,25 +29,20 @@ public class MessageService {
     // GET
     public Page<MessageDTO> getMessagesBetweenUsers(String username, Long otherUserProfileId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
+        User user = userService.getUserByUsername(username);
+        Long profileId = user.getProfile().getId();
 
-        String userUsername2 = userService.getUserByProfileId(otherUserProfileId).getUsername();
-
-        Page<Message> messagePage = messageRepository.findMessagesBetweenUsers(username, userUsername2, pageable);
+        Page<Message> messagePage = messageRepository.findMessagesBetweenProfiles(profileId, otherUserProfileId, pageable);
         return messagePage.map(MessageDTO::new);
     }
 
     // POST
     @Transactional
-    public MessageDTO saveMessage(MessageDTO messageDTO) {
-        System.out.println("SENDER USERNAME: " + messageDTO.getSenderUsername());
-        System.out.println("RECEIVER USERNAME: " + messageDTO.getReceiverUsername());
-
-        User sender = userService.getUserByUsername(messageDTO.getSenderUsername());
-        User receiver = userService.getUserByUsername(messageDTO.getReceiverUsername());
-
+    public void saveMessage(MessageDTO messageDTO, User sender, User receiver) {
         Message message = new Message();
-        message.setSenderUsername(sender.getUsername());
-        message.setReceiverUsername(receiver.getUsername());
+        message.setReceiverProfileId(messageDTO.getReceiverProfileId());
+        message.setSenderProfileId(messageDTO.getSenderProfileId());
+
         message.setContent(messageDTO.getContent());
 
         messageRepository.save(message);
@@ -57,6 +52,6 @@ public class MessageService {
 
         userRepository.saveAll(List.of(sender, receiver));
 
-        return new MessageDTO(message);
+        new MessageDTO(message);
     }
 }

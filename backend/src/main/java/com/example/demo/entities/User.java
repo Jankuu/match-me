@@ -80,6 +80,7 @@ public class User implements EmailOrUsernameCarrier {
     @JsonIgnore
     private List<UserProfile> recommendedUserProfiles = new ArrayList<>();
 
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Message> messages = new ArrayList<>();

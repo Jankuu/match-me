@@ -8,7 +8,7 @@ import React, {
 import { Client, IMessage } from "@stomp/stompjs";
 
 interface WebSocketContextType {
-    sendMessage: (receiverId: number, message: string ) => void;
+    sendMessage: (receiverId: number, message: string) => void;
     isConnected: boolean;
     client: Client | null;
     messages: string[];
@@ -93,6 +93,21 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const sendMessage = (receiverId: number, message: string) => {
         if (client.current && isConnected) {
+            const payload = {
+                receiverProfileId: receiverId,
+                content: message,
+            };
+
+            client.current.publish({
+                destination: "/app/send",
+                body: JSON.stringify(payload),
+            });
+
+            console.log("Send message:", payload);
+        } else {
+            console.warn("WebSocket not connected");
+        }
+        /*if (client.current && isConnected) {
             const formattedMessage = `@${receiverId} ${message}`;
 
             client.current.publish({
@@ -103,7 +118,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             console.log("Send message:", formattedMessage);
         } else {
             console.warn("WebSocket not connected");
-        }
+        }*/
     };
 
     return (

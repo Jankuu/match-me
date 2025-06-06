@@ -188,4 +188,16 @@ public class JwtUtil {
             return false;
         }
     }
+
+    // new
+    /*
+    public String generateToken(String username, Long profileId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("profileId", profileId);
+        return createToken(claims, username);
+    }
+
+    public Long extractProfileId(String token) {
+        return extractAllClaims(token).get("profileId", Long.class);
+    }*/
 }
