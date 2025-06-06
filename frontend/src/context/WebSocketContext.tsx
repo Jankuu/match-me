@@ -107,18 +107,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         } else {
             console.warn("WebSocket not connected");
         }
-        /*if (client.current && isConnected) {
-            const formattedMessage = `@${receiverId} ${message}`;
-
-            client.current.publish({
-                destination: "/app/send",
-                body: formattedMessage,
-            });
-
-            console.log("Send message:", formattedMessage);
-        } else {
-            console.warn("WebSocket not connected");
-        }*/
     };
 
     return (

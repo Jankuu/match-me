@@ -80,7 +80,7 @@ public class ConnectionsService {
 
         // Notify receiver
         messagingTemplate.convertAndSendToUser(
-                receiver.getUsername(),
+                receiverProfileId.toString(),
                 "/queue/notifications/connectionRequest",
                 sender.getProfile()
         );
@@ -105,12 +105,12 @@ public class ConnectionsService {
 
         // Notify receiver and sender
         messagingTemplate.convertAndSendToUser(
-                sender.getUsername(),
+                senderProfileId.toString(),
                 "/queue/notifications/connection",
                 receiver.getProfile()
         );
         messagingTemplate.convertAndSendToUser(
-                receiver.getUsername(),
+                receiver.getProfile().getId().toString(),
                 "/queue/notifications/connection",
                 sender.getProfile()
         );

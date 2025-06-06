@@ -45,4 +45,20 @@ public class SocketController {
 
         messageService.saveMessage(messageDTO);
     }
+
+    @MessageMapping("/read")
+    public void readMessage(@Payload Long senderProfileId,
+                            Principal principal,
+                            SimpMessageHeaderAccessor headerAccessor) {
+        Long receiverProfileId = Long.parseLong(principal.getName());
+        //Long senderProfileId = messageDTO.getSenderProfileId();
+
+        messagingTemplate.convertAndSendToUser(
+                senderProfileId.toString(),
+                "/queue/notifications/read",
+                senderProfileId
+        );
+
+        messageService.readUnreadMessages(senderProfileId, receiverProfileId);
+    }
 }

@@ -30,6 +30,4 @@ public class Connection {
     private UserProfile sender;
 
     private LocalDateTime createdAt = LocalDateTime.now();
-
-
 }
