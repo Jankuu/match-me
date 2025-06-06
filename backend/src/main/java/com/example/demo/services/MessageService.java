@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -38,19 +39,15 @@ public class MessageService {
 
     // POST
     @Transactional
-    public void saveMessage(MessageDTO messageDTO, User sender, User receiver) {
+    public void saveMessage(MessageDTO messageDTO) {
         Message message = new Message();
+
         message.setReceiverProfileId(messageDTO.getReceiverProfileId());
         message.setSenderProfileId(messageDTO.getSenderProfileId());
-
+        message.setTimestamp(messageDTO.getTimestamp());
         message.setContent(messageDTO.getContent());
 
         messageRepository.save(message);
-
-        sender.getMessages().add(message);
-        receiver.getMessages().add(message);
-
-        userRepository.saveAll(List.of(sender, receiver));
 
         new MessageDTO(message);
     }

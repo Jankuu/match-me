@@ -14,12 +14,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class MessageDTO {
     private Long id;
-   /*
-    @NonNull
-    private String senderUsername;
-    @NonNull
-    private String receiverUsername;
-  */
 
     private Long senderProfileId;
     private Long receiverProfileId;
@@ -31,9 +25,6 @@ public class MessageDTO {
         this.id = message.getId();
         this.senderProfileId = message.getSenderProfileId();
         this.receiverProfileId = message.getReceiverProfileId();
-
-        // this.senderUsername = message.getSenderUsername();
-        // this.receiverUsername = message.getReceiverUsername();
         this.content = message.getContent();
         this.timestamp = message.getTimestamp();
     }

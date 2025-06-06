@@ -27,5 +27,6 @@ public class Message {
     @Column(length = 300)
     private String content;
 
-    private LocalDateTime timestamp = LocalDateTime.now();
+    @NonNull
+    private LocalDateTime timestamp;
 }
