@@ -134,6 +134,13 @@ const MatchingPage: React.FC = () => {
     fetchRecommendations();
   };
 
+  const handleRemoveConnection = async (e: React.MouseEvent | SwipeEventData, senderId: number) => {
+    // if ('stopPropagation' in e) e.stopPropagation(); // УДАЛИТЕ ЭТУ СТРОКУ
+    // await apiClient.post(`/connections/reject?senderProfileId=${senderId}`);
+    // fetchConnectionRequests();
+    // fetchRecommendations();
+  };
+
   return (
     <div className="container mt-4">
       <Accordion alwaysOpen activeKey={activeAccordionKey} onSelect={handleAccordionSelect}>
@@ -142,7 +149,7 @@ const MatchingPage: React.FC = () => {
           users={userConnections}
           cardType="connections"
           onPrimary={handleChatClick}
-          onSecondary={handleRejectRequest}
+          onSecondary={handleRemoveConnection}
           onCardClick={handleCardClick}
           hasUnreadRequests={hasUnreadConnections}
         />
