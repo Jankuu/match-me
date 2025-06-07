@@ -1,17 +1,19 @@
 import React, {
     createContext,
+    useCallback,
     useContext,
     useEffect,
     useRef,
     useState,
 } from "react";
 import { Client, IMessage } from "@stomp/stompjs";
+import { MessageDTO } from "../types/MessageDTO";
 
 interface WebSocketContextType {
     sendMessage: (receiverId: number, message: string) => void;
     isConnected: boolean;
     client: Client | null;
-    messages: string[];
+    messages: MessageDTO[];
     connectionNotification: string[]; // Raw connection notifications (e.g., "accepted", "rejected")
     connectionRequestNotification: string[]; // Raw new connection request notifications
     // --- NEW ---
@@ -38,7 +40,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         useState<string[]>([]);
 
     const [hasUnreadConnections, setHasUnreadConnections] = useState(false);
-    const [hasUnreadConnectionRequests, setHasUnreadConnectionRequests] = useState(false);
+    const [hasUnreadConnectionRequests, setHasUnreadConnectionRequests] =
+        useState(false);
 
     useEffect(() => {
         if (connectionNotification.length > 0) {
@@ -71,7 +74,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     }, []);
     // --- NEW CALLBACKS END ---
 
-
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token == null) {
@@ -93,7 +95,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                     "/user/queue/messages",
                     (msg: IMessage) => {
                         console.log("New message:", msg.body);
-                        setMessages((prev) => [...prev, msg.body]);
+                        const messageObj: MessageDTO = JSON.parse(msg.body);
+                        setMessages((prev) => [...prev, messageObj]);
                     }
                 );
 
@@ -112,7 +115,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 stompClient.subscribe(
                     "/user/queue/notifications/connectionRequest",
                     (con: IMessage) => {
-                        console.log("New connection request received:", con.body);
+                        console.log(
+                            "New connection request received:",
+                            con.body
+                        );
                         setConnectionRequestNotification((prev) => [
                             ...prev,
                             con.body,
