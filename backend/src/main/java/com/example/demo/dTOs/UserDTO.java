@@ -71,5 +71,6 @@ public class UserDTO {
         this.recommendedUserProfiles = user.getRecommendedUserProfiles();
         this.interestedGames = user.getInterestedGames();
         this.location = user.getLocation();
+        this.radius = user.getRadius();
     }
 }

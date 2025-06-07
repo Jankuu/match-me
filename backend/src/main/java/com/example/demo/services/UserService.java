@@ -140,7 +140,7 @@ public class UserService {
 
     public List<UserProfile> getFilteredRecommendations(String username) {
         User user = getUserByUsername(username);
-        if (user.getIsGpsUser()) {
+        if (user.getIsGpsUser() != null && user.getIsGpsUser()) {
             return userRepository.getFilteredRecommendations(user.getId())
                     .stream()
                     .map(User::getProfile)
@@ -299,27 +299,22 @@ public class UserService {
         if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
 
         // Process location data
-        if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
-            Boolean isGpsUser = dto.getIsGpsUser() != null ? dto.getIsGpsUser() : false;
-            user.setIsGpsUser(isGpsUser);
+        Boolean isGpsUser = dto.getIsGpsUser() != null ? dto.getIsGpsUser() : false;
+        user.setIsGpsUser(isGpsUser);
 
-            if (dto.getLat() != null && dto.getLng() != null) {
-                Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
-                point.setSRID(4326);
-                user.setLocation(point);
-            }
-
-            // Check if city exists and link to it, if not then add
-            if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
-                City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
-                user.setCity(city);
-            }
-            if (isGpsUser) {
-                user.setRadius(dto.getRadius());
-            } else {
-                user.setRadius(null);
-            }
+        if (dto.getLat() != null && dto.getLng() != null) {
+            Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
+            point.setSRID(4326);
+            user.setLocation(point);
         }
+
+        // Check if city exists and link to it, if not then add
+        if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
+            City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
+            user.setCity(city);
+        }
+        user.setRadius(dto.getRadius());
+
 
         return user;
     }
@@ -336,27 +331,20 @@ public class UserService {
         if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
 
         // location data stuff
-        if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
-            Boolean isGpsUser = dto.getIsGpsUser() != null ? dto.getIsGpsUser() : false;
-            user.setIsGpsUser(isGpsUser);
+        Boolean isGpsUser = dto.getIsGpsUser() != null ? dto.getIsGpsUser() : false;
+        user.setIsGpsUser(isGpsUser);
 
-            if (dto.getLat() != null && dto.getLng() != null) {
-                Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
-                point.setSRID(4326);
-                user.setLocation(point);
-            }
-
-            if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
-                City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
-                user.setCity(city);
-            }
-
-            if (isGpsUser) {
-                user.setRadius(dto.getRadius());
-            } else {
-                user.setRadius(null);
-            }
+        if (dto.getLat() != null && dto.getLng() != null) {
+            Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
+            point.setSRID(4326);
+            user.setLocation(point);
         }
+
+        if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
+            City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
+            user.setCity(city);
+        }
+        user.setRadius(dto.getRadius());
 
         return user;
     }
