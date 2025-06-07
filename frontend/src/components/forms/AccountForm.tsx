@@ -1,231 +1,351 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Form, Button } from "react-bootstrap";
+import { Form, Button, Row, Col } from "react-bootstrap";
+
 import { User } from "../../types/User";
-import HeightSet from "../formComponents/HeightSet";
-import GenderSelector from "../formComponents/GenderSelection";
-import NameInput from "../formComponents/NameInput";
-import PreferredGenderSelector from "../formComponents/PreferredGenderSelector";
-import BirthDateSelector from "../formComponents/BirthdateSelector";
-import GameSelector from "../formComponents/GameSelector";
 import { Game } from "../../dto/Game";
-import axios from "axios";
+import GameSelector from "../formComponents/GameSelector";
+import LocationSelector from "../formComponents/LocationSelector";
 import RadiusSelector from "../formComponents/RadiusSelector";
+import PreferredGenderSelector from "../formComponents/PreferredGenderSelector";
+import Description from "../formComponents/Description";
 import ImageUpload from "../formComponents/ImageUpload";
 
+import HeightSet from "../formComponents/HeightSet";
+import { Coordinates } from "../../types/Cordinates";
+import GenderSelector from "../formComponents/GernderSelector";
+
+/**
+ * Defines the props for the AccountForm component.
+ */
 interface AccountFormProps {
-  profile: User;
-  editing: boolean;
-  onProfileChange: (field: keyof User["profile"], value: any) => void;
-  onRootChange: (field: keyof User, value: any) => void;
-  onSave: () => void;
-  onImageChange: (imageFile: File | null) => void;
-  currentImageFile: File | null;
-  onLocationDataChange?: (locationData: any) => void; // Not used in this version but kept for type safety
-  onClearProfilePicture: () => void;
-  onBirthDateValidationChange: (isValid: boolean) => void;
+    profile: User;
+    editing: boolean;
+    onProfileChange: (field: keyof User["profile"], value: any) => void;
+    onRootChange: (field: Exclude<keyof User, 'profile'>, value: any) => void;
+    onSave: () => void;
+    onImageChange: (file: File | null) => void;
+    currentImageFile: File | null;
+    onClearProfilePicture: () => void;
+    onBirthDateValidationChange: (isValid: boolean) => void;
+    onFormValidationChange: (isValid: boolean) => void; // This is crucial for isSaveDisabled
+    allAvailableGames: Game[];
 }
 
+/**
+ * AccountForm component.
+ */
 const AccountForm: React.FC<AccountFormProps> = ({
-  profile,
-  editing,
-  onProfileChange,
-  onRootChange,
-  onSave,
-  onImageChange,
-  currentImageFile,
-  onClearProfilePicture,
-  onBirthDateValidationChange,
+    profile,
+    editing,
+    onProfileChange,
+    onRootChange,
+    onSave,
+    onImageChange,
+    currentImageFile,
+    onClearProfilePicture,
+    onBirthDateValidationChange,
+    onFormValidationChange,
+    allAvailableGames,
 }) => {
-  const [isNameValid, setIsNameValid] = useState(true);
+    // --- Internal States for Form Field Validation & Specifics ---
+    const [locationString, setLocationString] = useState<string>(profile.cityName || "");
+    const [locationCoordinates, setLocationCoordinates] = useState<Coordinates | undefined>(
+        profile.lat !== null && profile.lng !== null ? { lat: profile.lat, lng: profile.lng } : undefined
+    );
+    const [locationPlaceId, setLocationPlaceId] = useState<string | undefined>(profile.googlePlaceId || undefined);
+    const [isLocationGpsUsedInternal, setIsLocationGpsUsedInternal] = useState<boolean | undefined>(profile.isGpsUsed === true);
 
-  // State to store all available games fetched from the API
-  const [games, setGames] = useState<Game[]>([]);
-  // State to store the IDs of games currently selected by the user (managed as a Set for efficient lookups)
-  const [selectedGameIds, setSelectedGameIds] = useState<Set<number>>(new Set());
+    // Validation states for required fields
+    const [isNameValid, setIsNameValid] = useState(profile.profile.name.trim().length > 0);
+    const [isBirthDateValidInternal, setIsBirthDateValidInternal] = useState(true);
+    const [isLocationValid, setIsLocationValid] = useState(true); // State for location validity
+    const [isFormValid, setIsFormValid] = useState(false); // Local state to track overall form validity
 
-  // Effect to load games from API and initialize selectedGameIds when profile.interestedGames changes
-  useEffect(() => {
-    console.log("AccountForm: useEffect to load games and initialize selectedGameIds triggered.");
-    axios.get<Game[]>("http://localhost:8080/games")
-      .then((response) => {
-        const fetchedGames = response.data;
-        setGames(fetchedGames);
+    /**
+     * useEffect to synchronize internal location states with `profile` (UserDTO) changes from parent.
+     */
+    useEffect(() => {
+        setLocationString(profile.cityName || "");
+        setLocationCoordinates(profile.lat !== null && profile.lng !== null ? { lat: profile.lat, lng: profile.lng } : undefined);
+        setLocationPlaceId(profile.googlePlaceId || undefined);
+        setIsLocationGpsUsedInternal(profile.isGpsUsed === true);
 
-        const newSelectedIds = new Set<number>();
-        const userInterestedGames = profile.interestedGames || [];
+        const isLocOk = !(profile.cityName && (profile.lat === null || profile.lng === null));
+        setIsLocationValid(isLocOk);
+    }, [profile.cityName, profile.lat, profile.lng, profile.googlePlaceId, profile.isGpsUsed]);
 
-        // Populate newSelectedIds based on the user's interested games, ensuring they exist in fetchedGames
-        userInterestedGames.forEach((userGame) => {
-          if (fetchedGames.some(fetchedGame => fetchedGame.id === userGame.id)) {
-            newSelectedIds.add(userGame.id);
-          }
-        });
+    /**
+     * useEffect to notify the parent about the overall form validation status.
+     */
+    useEffect(() => {
+        const overallValid =
+            isNameValid &&
+            isBirthDateValidInternal &&
+            isLocationValid &&
+            !!profile.profile.gender && // Ensure gender is selected
+            !!profile.interestedGenders?.length &&
+            (profile.profile.height !== null && profile.profile.height !== 0) &&
+            (profile.radius !== null && profile.radius !== 0);
 
-        // Compare the newly formed set of IDs with the current state to avoid unnecessary updates
-        const areSetsEqual = selectedGameIds.size === newSelectedIds.size &&
-                             Array.from(newSelectedIds).every(id => selectedGameIds.has(id));
+        setIsFormValid(overallValid); // Update local state
+        onFormValidationChange(overallValid); // Notify parent
+    }, [
+        isNameValid,
+        isBirthDateValidInternal,
+        isLocationValid,
+        profile.profile.gender,
+        profile.interestedGenders,
+        profile.profile.height,
+        profile.radius,
+        onFormValidationChange,
+    ]);
 
-        if (!areSetsEqual) {
-          setSelectedGameIds(newSelectedIds);
-          console.log("AccountForm: setSelectedGameIds called with a new set.");
-        } else {
-          console.log("AccountForm: selectedGameIds are already up to date.");
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to load games", error);
-      });
-  }, [profile.interestedGames, selectedGameIds]); // Dependency on selectedGameIds ensures the comparison uses the latest state
+    /**
+     * Callback for handling location changes from `LocationSelector`.
+     */
+    const handleLocationChange = useCallback(
+        (
+            address: string,
+            placeId: string | null,
+            coordinates: Coordinates | null,
+            isGpsUsed: boolean | null
+        ) => {
+            setLocationString(address);
+            setLocationPlaceId(placeId === null ? undefined : placeId);
+            setLocationCoordinates(coordinates === null ? undefined : coordinates);
+            setIsLocationGpsUsedInternal(isGpsUsed === true);
 
-  // Callback to toggle a game's selection status
-  const toggleGame = useCallback((game: Game) => {
-    setSelectedGameIds((prev) => {
-      const newSetOfIds = new Set(prev); // Create a new Set from previous state
-      if (newSetOfIds.has(game.id)) {
-        newSetOfIds.delete(game.id); // If already selected, deselect it
-      } else {
-        newSetOfIds.add(game.id); // If not selected, select it
-      }
-      
-      // Convert the Set of IDs back to an array of Game objects for the parent component
-      const selectedGameObjects = Array.from(newSetOfIds).map(id => 
-          games.find(g => g.id === id) // Find the full Game object from the 'games' list
-      ).filter((g): g is Game => g !== undefined); // Filter out any undefined results
+            onRootChange("cityName", address);
+            onRootChange("googlePlaceId", placeId);
+            onRootChange("lat", coordinates ? coordinates.lat : null);
+            onRootChange("lng", coordinates ? coordinates.lng : null);
+            onRootChange("isGpsUsed", isGpsUsed === true);
 
-      // Call the parent's onRootChange to update the user's interestedGames in the draft profile
-      console.log("toggleGame: Calling onRootChange for interestedGames.");
-      onRootChange("interestedGames", selectedGameObjects);
-      
-      return newSetOfIds; // Return the new Set of IDs to update the state
-    });
-  }, [games, onRootChange]); // Dependencies: 'games' (to find Game objects) and 'onRootChange' (parent callback)
+            const isValid = !(address.length > 0 && (!coordinates || coordinates.lat === null || coordinates.lng === null));
+            setIsLocationValid(isValid);
+        },
+        [onRootChange]
+    );
 
-  // Memoized callback for profile changes to prevent re-creation on every render
-  const handleProfileChangeInternal = useCallback((field: keyof User["profile"], value: any) => {
-    onProfileChange(field, value);
-  }, [onProfileChange]);
+    /**
+     * Callback for handling birth date changes.
+     */
+    const handleBirthDateChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const newDate = e.target.value;
+            onProfileChange("birthDate", newDate);
 
-  // Memoized callback for root-level user changes
-  const handleRootChangeInternal = useCallback((field: keyof User, value: any) => {
-    onRootChange(field, value);
-  }, [onRootChange]);
+            const birthDate = new Date(newDate);
+            const today = new Date();
+            const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
 
-  // Memoized callback for name input validation
-  const handleNameValidate = useCallback((isValid: boolean) => {
-    setIsNameValid(isValid);
-  }, []);
+            const isValid = birthDate <= today && birthDate <= minDate;
+            setIsBirthDateValidInternal(isValid);
+            onBirthDateValidationChange(isValid);
+        },
+        [onProfileChange, onBirthDateValidationChange]
+    );
 
-  // Memoized callback for birth date validation
-  const handleBirthDateValidationChange = useCallback((isValid: boolean) => {
-    onBirthDateValidationChange(isValid);
-  }, [onBirthDateValidationChange]);
+    /**
+     * Callback for handling user name changes.
+     */
+    const handleNameChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const newName = e.target.value;
+            onProfileChange("name", newName);
+            setIsNameValid(newName.trim().length > 0);
+        },
+        [onProfileChange]
+    );
 
-  // Memoized callback for description textarea changes
-  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onProfileChange("description", e.target.value);
-  }, [onProfileChange]);
+    /**
+     * Callback for handling changes in game selection from GameSelector.
+     */
+    const handleGamesChange = useCallback(
+        (newSelectedGameIds: Set<number>) => {
+            const updatedGames = Array.from(newSelectedGameIds).map(id => {
+                const game = allAvailableGames.find(g => g.id === id);
+                return game || { id: id, name: `Unknown Game ${id}` };
+            });
+            onRootChange("interestedGames", updatedGames);
+        },
+        [onRootChange, allAvailableGames]
+    );
 
-  // Memoized callback for saving changes
-  const handleSaveInternal = useCallback(() => {
-    if (!isNameValid ) return; // Add other necessary client-side validations here
-    onSave();
-  }, [isNameValid, onSave]);
+    /**
+     * Callback for handling radius changes.
+     */
+    const handleRadiusChange = useCallback(
+        (newRadius: number) => {
+            onRootChange("radius", newRadius);
+        },
+        [onRootChange]
+    );
 
-  return (
-    <Form>
-      <Form.Group className="mb-3">
-        <Form.Label>Username</Form.Label>
-        <Form.Control
-          type="text"
-          value={profile.username || ""}
-          disabled // Username is usually not editable
-        />
-      </Form.Group>
+    /**
+     * Callback for handling gender changes.
+     */
+    const handleGenderChange = useCallback(
+        (gender: string) => {
+            onProfileChange("gender", gender);
+        },
+        [onProfileChange]
+    );
 
-      <Form.Group className="mb-3">
-        <Form.Label>Email</Form.Label>
-        <Form.Control
-          type="email"
-          value={profile.email || ""}
-          disabled // Email is usually not editable
-        />
-      </Form.Group>
+    /**
+     * Callback for handling preferred gender changes.
+     */
+    const handlePreferredGenderChange = useCallback(
+        (genders: string[]) => {
+            onRootChange("interestedGenders", genders);
+        },
+        [onRootChange]
+    );
 
-      <BirthDateSelector
-        birthDate={profile.profile.birthDate || ""}
-        onChange={handleProfileChangeInternal.bind(null, "birthDate")}
-        disabled={!editing}
-        onValidate={handleBirthDateValidationChange}
-        minAge={18}
-        maxAge={120}
-      />
+    /**
+     * Callback for handling description changes.
+     */
+    const handleDescriptionChange = useCallback(
+        (description: string) => {
+            onProfileChange("description", description);
+        },
+        [onProfileChange]
+    );
 
-      <NameInput
-        value={profile.profile.name || ""}
-        onChange={handleProfileChangeInternal.bind(null, "name")}
-        onValidate={handleNameValidate}
-        disabled={!editing}
-      />
+    /**
+     * Callback for handling height changes.
+     */
+    const handleHeightChange = useCallback(
+        (height: number) => {
+            onProfileChange("height", height);
+        },
+        [onProfileChange]
+    );
 
-      <GenderSelector
-        selected={profile.profile.gender || "man"}
-        onChange={handleProfileChangeInternal.bind(null, "gender")}
-        isEditable={editing}
-      />
+    /**
+     * Handles form submission.
+     */
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSave();
+    };
 
-      <HeightSet
-        height={profile.profile.height || 150}
-        setHeight={handleProfileChangeInternal.bind(null, "height")}
-        isEditable={editing}
-      />
-      
-      <RadiusSelector
-        radius={profile.radius || 5000}
-        setRadius={handleRootChangeInternal.bind(null, "radius")}
-        isEditable={editing}
-      />
+    const isSaveDisabled = !editing || !isFormValid || profile.id === null;
 
-      <PreferredGenderSelector
-        selected={profile.interestedGenders || []}
-        onChange={handleRootChangeInternal.bind(null, "interestedGenders")}
-        isEditable={editing}
-      />
+    return (
+        <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+                <ImageUpload
+                    image={currentImageFile}
+                    setImage={onImageChange}
+                    disabled={!editing}
+                    displayed={editing}
+                    onClearImage={onClearProfilePicture}
+                    currentProfilePicture={profile.profile.profilePicture}
+                />
+            </Form.Group>
 
-      <Form.Group className="mb-3">
-        <Form.Label>Description</Form.Label>
-        <Form.Control
-          as="textarea"
-          rows={3}
-          value={profile.profile.description || ""}
-          disabled={!editing}
-          onChange={handleDescriptionChange}
-        />
-      </Form.Group>
+            <Form.Group className="mb-3" controlId="formName">
+                <Form.Label>Name {editing && (<span style={{ color: "red" }}>*</span>)}</Form.Label>
+                <Form.Control
+                    type="text"
+                    placeholder="Enter your name"
+                    value={profile.profile.name}
+                    onChange={handleNameChange}
+                    disabled={!editing}
+                    isInvalid={!isNameValid}
+                />
+                <Form.Control.Feedback type="invalid">
+                    Name is required.
+                </Form.Control.Feedback>
+            </Form.Group>
 
-      {/* GameSelector component, passing the Set of selected game IDs */}
-      <GameSelector
-        games={games}
-        selectedGameIds={selectedGameIds}
-        onToggle={toggleGame}
-        disabled={!editing}
-      />
-      
-      <ImageUpload
-          image={currentImageFile}
-          setImage={onImageChange}
-          disabled={!editing}
-          displayed={editing}
-          onClearImage={onClearProfilePicture}
-          currentProfilePicture={profile.profile.profilePicture}
-      />
+            <Form.Group className="mb-3" controlId="formBirthDate">
+                <Form.Label>Birth Date {editing && (<span style={{ color: "red" }}>*</span>)}</Form.Label>
+                <Form.Control
+                    type="date"
+                    value={profile.profile.birthDate}
+                    onChange={handleBirthDateChange}
+                    disabled={!editing}
+                    isInvalid={!isBirthDateValidInternal}
+                />
+                <Form.Control.Feedback type="invalid">
+                    Must be at least 18 years old and not a future date.
+                </Form.Control.Feedback>
+            </Form.Group>
 
-      {editing && (
-        <Button variant="success" onClick={handleSaveInternal}>
-          Save Changes
-        </Button>
-      )}
-    </Form>
-  );
+            <GenderSelector
+                selected={profile.profile.gender || ""} // Pass the current gender from profile
+                onChange={handleGenderChange} // Use the dedicated handler
+                isEditable={editing} // Make it editable only when in editing mode
+            />
+
+            <PreferredGenderSelector
+                selected={profile.interestedGenders || []}
+                onChange={handlePreferredGenderChange}
+                isEditable={editing}
+            />
+
+            <Form.Group className="mb-3">
+                <HeightSet
+                    height={profile.profile.height || 0}
+                    setHeight={handleHeightChange}
+                    isEditable={editing}
+                />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+                <LocationSelector
+                    value={locationString}
+                    onChange={handleLocationChange}
+                    isEditable={editing}
+                    lat={profile.lat}
+                    lng={profile.lng}
+                    googlePlaceId={profile.googlePlaceId}
+                    isGpsUsed={profile.isGpsUsed}
+                    isInvalid={!isLocationValid}
+                />
+                <Form.Control.Feedback type="invalid">
+                    If an address is provided, it must have valid coordinates.
+                </Form.Control.Feedback>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+                <RadiusSelector
+                    radius={profile.radius || 0}
+                    setRadius={handleRadiusChange}
+                    isEditable={editing}
+                />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+                <Form.Label>Interested Games</Form.Label>
+                <div className="mb-2">
+                    <GameSelector
+                        allGames={allAvailableGames}
+                        selectedGameIds={new Set(profile.interestedGames?.map(g => g.id) || [])}
+                        onToggle={handleGamesChange}
+                        disabled={!editing}
+                    />
+                </div>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+                <Description
+                    description={profile.profile.description || ""}
+                    setDescription={handleDescriptionChange}
+                />
+            </Form.Group>
+
+            <Row className="mb-3">
+                <Col>
+                    <Button variant="primary" type="submit" disabled={isSaveDisabled}>
+                        Save Changes
+                    </Button>
+                </Col>
+            </Row>
+        </Form>
+    );
 };
 
 export default AccountForm;

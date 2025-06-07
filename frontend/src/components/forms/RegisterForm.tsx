@@ -1,5 +1,4 @@
-// RegisterForm.tsx
-import React, { useState, useEffect, useCallback } from "react"; // Added useCallback
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button, Form, InputGroup, Spinner } from "react-bootstrap";
 import NameInput from "../formComponents/NameInput";
 import EmailInput from "../formComponents/EmailInput";
@@ -8,31 +7,43 @@ import AgeRangeSelector from "../formComponents/AgeRangeSelector";
 import PreferredGenderSelector from "../formComponents/PreferredGenderSelector";
 import ImageUpload from "../formComponents/ImageUpload";
 import LocationSelector from "../formComponents/LocationSelector";
-import GenderSelector from "../formComponents/GenderSelection";
 import HeightSet from "../formComponents/HeightSet";
 import Description from "../formComponents/Description";
 import { UserRegistrationDTO } from "../../dto/UserRegistrationDTO";
 import UsernameInput from "../formComponents/UsernameInput";
-import { Game } from "../../dto/Game"; // Ensure this import is correct
+import { Game } from "../../dto/Game";
 import axios from "axios";
 import "../../styles/GameSelector.css";
 import BirthDateSelector from "../formComponents/BirthdateSelector";
-import GameSelector from "../formComponents/GameSelector";
+import GameSelector from "../formComponents/GameSelector"; // Import GameSelector
 import RadiusSelector from "../formComponents/RadiusSelector";
+import { Coordinates } from "../../types/Cordinates";
+import GenderSelector from "../formComponents/GernderSelector";
 
+/**
+ * Props for the RegisterForm component.
+ * @param onSubmit A callback function that takes UserRegistrationDTO and is called when the form is submitted.
+ * @param loading A boolean indicating if the submission process is ongoing, used to disable the form.
+ */
 type Props = {
     onSubmit: (data: UserRegistrationDTO) => void;
     loading: boolean;
 };
 
+/**
+ * RegisterForm component.
+ * This component renders the entire registration form, manages all its internal state,
+ * performs client-side validation, and prepares the data for submission.
+ */
 const RegisterForm = ({ onSubmit, loading }: Props) => {
-    // ... (all your existing state variables)
+    // --- User Account Details ---
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [repeatedEmail, setRepeatedEmail] = useState("");
     const [password, setPassword] = useState("");
     const [repeatedPassword, setRepeatedPassword] = useState("");
 
+    // --- User Profile Details ---
     const [name, setName] = useState<string>("");
     const [image, setImage] = useState<File | null>(null);
     const [birthDateUi, setBirthDateUi] = useState<string>("");
@@ -40,31 +51,45 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const [height, setHeight] = useState<number>(150);
     const [description, setDescription] = useState<string>("");
 
-    const [ages, setAges] = useState<[number, number]>([18, 120]);
-    const [preferredGendersArray, setPreferredGendersArray] = useState<string[]>(["man", "woman"]);
+    // --- User Preferences for Matching ---
+    const [preferedAgerange, setpreferedAgeRange] = useState<[number, number]>([18, 120]);
+    const [preferredGenders, setPreferredGenders] = useState<string[]>([
+        "man",
+        "woman",
+    ]);
 
-    const [location, setLocation] = useState("");
-    const [placeId, setPlaceId] = useState<string | undefined>(undefined);
-    const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | undefined>(undefined);
-    const [isGpsUsed, setIsGpsUsed] = useState(false);
+    // --- User Location Details ---
+    const [locationCityName, setLocationCityName] = useState<string>("");
+    const [googlePlaceId, setGooglePlaceId] = useState<string | null>(null);
+    const [locationCoordinates, setLocationCoordinates] = useState<Coordinates | null>(null);
+    const [isGpsUsed, setIsGpsUsed] = useState<boolean | null>(null);
     const [radius, setRadius] = useState<number>(5000);
 
+    // --- Auxiliary State for Validation / Derived Values ---
     const [age, setAge] = useState<number | null>(null);
 
+    // Validation states for specific inputs
     const [usernameValid, setUsernameValid] = useState(false);
     const [nameValid, setNameValid] = useState(false);
+    const [isBirthDateValid, setIsBirthDateValid] = useState(false);
+    const [isLocationValid, setIsLocationValid] = useState(false);
 
+    // Derived validation for password strength and match
     const isPasswordValid = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password);
     const passwordMatch = password.length > 0 && repeatedPassword === password;
 
+    // Derived validation for email format and match
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const emailMatch = email.length > 0 && repeatedEmail === email;
 
-    const [games, setGames] = useState<Game[]>([]);
-    const [selectedGames, setSelectedGames] = useState<Set<Game>>(new Set()); // This stores Game objects
+    // --- Games Selection ---
+    const [games, setGames] = useState<Game[]>([]); // List of all available games from API
+    // Set to store selected Game objects
+    const [selectedGames, setSelectedGames] = useState<Set<Game>>(new Set());
 
-    const [isBirthDateValid, setIsBirthDateValid] = useState(false);
-
+    /**
+     * useEffect hook to fetch the list of available games from the backend.
+     */
     useEffect(() => {
         axios
             .get<Game[]>("http://localhost:8080/games")
@@ -76,49 +101,70 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
             });
     }, []);
 
-    // Function to toggle selection of a game
-    // Memoize this function to prevent unnecessary re-renders of GameSelector if possible
-    const toggleGame = useCallback((game: Game) => {
-        setSelectedGames((prev) => {
-            const newSet = new Set(prev);
-            // We need to check if the game with the same ID already exists in the set
-            // because Set.has() checks for object reference equality.
-            let gameExistsInSet = false;
-            for (let item of newSet) { //error here wil be fixed but code works
-                if (item.id === game.id) {
-                    gameExistsInSet = true;
-                    break;
+    /**
+     * Callback function to handle changes in selected game IDs from GameSelector.
+     * It maps the selected IDs back to Game objects to update the internal selectedGames state.
+     */
+    const handleGamesChange = useCallback((newSelectedGameIds: Set<number>) => {
+        setSelectedGames(() => {
+            const updatedGamesSet = new Set<Game>();
+            // Iterate through all available games to find the ones matching selected IDs
+            games.forEach(game => {
+                if (newSelectedGameIds.has(game.id)) {
+                    updatedGamesSet.add(game);
                 }
-            }
-
-            if (gameExistsInSet) {
-                // If game is already selected, remove it by ID
-                const filteredSet = new Set<Game>();
-                newSet.forEach(item => {
-                    if (item.id !== game.id) {
-                        filteredSet.add(item);
-                    }
-                });
-                return filteredSet;
-            } else {
-                // If game is not selected, add it
-                newSet.add(game);
-            }
-            return newSet;
+            });
+            return updatedGamesSet;
         });
-    }, []); // Empty dependency array as setSelectedGames is stable
+    }, [games]); // Dependency on 'games' is important to map IDs back to correct Game objects
 
-    // Derived state for GameSelector: a Set of game IDs
-    const selectedGameIdsForSelector = React.useMemo(() => {
+    /**
+     * Memoized derived state: A Set of *game IDs* for the `GameSelector` component.
+     */
+    const selectedGameIdsForSelector = useMemo(() => {
         return new Set(Array.from(selectedGames).map(game => game.id));
     }, [selectedGames]);
 
+    /**
+     * Callback for handling location changes from `LocationSelector`.
+     * Updates internal location states and `isLocationValid` state.
+     */
+    const handleLocationChange = useCallback(
+        (address: string, placeIdResult: string | null, coordsResult: Coordinates | null, gpsUsedResult: boolean | null) => {
+            setLocationCityName(address);
+            setGooglePlaceId(placeIdResult);
+            setLocationCoordinates(coordsResult);
+            setIsGpsUsed(gpsUsedResult);
 
+            const isValid =
+                (address.trim().length > 0 && coordsResult !== null && placeIdResult !== null) ||
+                (address.trim().length === 0 && coordsResult === null && placeIdResult === null);
+
+            setIsLocationValid(isValid);
+        },
+        []
+    );
+
+    /**
+     * Overall form validation.
+     * Checks all required fields for validity.
+     */
     const isFormValid =
         (((isEmailValid && emailMatch) || usernameValid) ||
         ((isEmailValid && emailMatch) && usernameValid)) &&
-        (passwordMatch && isPasswordValid);
+        (passwordMatch && isPasswordValid) &&
+        nameValid &&
+        isBirthDateValid &&
+        gender.trim().length > 0 &&
+        height > 0 &&
+        description.trim().length > 0 &&
+        isLocationValid &&
+        radius > 0 &&
+        preferredGenders.length > 0;
 
+    /**
+     * Helper function to read an image file and convert it to a Base64 string.
+     */
     const readImageAsBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -132,6 +178,9 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         });
     };
 
+    /**
+     * Handles the overall form submission.
+     */
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -157,16 +206,16 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 height,
                 description,
             },
-            interestedMinAge: ages[0],
-            interestedMaxAge: ages[1],
-            interestedGenders: preferredGendersArray,
-            interestedGames: Array.from(selectedGames.values()), // Still send Game objects to DTO
+            interestedMinAge: preferedAgerange[0],
+            interestedMaxAge: preferedAgerange[1],
+            interestedGenders: preferredGenders,
+            interestedGames: Array.from(selectedGames.values()), // Convert Set<Game> to Game[] for DTO
 
-            isGpsUser: isGpsUsed,
-            cityName: location,
-            googlePlaceId: placeId,
-            lat: coordinates?.lat,
-            lng: coordinates?.lng,
+            isGpsUser: isGpsUsed === true,
+            cityName: locationCityName,
+            googlePlaceId: googlePlaceId || undefined,
+            lat: locationCoordinates?.lat || undefined,
+            lng: locationCoordinates?.lng || undefined,
             radius: radius,
         };
 
@@ -175,7 +224,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
 
     return (
         <Form onSubmit={handleSubmit}>
-            {/* ... (your existing form components) */}
+            {/* Account Details */}
             <EmailInput
                 email={email}
                 repeatedEmail={repeatedEmail}
@@ -196,6 +245,8 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 onValidate={setUsernameValid}
                 disabled={loading}
             />
+
+            {/* Profile Details */}
             <BirthDateSelector
                 birthDate={birthDateUi}
                 onChange={setBirthDateUi}
@@ -212,7 +263,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
             />
             <AgeRangeSelector
                 userAge={age}
-                onChange={setAges}
+                onChange={setpreferedAgeRange}
             />
             <GenderSelector
                 onChange={setGender}
@@ -224,25 +275,6 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 setHeight={setHeight}
                 isEditable={true}
             />
-            <LocationSelector
-                value={location}
-                onChange={(value, placeId, coords, gpsUsed) => {
-                    setLocation(value);
-                    setPlaceId(placeId);
-                    setCoordinates(coords);
-                    setIsGpsUsed(gpsUsed || false);
-                }}
-            />
-            <RadiusSelector
-                radius={radius}
-                setRadius={(value) => setRadius(value)}
-                isEditable={true}
-            />
-            <PreferredGenderSelector
-                onChange={setPreferredGendersArray}
-                selected={preferredGendersArray}
-                isEditable={true}
-            />
             <Description
                 description={description}
                 setDescription={setDescription}
@@ -252,20 +284,39 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 setImage={setImage}
                 displayed={true}
                 disabled={false}
-                onClearImage={function (): void {
-                    // Implement this if needed for registration form to clear image.
-                    // Or remove it if this prop is not relevant here.
-                    // For now, it will throw an error if called.
-                }}
+                onClearImage={() => setImage(null)}
                 currentProfilePicture={undefined}
             />
 
-            {/* Game selector component */}
+            {/* Location and Preferences */}
+            <LocationSelector
+                value={locationCityName}
+                onChange={handleLocationChange}
+                lat={locationCoordinates?.lat || null}
+                lng={locationCoordinates?.lng || null}
+                googlePlaceId={googlePlaceId}
+                isGpsUsed={isGpsUsed}
+                isEditable={!loading}
+                isInvalid={!isLocationValid}
+            />
+
+            <RadiusSelector
+                radius={radius}
+                setRadius={setRadius}
+                isEditable={!loading}
+            />
+            
+            <PreferredGenderSelector
+                onChange={setPreferredGenders}
+                selected={preferredGenders}
+                isEditable={!loading}
+            />
+
             <GameSelector
-                games={games}
-                selectedGameIds={selectedGameIdsForSelector} // Pass the Set of IDs here
-                onToggle={toggleGame}
-                disabled={false}
+                allGames={games} // All available games
+                selectedGameIds={selectedGameIdsForSelector} // IDs of currently selected games
+                onToggle={handleGamesChange} // Use the new handler
+                disabled={loading}
             />
 
             <Button

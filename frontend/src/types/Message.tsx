@@ -1,4 +1,4 @@
-export interface MessageDTO {
+export interface Message {
   id?: number;
   senderUsername: string;
   receiverUsername: string;

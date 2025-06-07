@@ -5,6 +5,7 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "types": ["google.maps"]
+    "types": ["google.maps"],
+    "target": "es2015"
   }
 }
