@@ -74,18 +74,6 @@ const TestChat = () => {
     const handleSendMessage = async () => {
         if (receiverProfileId === undefined) return;
         sendMessage(receiverProfileId, message);
-        /*
-        if (client && isConnected) {
-            const formattedMessage = `@${receiverUsername} ${message}`;
-            client.publish({
-                destination: "/app/send",
-                body: formattedMessage,
-            });
-
-            console.log("📤 Sent to server:", message);
-        } else {
-            console.warn("WebSocket not connected");
-        }*/
     };
 
     const handleChangeReceiver = () => {
@@ -174,7 +162,12 @@ const TestChat = () => {
             <button onClick={handleSendMessage}>Send</button>
 
             {messages.map((msg, index) => (
-                <p key={index}>{msg}</p>
+                <div className="chatMessageContainer" key={index}>
+                    <p>Sender: {msg.senderProfileId}</p>
+                    <p>Message: {msg.content}</p>
+                    <p>Receiver: {msg.receiverProfileId}</p>
+                    <p>Read: {msg.hasReceiverRead ? "true" : "false"}</p>
+                </div>
             ))}
         </div>
     );

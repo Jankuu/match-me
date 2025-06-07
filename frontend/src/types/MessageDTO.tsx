@@ -1,7 +1,8 @@
 export interface MessageDTO {
-  id?: number;
-  senderUsername: string;
-  receiverUsername: string;
-  content: string;
-  timestamp?: string;
+    id?: number;
+    senderProfileId: number;
+    receiverProfileId: number;
+    content: string;
+    timestamp?: string;
+    hasReceiverRead: boolean;
 }

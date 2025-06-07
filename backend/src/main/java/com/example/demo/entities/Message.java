@@ -31,4 +31,8 @@ public class Message {
     private LocalDateTime timestamp;
 
     private boolean hasReceiverRead;
+
+    public boolean getHasReceiverRead() {
+        return hasReceiverRead;
+    }
 }

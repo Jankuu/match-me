@@ -19,3 +19,13 @@
     margin: 1%;
     padding: 1%;
 }
+
+.chatMessageContainer {
+    display: flex;
+    border: 1px solid black;
+    gap: 10px;
+}
+
+.chatMessageContainer {
+    display: flex;
+}

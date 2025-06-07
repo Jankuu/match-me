@@ -169,12 +169,16 @@ public class UserService {
         return userRepository.findByProfile_Id(profileId).orElseThrow(() -> new ResourceNotFoundException("Could not find user by profile id", profileId));
     }
 
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Could not find user by id", id));
+    }
+
     // POST
     public UserDTO registerNewUser(UserRegistrationDTO registrationDTO) {
         if (registrationDTO.getUsername() == null || registrationDTO.getUsername().isBlank()) {
             registrationDTO.setUsername(generateUniqueUsername());
         }
-        
+
         if (registrationDTO.getUsername() != null && !registrationDTO.getUsername().isBlank() && userRepository.findByUsername(registrationDTO.getUsername()).isPresent()) {
             throw new DuplicateResourceException("User with this username already exists", registrationDTO.getUsername());
         }

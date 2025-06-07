@@ -21,11 +21,14 @@ public class MessageDTO {
     private String content;
     private LocalDateTime timestamp;
 
+    private boolean hasReceiverRead;
+
     public MessageDTO(Message message) {
         this.id = message.getId();
         this.senderProfileId = message.getSenderProfileId();
         this.receiverProfileId = message.getReceiverProfileId();
         this.content = message.getContent();
         this.timestamp = message.getTimestamp();
+        this.hasReceiverRead = message.getHasReceiverRead();
     }
 }
