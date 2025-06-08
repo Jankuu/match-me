@@ -72,7 +72,10 @@ const MyProfilePage = () => {
       const storedUser = localStorage.getItem("user");
 
       if (storedUser) {
+          const parsedData = JSON.parse(storedUser);
+          const cityName = parsedData.cityName
         const parsedUser = JSON.parse(storedUser) as User;
+          parsedUser.profile.location = cityName;
         // Ensure profile picture has data URL prefix for display
         parsedUser.profile.profilePicture = ensureDataUrlPrefix(parsedUser.profile.profilePicture);
         parsedUser.profile.name = parsedUser.profile.name || ''; // Ensure name is not null/undefined
