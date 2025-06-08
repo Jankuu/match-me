@@ -77,15 +77,16 @@ const MyProfilePage = () => {
         parsedUser.profile.profilePicture = ensureDataUrlPrefix(parsedUser.profile.profilePicture);
         parsedUser.profile.name = parsedUser.profile.name || ''; // Ensure name is not null/undefined
 
-        setUser(parsedUser);
-        setLoading(false);
+          setUser(parsedUser);
+          setDraftUser(parsedUser); // <-- ✅ Initialize draftUser here
+          setLoading(false);
       } else if (localStorage.getItem("token")) {
-        try {
-          const res = await apiClient.get<User>("/users");
-          const fetchedUser = res.data;
-          // Ensure profile picture has data URL prefix for display
-          fetchedUser.profile.profilePicture = ensureDataUrlPrefix(fetchedUser.profile.profilePicture);
-          fetchedUser.profile.name = fetchedUser.profile.name || '';
+          try {
+              const res = await apiClient.get<User>("/users");
+              const fetchedUser = res.data;
+              // Ensure profile picture has data URL prefix for display
+              fetchedUser.profile.profilePicture = ensureDataUrlPrefix(fetchedUser.profile.profilePicture);
+              fetchedUser.profile.name = fetchedUser.profile.name || '';
 
           setUser(fetchedUser);
           localStorage.setItem("user", JSON.stringify(fetchedUser)); // Store fetched user in localStorage
@@ -186,6 +187,33 @@ const MyProfilePage = () => {
     setSelectedImageFile(null); // Clear any newly selected file
   }, []); // No dependencies
 
+    const handleLocationDataChange = useCallback((locationData: any) => {
+        const updater = (prev: User | null) => {
+            if (!prev) return prev;
+
+            const updated = { ...prev };
+
+            if (locationData) {
+                updated.locationData = locationData;
+                updated.profile = {
+                    ...updated.profile,
+                    location: locationData.cityName || updated.profile.location
+                };
+            } else {
+                delete updated.locationData;
+                updated.profile = {
+                    ...updated.profile,
+                    location: ""
+                };
+            }
+
+            return updated;
+        };
+
+        setUser(updater);
+        setDraftUser(updater);
+    }, []);
+
   // Memoized callback to save profile changes to the backend
   const handleSave = useCallback(async () => {
     // Validate draftUser and birth date
@@ -197,15 +225,23 @@ const MyProfilePage = () => {
 
     // Prepare the payload for the backend from `draftUser`.
     // Profile picture is sent as raw Base64 (without data URL prefix).
-    const userPayloadForBackend = {
-        ...draftUser,
-        profile: {
-            ...draftUser.profile,
-            profilePicture: removeDataUrlPrefix(draftUser.profile.profilePicture) // Use picture from draftUser
-        }
-    };
+      const currentLocationData = user?.locationData || draftUser.locationData;
 
-    // If a new image file was selected, it overrides the current picture in the payload.
+      const userPayloadForBackend = {
+          ...draftUser,
+          profile: {
+              ...draftUser.profile,
+              profilePicture: removeDataUrlPrefix(draftUser.profile.profilePicture)
+          },
+          isGpsUser: currentLocationData?.isGpsUsed,
+          googlePlaceId: currentLocationData?.placeId,
+          lat: currentLocationData?.coordinates?.lat,
+          lng: currentLocationData?.coordinates?.lng,
+          cityName: draftUser.profile.location,
+      };
+
+
+      // If a new image file was selected, it overrides the current picture in the payload.
     if (selectedImageFile) {
         try {
             const rawBase64Image = await readImageAsBase64(selectedImageFile);
@@ -249,7 +285,7 @@ const MyProfilePage = () => {
         setError("An unknown error occurred.");
       }
     }
-  }, [draftUser, isBirthDateValid, selectedImageFile, removeDataUrlPrefix, readImageAsBase64, ensureDataUrlPrefix]); // Dependencies
+  }, [draftUser, isBirthDateValid, selectedImageFile, removeDataUrlPrefix, readImageAsBase64, ensureDataUrlPrefix, user]); // Dependencies
 
   // Memoized callback to toggle editing mode
   const toggleEditing = useCallback(() => {
@@ -353,6 +389,7 @@ const MyProfilePage = () => {
             currentImageFile={selectedImageFile}
             onClearProfilePicture={handleClearProfilePicture}
             onBirthDateValidationChange={setIsBirthDateValid}
+            onLocationDataChange={handleLocationDataChange}
           />
         )}
       </Container>

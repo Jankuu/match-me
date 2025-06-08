@@ -9,9 +9,11 @@ import com.example.demo.exceptions.DuplicateResourceException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;
 import com.example.demo.repositories.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -140,17 +142,10 @@ public class UserService {
 
     public List<UserProfile> getFilteredRecommendations(String username) {
         User user = getUserByUsername(username);
-        if (user.getIsGpsUser() != null && user.getIsGpsUser()) {
-            return userRepository.getFilteredRecommendations(user.getId())
-                    .stream()
-                    .map(User::getProfile)
-                    .toList();
-        } else { // TODO: recommendations for non gps users/dunno if its gonna be a separate query but leaving this here for now
-            return userRepository.getFilteredRecommendations(user.getId())
-                    .stream()
-                    .map(User::getProfile)
-                    .toList();
-        }
+        return userRepository.getFilteredRecommendations(user.getId())
+                .stream()
+                .map(User::getProfile)
+                .toList();
     }
 
     public User getUserByUsername(String username) {
@@ -212,17 +207,6 @@ public class UserService {
 
         if (userDTO.getProfile() != null) {
             currentUser.setProfile(assignUserProfileValues(currentUser.getProfile(), userDTO.getProfile()));
-
-            if (userDTO.getProfile().getLocation() != null && !userDTO.getProfile().getLocation().isEmpty()) {
-                String locationName = userDTO.getProfile().getLocation();
-
-                City city = locationService.findOrAddCity(locationName, null, null, null);
-                currentUser.setCity(city);
-                currentUser.setIsGpsUser(false);
-                //clear gps specific fields
-                currentUser.setLocation(null);
-                currentUser.setRadius(null);
-            }
         }
 
         if (userDTO.getInterestedGames() != null) {
@@ -320,19 +304,18 @@ public class UserService {
     }
 
     private User assignUserValues(User user, UserDTO dto) {
+        System.out.println(user);
+        System.out.println(dto);
         if (user == null) {
             user = new User();
         }
         if (dto.getUsername() != null && !dto.getUsername().isBlank()) user.setUsername(dto.getUsername());
         if (dto.getEmail() != null && !dto.getEmail().isBlank()) user.setEmail(dto.getEmail());
-        // if (dto.getPassword() != null) user.setPassword(passwordEncoder.encode(dto.getPassword()));
         if (dto.getInterestedMinAge() != null) user.setInterestedMinAge(dto.getInterestedMinAge());
         if (dto.getInterestedMaxAge() != null) user.setInterestedMaxAge(dto.getInterestedMaxAge());
         if (dto.getInterestedGenders() != null) user.setInterestedGenders(dto.getInterestedGenders());
-
-        // location data stuff
-        Boolean isGpsUser = dto.getIsGpsUser() != null ? dto.getIsGpsUser() : false;
-        user.setIsGpsUser(isGpsUser);
+        if (dto.getIsGpsUser() != null) user.setIsGpsUser(dto.getIsGpsUser());
+        if (dto.getRadius() != null) user.setRadius(dto.getRadius());
 
         if (dto.getLat() != null && dto.getLng() != null) {
             Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
@@ -343,8 +326,19 @@ public class UserService {
         if (dto.getCityName() != null && !dto.getCityName().isBlank()) {
             City city = locationService.findOrAddCity(dto.getCityName(), dto.getGooglePlaceId(), dto.getLat(), dto.getLng());
             user.setCity(city);
+
+            if (user.getProfile() != null) {
+                user.getProfile().setLocation(dto.getCityName());
+            }
         }
-        user.setRadius(dto.getRadius());
+
+        if (dto.getInterestedGames() != null) {
+            user.setInterestedGames(dto.getInterestedGames());
+
+            if (user.getProfile() != null) {
+                user.getProfile().setInterestedGames(dto.getInterestedGames());
+            }
+        }
 
         return user;
     }

@@ -11,6 +11,7 @@ import { Game } from "../../dto/Game";
 import axios from "axios";
 import RadiusSelector from "../formComponents/RadiusSelector";
 import ImageUpload from "../formComponents/ImageUpload";
+import LocationSelector from "../formComponents/LocationSelector.tsx";
 
 interface AccountFormProps {
   profile: User;
@@ -35,6 +36,7 @@ const AccountForm: React.FC<AccountFormProps> = ({
   currentImageFile,
   onClearProfilePicture,
   onBirthDateValidationChange,
+    onLocationDataChange
 }) => {
   const [isNameValid, setIsNameValid] = useState(true);
 
@@ -131,6 +133,20 @@ const AccountForm: React.FC<AccountFormProps> = ({
     onSave();
   }, [isNameValid, onSave]);
 
+    const handleLocationChange = useCallback((value: string, placeId?: string, coordinates?: any, isGpsUsed?: boolean) => {
+        onProfileChange("location", value);
+
+        if (placeId && coordinates) {
+            const newLocationData = {
+                placeId,
+                coordinates,
+                isGpsUsed: isGpsUsed || false
+            };
+            onLocationDataChange?.(newLocationData);
+        } else if (value === '') {
+            onLocationDataChange?.(undefined);
+        }
+    }, [onProfileChange, onLocationDataChange]);
   return (
     <Form>
       <Form.Group className="mb-3">
@@ -178,7 +194,13 @@ const AccountForm: React.FC<AccountFormProps> = ({
         setHeight={handleProfileChangeInternal.bind(null, "height")}
         isEditable={editing}
       />
-      
+
+        <LocationSelector
+            value={profile.profile.location || ""}
+            onChange={handleLocationChange}
+            isEditable={editing}
+            locationData={profile.locationData}
+        />
       <RadiusSelector
         radius={profile.radius || 5000}
         setRadius={handleRootChangeInternal.bind(null, "radius")}

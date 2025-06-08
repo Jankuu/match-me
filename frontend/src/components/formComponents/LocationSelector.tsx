@@ -58,8 +58,7 @@ const LocationSelector = ({ value, onChange, isEditable = true, locationData }: 
                 const placeId = place.place_id; // Get place ID
 
                 setIsValidLocation(true); // Mark location as valid
-                //onChange(address, placeId, { lat, lng }, false); // Update parent component with selected location data (not GPS-used)
-                onChange(address, placeId, { lat, lng }, true); // Until without gps login is fixed
+                onChange(address, placeId, { lat, lng }, false);
             } else {
                 setIsValidLocation(false); // Mark location as invalid
                 onChange(address); // Update parent component with just the address (no valid location data)
@@ -99,7 +98,6 @@ const LocationSelector = ({ value, onChange, isEditable = true, locationData }: 
                             const placeId = cityResult.place_id; // Get place ID
                             const coordinates = { lat: latitude, lng: longitude }; // Use current GPS coordinates
 
-                            inputRef.current!.value = cityName; // Set input value to city name
                             setIsValidLocation(true); // Mark location as valid
                             onChange(cityName, placeId, coordinates, true); // Update parent component with GPS-obtained location data
 
@@ -146,14 +144,14 @@ const LocationSelector = ({ value, onChange, isEditable = true, locationData }: 
                     ref={inputRef} // Assign ref to the input element
                     value={value} // Controlled component value
                     disabled={!isEditable} // Disable if not editable
-                    // required={isEditable} // (Commented out)
+                    //required={isEditable}
                     isInvalid={!isValidLocation && value.length > 0} // Show invalid state if not valid and input has value
                     onChange={(e) => {
                         const newValue = e.target.value;
                         if (newValue === '') {
                             setIsValidLocation(false); // If input is cleared, set invalid
                             // clear location data
-                            onChange('', undefined, undefined, undefined); // Clear all location data in parent
+                            onChange(newValue, undefined, undefined, undefined); // Clear all location data in parent
                         } else {
                             onChange(newValue); // Update parent component with new input value
                         }

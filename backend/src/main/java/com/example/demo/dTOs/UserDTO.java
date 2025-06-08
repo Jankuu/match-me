@@ -10,11 +10,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.locationtech.jts.geom.Point;
 
 import java.awt.*;
 import java.util.List;
 
+@ToString
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -58,10 +60,6 @@ public class UserDTO {
         this.password = user.getPassword();
         this.profile = new UserProfileDTO(user.getProfile());
 
-        if (user.getCity() != null) {
-            this.profile.setLocation(user.getCity().getName());
-        }
-
         this.interestedMinAge = user.getInterestedMinAge();
         this.interestedMaxAge = user.getInterestedMaxAge();
         this.interestedGenders = user.getInterestedGenders();
@@ -70,7 +68,20 @@ public class UserDTO {
         this.connections = user.getConnections();
         this.recommendedUserProfiles = user.getRecommendedUserProfiles();
         this.interestedGames = user.getInterestedGames();
+        this.isGpsUser = user.getIsGpsUser();
         this.location = user.getLocation();
         this.radius = user.getRadius();
+
+        //location data
+        if (user.getLocation() != null) {
+            this.lat = user.getLocation().getY();
+            this.lng = user.getLocation().getX();
+        }
+
+        if (user.getCity() != null) {
+            this.cityName = user.getCity().getName();
+            this.googlePlaceId = user.getCity().getGooglePlaceId();
+            this.profile.setLocation(user.getCity().getName());
+        }
     }
 }
