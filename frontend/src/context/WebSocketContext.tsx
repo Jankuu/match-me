@@ -1,3 +1,5 @@
+// src/providers/WebSocketProvider.tsx
+
 import React, {
     createContext,
     useCallback,
@@ -29,13 +31,16 @@ interface WebSocketContextType {
     markConnectionRequestsAsRead: () => void;
     markConnectionsAsRead: () => void;
 
-    // NEW: Unread message counts per user
+    //Unread message counts per user
     unreadMessages: UnreadMessagesMap;
     markMessagesAsReadForUser: (userId: number) => void;
-    // NEW: Callback to notify specific components about new messages
+    // Callback to notify specific components about new messages
     registerMessageCallback: (userId: number, callback: (message: ChatMessage) => void) => () => void;
 
     refreshAuthData: () => void;
+
+    // NEW: Global flag for any unread messages
+    hasUnreadMessages: boolean; // Add this line
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
@@ -46,7 +51,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     const client = useRef<Client | null>(null);
 
     const [isConnected, setIsConnected] = useState(false);
-    // REMOVED: [messages, setMessages] - messages will now be managed per chat on ChatPage
     const [connectionNotification, setConnectionNotification] = useState<
         string[]
     >([]);
@@ -57,24 +61,27 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     const [hasUnreadConnectionRequests, setHasUnreadConnectionRequests] =
         useState(false);
 
-    // NEW: State for unread message counts per user
+    // Existing: State for unread message counts per user
     const [unreadMessages, setUnreadMessages] = useState<UnreadMessagesMap>({});
+
+    // NEW: Global flag for any unread messages across all chats
+    const [hasUnreadMessages, setHasUnreadMessages] = useState(false); // Add this line
 
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [jwtToken, setJwtToken] = useState<string | null>(null);
 
-    // NEW: Ref to store message callbacks for active chat pages
+    // Existing: Ref to store message callbacks for active chat pages
     const messageCallbacks = useRef<{ [userId: number]: (message: ChatMessage) => void }>({});
 
-    // Register a callback for a specific user's chat messages
+    // Existing: Register a callback for a specific user's chat messages
     const registerMessageCallback = useCallback((userId: number, callback: (message: ChatMessage) => void) => {
         messageCallbacks.current[userId] = callback;
-        // Return a cleanup function to remove the callback when the component unmounts
         return () => {
             delete messageCallbacks.current[userId];
         };
     }, []);
 
+    // Existing: Effects for connection notifications
     useEffect(() => {
         if (connectionNotification.length > 0) {
             setHasUnreadConnections(true);
@@ -86,6 +93,12 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             setHasUnreadConnectionRequests(true);
         }
     }, [connectionRequestNotification]);
+
+    // NEW: Effect to update hasUnreadMessages when unreadMessages map changes
+    useEffect(() => {
+        // Check if there's at least one user with unread messages
+        setHasUnreadMessages(Object.keys(unreadMessages).length > 0);
+    }, [unreadMessages]); // Trigger this effect whenever unreadMessages state changes
 
     const markAllNotificationsAsRead = useCallback(() => {
         setHasUnreadConnections(false);
@@ -104,13 +117,14 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         setConnectionNotification([]);
     }, []);
 
-    // NEW: Mark messages as read for a specific user
+    // Existing: Mark messages as read for a specific user
     const markMessagesAsReadForUser = useCallback((userId: number) => {
         setUnreadMessages((prev) => {
             const newState = { ...prev };
             delete newState[userId]; // Remove the unread count for this user
             return newState;
         });
+        // Note: The `useEffect` for `hasUnreadMessages` will automatically update after this.
     }, []);
 
     const refreshAuthData = useCallback(() => {
@@ -182,13 +196,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                         console.log("New message:", msg.body);
                         try {
                             const messageObj: ChatMessage = JSON.parse(msg.body);
-                            // Determine the sender ID for unread counts
-                            // If the message is from me, it means the other user sent it to me
-                            // If the message is to me, it means the other user sent it to me
-                            // The backend message format for /user/queue/messages is important here.
-                            // Assuming 'senderProfileId' is the ID of the user who sent the message
-                            // and 'receiverProfileId' is the ID of the user who received it.
-                            // We need to identify the 'other' user to update their unread count.
+
                             const otherUserId = messageObj.senderProfileId === currentUserId
                                 ? messageObj.receiverProfileId
                                 : messageObj.senderProfileId;
@@ -293,13 +301,12 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         };
     }, [jwtToken, currentUserId]);
 
-    const sendMessage = useCallback((receiverId: number, content: string) => { // Renamed 'message' to 'content' for clarity
+    const sendMessage = useCallback((receiverId: number, content: string) => {
         if (client.current && isConnected && currentUserId !== null) {
             const payload = {
-                senderProfileId: currentUserId, // Add sender ID to payload
+                senderProfileId: currentUserId,
                 receiverProfileId: receiverId,
                 content: content,
-                // Assuming timestamp is generated on the backend or not strictly needed for real-time display
             };
 
             client.current.publish({
@@ -308,11 +315,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             });
 
             console.log("Send message:", payload);
-
-            // Optimistically add sent message to local state
-            // This assumes the backend echoes the message back to the sender
-            // If not, you might need to add it directly to ChatPage's local state here
-            // For now, ChatPage will fetch history and rely on its own state updates.
 
         } else {
             console.warn("WebSocket not connected or current user ID not available.");
@@ -325,7 +327,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 sendMessage,
                 isConnected,
                 client: client.current,
-                // messages, // REMOVED
                 connectionNotification,
                 connectionRequestNotification,
                 hasUnreadConnections,
@@ -333,10 +334,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 markAllNotificationsAsRead,
                 markConnectionRequestsAsRead,
                 markConnectionsAsRead,
-                unreadMessages, // NEW
-                markMessagesAsReadForUser, // NEW
-                registerMessageCallback, // NEW
+                unreadMessages,
+                markMessagesAsReadForUser,
+                registerMessageCallback,
                 refreshAuthData,
+                hasUnreadMessages, // Expose the new global flag
             }}
         >
             {children}

@@ -13,7 +13,7 @@ const NavBar = () => {
     const navigate = useNavigate();
     const location = useLocation(); // Initialize useLocation hook
 
-    const { hasUnreadConnectionRequests, hasUnreadConnections } = useWebSocket();
+    const { hasUnreadConnectionRequests, hasUnreadConnections, hasUnreadMessages } = useWebSocket();
 
     const handleProfileClick = () => {
         const userStr = localStorage.getItem("user");
@@ -43,7 +43,7 @@ const NavBar = () => {
         navigate("/matching");
     };
 
-    const hasAnyUnreadNotifications = hasUnreadConnectionRequests || hasUnreadConnections;
+    const hasAnyUnreadNotifications = hasUnreadConnectionRequests || hasUnreadConnections || hasUnreadMessages;
 
     // Determine if the current path matches the icon's associated route
     const isProfileActive = location.pathname === '/myprofile';

@@ -20,6 +20,7 @@ const MatchingPage: React.FC = () => {
   // Destructure WebSocket context values for notifications and marking as read
   const {
     hasUnreadConnections,
+    hasUnreadMessages,
     hasUnreadConnectionRequests,
     markConnectionRequestsAsRead,
     markConnectionsAsRead,
@@ -231,7 +232,7 @@ const MatchingPage: React.FC = () => {
           onPrimary={handleChatClick} // Primary action: go to chat
           onSecondary={handleRemoveConnection} // Secondary action: remove connection
           onCardClick={handleCardClick} // Action for clicking the card (view profile)
-          hasUnreadRequests={hasUnreadConnections} // Indicator for unread connections
+          hasUnreadRequests={hasUnreadConnections || hasUnreadMessages} // Indicator for unread connections
           currentUserId={currentUserId} // NEW: Pass currentUserId
           unreadMessages={unreadMessages} // NEW: Pass unreadMessages
         />
