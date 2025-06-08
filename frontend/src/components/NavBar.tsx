@@ -47,7 +47,7 @@ const NavBar = () => {
 
     // Determine if the current path matches the icon's associated route
     const isProfileActive = location.pathname === '/myprofile';
-    const isMatchingActive = location.pathname === '/matching';
+    const isMatchingActive = location.pathname === '/matching'|| location.pathname.startsWith('/chat');
     const isSettingsActive = location.pathname === '/settings';
 
     // Define base size and active size
