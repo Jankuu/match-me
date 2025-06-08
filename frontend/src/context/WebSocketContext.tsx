@@ -7,15 +7,19 @@ import React, {
     useState,
 } from "react";
 import { Client, IMessage } from "@stomp/stompjs";
-import { Message } from "../types/Message";
+import { Message } from "../types/Message"; // Assuming Message type is { senderId: number; receiverId: number; content: string; timestamp: string; } or similar
+
+// Define the structure for storing unread messages per user
+interface UnreadMessagesMap {
+    [userId: number]: number; // Maps user ID to unread count
+}
 
 interface WebSocketContextType {
     isConnected: boolean;
     client: Client | null;
-
     sendMessage: (receiverId: number, message: string) => void;
-    messages: Message[];
 
+    // Notifications for connections/requests (existing)
     connectionNotification: string[];
     connectionRequestNotification: string[];
     hasUnreadConnections: boolean;
@@ -24,7 +28,13 @@ interface WebSocketContextType {
     markAllNotificationsAsRead: () => void;
     markConnectionRequestsAsRead: () => void;
     markConnectionsAsRead: () => void;
-    // НОВАЯ ФУНКЦИЯ: для обновления данных аутентификации из localStorage
+
+    // NEW: Unread message counts per user
+    unreadMessages: UnreadMessagesMap;
+    markMessagesAsReadForUser: (userId: number) => void;
+    // NEW: Callback to notify specific components about new messages
+    registerMessageCallback: (userId: number, callback: (message: Message) => void) => () => void;
+
     refreshAuthData: () => void;
 }
 
@@ -36,7 +46,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     const client = useRef<Client | null>(null);
 
     const [isConnected, setIsConnected] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([]);
+    // REMOVED: [messages, setMessages] - messages will now be managed per chat on ChatPage
     const [connectionNotification, setConnectionNotification] = useState<
         string[]
     >([]);
@@ -47,8 +57,23 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     const [hasUnreadConnectionRequests, setHasUnreadConnectionRequests] =
         useState(false);
 
+    // NEW: State for unread message counts per user
+    const [unreadMessages, setUnreadMessages] = useState<UnreadMessagesMap>({});
+
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [jwtToken, setJwtToken] = useState<string | null>(null);
+
+    // NEW: Ref to store message callbacks for active chat pages
+    const messageCallbacks = useRef<{ [userId: number]: (message: Message) => void }>({});
+
+    // Register a callback for a specific user's chat messages
+    const registerMessageCallback = useCallback((userId: number, callback: (message: Message) => void) => {
+        messageCallbacks.current[userId] = callback;
+        // Return a cleanup function to remove the callback when the component unmounts
+        return () => {
+            delete messageCallbacks.current[userId];
+        };
+    }, []);
 
     useEffect(() => {
         if (connectionNotification.length > 0) {
@@ -79,10 +104,18 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         setConnectionNotification([]);
     }, []);
 
-    // НОВАЯ ФУНКЦИЯ: Функция для принудительного обновления токена и ID пользователя
+    // NEW: Mark messages as read for a specific user
+    const markMessagesAsReadForUser = useCallback((userId: number) => {
+        setUnreadMessages((prev) => {
+            const newState = { ...prev };
+            delete newState[userId]; // Remove the unread count for this user
+            return newState;
+        });
+    }, []);
+
     const refreshAuthData = useCallback(() => {
         const token = localStorage.getItem("token");
-        setJwtToken(token); // Обновляем состояние токена
+        setJwtToken(token);
 
         try {
             const userJson = localStorage.getItem("user");
@@ -94,31 +127,26 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                     setCurrentUserId(parseInt(user.id, 10));
                 } else {
                     console.warn("User ID in localStorage is not a number or string:", user.id);
-                    setCurrentUserId(null); // Очищаем, если данные невалидны
+                    setCurrentUserId(null);
                 }
             } else {
                 console.warn("User object not found in localStorage. Cannot determine current user ID for notification filtering.");
-                setCurrentUserId(null); // Очищаем, если user object отсутствует
+                setCurrentUserId(null);
             }
         } catch (e) {
             console.error("Error parsing user data from localStorage:", e);
-            setCurrentUserId(null); // Очищаем при ошибке парсинга
+            setCurrentUserId(null);
         }
         console.log("refreshAuthData called. New JWT State:", token ? "present" : "null", "New User ID State:", currentUserId);
+    }, [currentUserId]);
 
-    }, [currentUserId]); // Добавил currentUserId в зависимости, чтобы console.log показывал актуальное значение при вызове. Влияния на логику нет.
-
-    // Вызываем refreshAuthData один раз при монтировании компонента.
-    // Это гарантирует, что токен и ID пользователя будут загружены при старте.
     useEffect(() => {
         refreshAuthData();
-    }, [refreshAuthData]); // Зависимость от refreshAuthData, чтобы гарантировать, что он будет вызван
+    }, [refreshAuthData]);
 
     useEffect(() => {
-        // Проверяем, что токен доступен, прежде чем пытаться подключиться
         if (jwtToken == null) {
             console.log("JWT is null, cannot establish WebSocket connection.");
-            // Если клиент уже активирован (например, был логин, потом логаут), деактивируем его
             if (client.current && client.current.connected) {
                 client.current.deactivate();
                 setIsConnected(false);
@@ -126,14 +154,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             return;
         }
 
-        // Если currentUserId еще не загружен (или стал null), ждем его
         if (currentUserId === null) {
             console.log("Current user ID not loaded yet, waiting to establish WebSocket connection.");
             return;
         }
 
-        // Деактивируем существующий клиент, если он есть, перед созданием нового.
-        // Это важно для переподключения, когда токен обновился.
         if (client.current && client.current.connected) {
             console.log("Deactivating existing WebSocket client for reconnection.");
             client.current.deactivate();
@@ -150,15 +175,42 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 console.log("Connected to WebSocket");
                 setIsConnected(true);
 
+                // Subscribe to messages
                 stompClient.subscribe(
                     "/user/queue/messages",
                     (msg: IMessage) => {
                         console.log("New message:", msg.body);
-                        const messageObj: Message = JSON.parse(msg.body);
-                        setMessages((prev) => [...prev, messageObj]);
+                        try {
+                            const messageObj: Message = JSON.parse(msg.body);
+                            // Determine the sender ID for unread counts
+                            // If the message is from me, it means the other user sent it to me
+                            // If the message is to me, it means the other user sent it to me
+                            // The backend message format for /user/queue/messages is important here.
+                            // Assuming 'senderProfileId' is the ID of the user who sent the message
+                            // and 'receiverProfileId' is the ID of the user who received it.
+                            // We need to identify the 'other' user to update their unread count.
+                            const otherUserId = messageObj.senderProfileId === currentUserId
+                                ? messageObj.receiverProfileId
+                                : messageObj.senderProfileId;
+
+                            // Update unread message count
+                            setUnreadMessages((prev) => ({
+                                ...prev,
+                                [otherUserId]: (prev[otherUserId] || 0) + 1,
+                            }));
+
+                            // If there's an active chat page listening for this user, notify it
+                            if (messageCallbacks.current[otherUserId]) {
+                                messageCallbacks.current[otherUserId](messageObj);
+                            }
+
+                        } catch (error) {
+                            console.error("Failed to parse message JSON:", error, msg.body);
+                        }
                     }
                 );
 
+                // Subscribe to connection notifications (existing logic)
                 stompClient.subscribe(
                     "/user/queue/notifications/connection",
                     (con: IMessage) => {
@@ -185,6 +237,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                     }
                 );
 
+                // Subscribe to connection request notifications (existing logic)
                 stompClient.subscribe(
                     "/user/queue/notifications/connectionRequest",
                     (con: IMessage) => {
@@ -221,7 +274,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             onStompError: (frame) => {
                 console.error('Broker reported error: ' + frame.headers['message']);
                 console.error('Additional details: ' + frame.body);
-                if (client.current) { // Не полагаемся на isConnected, просто пытаемся деактивировать
+                if (client.current) {
                     client.current.deactivate();
                     setIsConnected(false);
                 }
@@ -238,13 +291,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 setIsConnected(false);
             }
         };
-    }, [jwtToken, currentUserId]); // Зависимости: jwtToken и currentUserId
+    }, [jwtToken, currentUserId]);
 
-    const sendMessage = useCallback((receiverId: number, message: string) => {
-        if (client.current && isConnected) {
+    const sendMessage = useCallback((receiverId: number, content: string) => { // Renamed 'message' to 'content' for clarity
+        if (client.current && isConnected && currentUserId !== null) {
             const payload = {
+                senderProfileId: currentUserId, // Add sender ID to payload
                 receiverProfileId: receiverId,
-                content: message,
+                content: content,
+                // Assuming timestamp is generated on the backend or not strictly needed for real-time display
             };
 
             client.current.publish({
@@ -253,10 +308,16 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
             });
 
             console.log("Send message:", payload);
+
+            // Optimistically add sent message to local state
+            // This assumes the backend echoes the message back to the sender
+            // If not, you might need to add it directly to ChatPage's local state here
+            // For now, ChatPage will fetch history and rely on its own state updates.
+
         } else {
-            console.warn("WebSocket not connected");
+            console.warn("WebSocket not connected or current user ID not available.");
         }
-    }, [isConnected]);
+    }, [isConnected, currentUserId]);
 
     return (
         <WebSocketContext.Provider
@@ -264,7 +325,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 sendMessage,
                 isConnected,
                 client: client.current,
-                messages,
+                // messages, // REMOVED
                 connectionNotification,
                 connectionRequestNotification,
                 hasUnreadConnections,
@@ -272,7 +333,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 markAllNotificationsAsRead,
                 markConnectionRequestsAsRead,
                 markConnectionsAsRead,
-                refreshAuthData, // Предоставляем новую функцию через контекст
+                unreadMessages, // NEW
+                markMessagesAsReadForUser, // NEW
+                registerMessageCallback, // NEW
+                refreshAuthData,
             }}
         >
             {children}

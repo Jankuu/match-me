@@ -1,11 +1,9 @@
 import React from 'react';
-import { Accordion, Badge } from 'react-bootstrap'; // Importing Accordion and Badge components
-import SwipeableUserCard from './SwipeableUserCard'; // Importing the custom SwipeableUserCard component
-import { UserProfile } from '../types/UserProfile'; // Importing the UserProfile interface
-// Removed these imports as they are now handled within SwipeableUserCard
-// import { calculateAge, getProfilePicture } from '../utils/userUtils';
-import { SwipeEventData } from 'react-swipeable'; // Importing SwipeEventData type for swipe events
-import "../styles/ColorPallette.css"; // Importing global styles
+import { Accordion, Badge } from 'react-bootstrap';
+import SwipeableUserCard from './SwipeableUserCard';
+import { UserProfile } from '../types/UserProfile';
+import { SwipeEventData } from 'react-swipeable';
+import "../styles/ColorPallette.css";
 
 /**
  * Defines the props for the MatchingSection component.
@@ -23,6 +21,8 @@ import "../styles/ColorPallette.css"; // Importing global styles
  * (typically navigates to the user's full profile).
  * @property {boolean} [hasUnreadRequests] - Optional: A flag indicating if there are unread items in this section,
  * which triggers a "New" badge.
+ * @property {number | null} currentUserId - The ID of the currently logged-in user.
+ * @property {{ [userId: number]: number }} unreadMessages - Map of user IDs to their unread message counts.
  */
 type Props = {
     title: string;
@@ -31,7 +31,9 @@ type Props = {
     onPrimary: (e: React.MouseEvent | SwipeEventData, id: number, name: string) => void;
     onSecondary: (e: React.MouseEvent | SwipeEventData, id: number) => void;
     onCardClick: (id: number) => void;
-    hasUnreadRequests?: boolean; // NEW PROP for notification badge
+    hasUnreadRequests?: boolean;
+    currentUserId: number | null; // NEW PROP
+    unreadMessages: { [userId: number]: number }; // NEW PROP
 };
 
 /**
@@ -48,21 +50,23 @@ const MatchingSection: React.FC<Props> = ({
     onPrimary,
     onSecondary,
     onCardClick,
-    hasUnreadRequests // Destructure the new prop
+    hasUnreadRequests,
+    currentUserId, // Destructure the new prop
+    unreadMessages // Destructure the new prop
 }) => (
     // Accordion.Item groups the header and body for a collapsible section
     <Accordion.Item eventKey={title}>
         {/* Accordion.Header is the clickable title of the section */}
-        <Accordion.Header className="position-relative"> {/* position-relative for badge positioning */}
+        <Accordion.Header className="position-relative">
             {/* Display the section title and the count of users in this section */}
             {title} ({users.length})
-            {/* Conditional rendering of the "New" badge */}
+            {/* Conditional rendering of the "New" badge for connection/request notifications */}
             {hasUnreadRequests && (
                 <Badge
-                    bg="danger" // Red background for "danger" (new/unread)
-                    pill // Pill shape for a rounded look
-                    className="ms-2" // Margin-start for spacing from text
-                    style={{ fontSize: '0.7em', padding: '0.3em 0.5em' }} // Custom inline styles for size
+                    bg="danger"
+                    pill
+                    className="ms-2"
+                    style={{ fontSize: '0.7em', padding: '0.3em 0.5em' }}
                 >
                     New
                 </Badge>
@@ -73,18 +77,20 @@ const MatchingSection: React.FC<Props> = ({
             {/* Map through the users array and render a SwipeableUserCard for each */}
             {users.map(user => (
                 <SwipeableUserCard
-                    key={user.id} // Unique key for list rendering
-                    user={user} // Pass the UserProfile object
-                    cardType={cardType} // Pass the type of card to influence internal logic/styling
-                    onCardClick={onCardClick} // Callback for clicking the card
-                    // Pass actions, ensuring they receive the correct user data (ID and name)
+                    key={user.id}
+                    user={user}
+                    cardType={cardType}
+                    onCardClick={onCardClick}
                     onPrimaryAction={(e) => onPrimary(e, user.id, user.name)}
                     onSecondaryAction={(e) => onSecondary(e, user.id)}
-                    isDeleting={false} // Placeholder for a deleting state (not used in this component directly)
+                    isDeleting={false}
+                    // Pass currentUserId and unread count to SwipeableUserCard
+                    currentUserId={currentUserId} // NEW
+                    unreadCount={unreadMessages[user.id] || 0} // NEW: Get unread count for this specific user
                 />
             ))}
         </Accordion.Body>
     </Accordion.Item>
 );
 
-export default MatchingSection; // Export the component for use in other parts of the app
+export default MatchingSection;

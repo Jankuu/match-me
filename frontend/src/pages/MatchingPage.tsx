@@ -24,7 +24,8 @@ const MatchingPage: React.FC = () => {
     markConnectionRequestsAsRead,
     markConnectionsAsRead,
     connectionRequestNotification, // Notification for new connection requests
-    connectionNotification // Notification for new established connections
+    connectionNotification, // Notification for new established connections
+    unreadMessages // NEW: Get unread messages map
   } = useWebSocket();
 
   // State to control which accordion section is active (open)
@@ -32,7 +33,8 @@ const MatchingPage: React.FC = () => {
 
   // Retrieve current user ID from local storage
   const userData = JSON.parse(localStorage.getItem("user") || "{}");
-  const currentUserId = userData?.id || userData?.profile?.id;
+  // Assuming 'id' is always present at top-level or 'profile.id' if nested
+  const currentUserId = userData?.id || userData?.profile?.id; 
 
   // Fetch initial data when currentUserId is available
   useEffect(() => {
@@ -143,7 +145,6 @@ const MatchingPage: React.FC = () => {
    * Navigates to the chat page.
    */
   const handleChatClick = (e: React.MouseEvent | SwipeEventData, id: number, name: string) => {
-    // Note: 'e.stopPropagation()' is removed as per your request
     navigate(`/chat/${id}/${name}`);
   };
 
@@ -165,7 +166,6 @@ const MatchingPage: React.FC = () => {
    * Handles sending a connection request to a user.
    */
   const handleSendRequest = async (e: React.MouseEvent | SwipeEventData, id: number) => {
-    // Note: 'e.stopPropagation()' is removed as per your request
     try {
       await apiClient.post(`/connections/send?receiverProfileId=${id}`);
       fetchRecommendations(); // Refresh recommendations after sending a request
@@ -179,7 +179,6 @@ const MatchingPage: React.FC = () => {
    * Handles accepting a connection request from a sender.
    */
   const handleAcceptRequest = async (e: React.MouseEvent | SwipeEventData, senderId: number) => {
-    // Note: 'e.stopPropagation()' is removed as per your request
     try {
       await apiClient.post(`/connections/accept?senderProfileId=${senderId}`);
       fetchConnectionRequests(); // Refresh requests after accepting
@@ -194,7 +193,6 @@ const MatchingPage: React.FC = () => {
    * Handles rejecting a connection request from a sender.
    */
   const handleRejectRequest = async (e: React.MouseEvent | SwipeEventData, senderId: number) => {
-    // Note: 'e.stopPropagation()' is removed as per your request
     try {
       await apiClient.post(`/connections/reject?senderProfileId=${senderId}`);
       fetchConnectionRequests(); // Refresh requests after rejecting
@@ -209,7 +207,6 @@ const MatchingPage: React.FC = () => {
    * Handles removing an existing connection.
    */
   const handleRemoveConnection = async (e: React.MouseEvent | SwipeEventData, connectedUserId: number) => {
-    // Note: 'e.stopPropagation()' is removed as per your request
     try {
       // Assuming an API endpoint for removing connections, e.g., /connections/remove
       await apiClient.post(`/connections/remove?connectedUserId=${connectedUserId}`);
@@ -235,6 +232,8 @@ const MatchingPage: React.FC = () => {
           onSecondary={handleRemoveConnection} // Secondary action: remove connection
           onCardClick={handleCardClick} // Action for clicking the card (view profile)
           hasUnreadRequests={hasUnreadConnections} // Indicator for unread connections
+          currentUserId={currentUserId} // NEW: Pass currentUserId
+          unreadMessages={unreadMessages} // NEW: Pass unreadMessages
         />
         {/* Section for new user recommendations */}
         <MatchingSection
@@ -244,6 +243,8 @@ const MatchingPage: React.FC = () => {
           onPrimary={handleSendRequest} // Primary action: send a request
           onSecondary={handleRejectRequest} // Secondary action: reject/skip recommendation
           onCardClick={handleCardClick} // Action for clicking the card (view profile)
+          currentUserId={currentUserId} // NEW: Pass currentUserId
+          unreadMessages={unreadMessages} // NEW: Pass unreadMessages
         />
         {/* Section for incoming connection requests */}
         <MatchingSection
@@ -254,6 +255,8 @@ const MatchingPage: React.FC = () => {
           onSecondary={handleRejectRequest} // Secondary action: reject request
           onCardClick={handleCardClick} // Action for clicking the card (view profile)
           hasUnreadRequests={hasUnreadConnectionRequests} // Indicator for unread requests
+          currentUserId={currentUserId} // NEW: Pass currentUserId
+          unreadMessages={unreadMessages} // NEW: Pass unreadMessages
         />
       </Accordion>
     </div>
