@@ -1,9 +1,9 @@
 import React from 'react';
 import { Accordion, Badge } from 'react-bootstrap';
 import SwipeableUserCard from './SwipeableUserCard';
-import { UserProfile } from '../types/UserProfile';
+import { UserProfile } from '../../types/UserProfile';
 import { SwipeEventData } from 'react-swipeable';
-import "../styles/ColorPallette.css";
+import "../../styles/ColorPallette.css";
 
 /**
  * Defines the props for the MatchingSection component.

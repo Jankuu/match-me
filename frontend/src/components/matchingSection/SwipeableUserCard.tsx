@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Button, Row, Col, Image, Badge } from 'react-bootstrap'; // Importing Badge
 import { FaComment, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { SwipeEventData, useSwipeable } from 'react-swipeable';
-import { UserProfile } from '../types/UserProfile';
+import { UserProfile } from '../../types/UserProfile';
 
 /**
  * Defines the props for the SwipeableUserCard component.

@@ -90,10 +90,15 @@ function App() {
         paddingBottom: isMobile ? 75 : 0, // Add padding to avoid content being hidden by bottom NavBar on mobile
         minHeight: "100vh", // Ensure the container takes at least full viewport height
         boxSizing: "border-box", // Include padding and border in the element's total width and height
-      };
+        display: "flex", // Make it a flex container
+        flexDirection: "column", // Stack items vertically
+        flexGrow: 1, // Allow it to grow and fill available space
+        overflowY: "auto", // Allow this container to scroll if its content overflows
+    };
+
 
     return (
-            <div>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', overflow: 'hidden' }}>
                 {/* Conditionally render the NavBar:
                     - Only if a token exists (user is logged in)
                     - And if the current path is NOT login or register page

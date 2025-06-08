@@ -7,7 +7,7 @@ import React, {
     useState,
 } from "react";
 import { Client, IMessage } from "@stomp/stompjs";
-import { Message } from "../types/Message"; // Assuming Message type is { senderId: number; receiverId: number; content: string; timestamp: string; } or similar
+import { ChatMessage } from "../types/ChatMessage";
 
 // Define the structure for storing unread messages per user
 interface UnreadMessagesMap {
@@ -33,7 +33,7 @@ interface WebSocketContextType {
     unreadMessages: UnreadMessagesMap;
     markMessagesAsReadForUser: (userId: number) => void;
     // NEW: Callback to notify specific components about new messages
-    registerMessageCallback: (userId: number, callback: (message: Message) => void) => () => void;
+    registerMessageCallback: (userId: number, callback: (message: ChatMessage) => void) => () => void;
 
     refreshAuthData: () => void;
 }
@@ -64,10 +64,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     const [jwtToken, setJwtToken] = useState<string | null>(null);
 
     // NEW: Ref to store message callbacks for active chat pages
-    const messageCallbacks = useRef<{ [userId: number]: (message: Message) => void }>({});
+    const messageCallbacks = useRef<{ [userId: number]: (message: ChatMessage) => void }>({});
 
     // Register a callback for a specific user's chat messages
-    const registerMessageCallback = useCallback((userId: number, callback: (message: Message) => void) => {
+    const registerMessageCallback = useCallback((userId: number, callback: (message: ChatMessage) => void) => {
         messageCallbacks.current[userId] = callback;
         // Return a cleanup function to remove the callback when the component unmounts
         return () => {
@@ -181,7 +181,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                     (msg: IMessage) => {
                         console.log("New message:", msg.body);
                         try {
-                            const messageObj: Message = JSON.parse(msg.body);
+                            const messageObj: ChatMessage = JSON.parse(msg.body);
                             // Determine the sender ID for unread counts
                             // If the message is from me, it means the other user sent it to me
                             // If the message is to me, it means the other user sent it to me

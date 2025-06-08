@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Accordion } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../utils/apiClient';
-import MatchingSection from '../components/MatchingSection';
+import MatchingSection from '../components/matchingSection/MatchingSection';
 import { useWebSocket } from '../context/WebSocketContext';
 
 import type { UserProfile } from '../types/UserProfile';
