@@ -152,15 +152,15 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
     const isFormValid =
         (((isEmailValid && emailMatch) || usernameValid) ||
         ((isEmailValid && emailMatch) && usernameValid)) &&
-        (passwordMatch && isPasswordValid) &&
-        nameValid &&
-        isBirthDateValid &&
-        gender.trim().length > 0 &&
-        height > 0 &&
-        description.trim().length > 0 &&
-        isLocationValid &&
-        radius > 0 &&
-        preferredGenders.length > 0;
+        (passwordMatch && isPasswordValid);
+        // nameValid &&
+        // isBirthDateValid &&
+        // gender.trim().length > 0 &&
+        // height > 0 &&
+        // description.trim().length > 0 &&
+        // isLocationValid &&
+        // radius > 0 &&
+        // preferredGenders.length > 0;
 
     /**
      * Helper function to read an image file and convert it to a Base64 string.
@@ -251,7 +251,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 birthDate={birthDateUi}
                 onChange={setBirthDateUi}
                 onValidate={setIsBirthDateValid}
-                required={true}
+                required={false}
                 minAge={18}
                 maxAge={120}
             />

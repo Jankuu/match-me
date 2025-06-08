@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an Axios instance with a base URL
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: 'http://localhost:8080'
 });
 
 // Request interceptor to add authorization token to headers

@@ -34,11 +34,6 @@ const MatchingPage: React.FC = () => {
   const userData = JSON.parse(localStorage.getItem("user") || "{}");
   const currentUserId = userData?.id || userData?.profile?.id;
 
-  // Log token on component mount (for debugging, could be removed in production)
-  useEffect(() => {
-    console.log(localStorage.getItem("token"));
-  }, []);
-
   // Fetch initial data when currentUserId is available
   useEffect(() => {
     if (currentUserId) {

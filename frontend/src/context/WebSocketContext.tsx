@@ -6,166 +6,185 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { Client, IMessage } from "@stomp/stompjs"; // Import STOMP client for WebSocket communication
-import { Message } from "../types/Message"; // Import type definition for messages
+import { Client, IMessage } from "@stomp/stompjs";
+import { Message } from "../types/Message";
 
-/**
- * Defines the shape of the WebSocket context.
- * This interface specifies all the values and functions that will be
- * exposed by the WebSocketProvider to its consumers.
- */
 interface WebSocketContextType {
-    sendMessage: (receiverId: number, message: string) => void; // Function to send a message
-    isConnected: boolean; // Boolean indicating if the WebSocket is currently connected
-    client: Client | null; // The STOMP client instance (can be null before connection)
-    messages: Message[]; // Array of received chat messages
-    connectionNotification: string[]; // Array of raw notifications about connection status changes (e.g., "accepted", "rejected")
-    connectionRequestNotification: string[]; // Array of raw notifications about new incoming connection requests
-    hasUnreadConnections: boolean; // Flag to indicate if there are new unread connection status notifications
-    hasUnreadConnectionRequests: boolean; // Flag to indicate if there are new unread connection request notifications
-    markAllNotificationsAsRead: () => void; // Function to clear both unread flags
-    markConnectionRequestsAsRead: () => void; // Function to clear only the connection request unread flag
-    markConnectionsAsRead: () => void; // Function to clear only the connection status unread flag
+    isConnected: boolean;
+    client: Client | null;
+
+    sendMessage: (receiverId: number, message: string) => void;
+    messages: Message[];
+
+    connectionNotification: string[];
+    connectionRequestNotification: string[];
+    hasUnreadConnections: boolean;
+    hasUnreadConnectionRequests: boolean;
+
+    markAllNotificationsAsRead: () => void;
+    markConnectionRequestsAsRead: () => void;
+    markConnectionsAsRead: () => void;
+    // НОВАЯ ФУНКЦИЯ: для обновления данных аутентификации из localStorage
+    refreshAuthData: () => void;
 }
 
-// Create the React Context.
-// This will be used by the provider to pass down values and by consumers to access them.
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
-/**
- * WebSocketProvider component.
- * This component sets up and manages the WebSocket connection using @stomp/stompjs.
- * It provides WebSocket-related state and functions to its children components via context.
- */
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
-    // useRef to hold the STOMP client instance.
-    // useRef is used here because the client object itself doesn't trigger re-renders
-    // when it changes, and it persists across renders.
     const client = useRef<Client | null>(null);
 
-    // useState for connection status.
     const [isConnected, setIsConnected] = useState(false);
-    // useState for chat messages.
     const [messages, setMessages] = useState<Message[]>([]);
-    // useState for connection status notifications (e.g., connection accepted/rejected).
     const [connectionNotification, setConnectionNotification] = useState<
         string[]
     >([]);
-    // useState for incoming connection request notifications.
     const [connectionRequestNotification, setConnectionRequestNotification] =
         useState<string[]>([]);
 
-    // useState for unread flags (derived state for UI indication).
     const [hasUnreadConnections, setHasUnreadConnections] = useState(false);
     const [hasUnreadConnectionRequests, setHasUnreadConnectionRequests] =
         useState(false);
 
-    // useEffect to update hasUnreadConnections flag when connectionNotification array changes.
-    // If there's any notification, set the flag to true.
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+    const [jwtToken, setJwtToken] = useState<string | null>(null);
+
     useEffect(() => {
         if (connectionNotification.length > 0) {
             setHasUnreadConnections(true);
         }
     }, [connectionNotification]);
 
-    // useEffect to update hasUnreadConnectionRequests flag when connectionRequestNotification array changes.
-    // If there's any request notification, set the flag to true.
     useEffect(() => {
         if (connectionRequestNotification.length > 0) {
             setHasUnreadConnectionRequests(true);
         }
     }, [connectionRequestNotification]);
 
-    /**
-     * Callback function to mark all types of notifications as read.
-     * Resets both hasUnreadConnections and hasUnreadConnectionRequests flags to false.
-     * Optionally, you could clear the underlying notification arrays here too if desired.
-     */
     const markAllNotificationsAsRead = useCallback(() => {
         setHasUnreadConnections(false);
         setHasUnreadConnectionRequests(false);
-        // Optionally, clear the raw notification arrays if you want to reset them
-        // setConnectionNotification([]);
-        // setConnectionRequestNotification([]);
-    }, []); // Empty dependency array means this function is created once
+        setConnectionNotification([]);
+        setConnectionRequestNotification([]);
+    }, []);
 
-    /**
-     * Callback function to mark only connection request notifications as read.
-     * Resets hasUnreadConnectionRequests flag to false.
-     */
     const markConnectionRequestsAsRead = useCallback(() => {
         setHasUnreadConnectionRequests(false);
-        // setConnectionRequestNotification([]); // Clear raw requests if desired
+        setConnectionRequestNotification([]);
     }, []);
 
-    /**
-     * Callback function to mark only connection status notifications as read.
-     * Resets hasUnreadConnections flag to false.
-     */
     const markConnectionsAsRead = useCallback(() => {
         setHasUnreadConnections(false);
-        // setConnectionNotification([]); // Clear raw connections if desired
+        setConnectionNotification([]);
     }, []);
 
-    /**
-     * useEffect hook to handle WebSocket connection lifecycle.
-     * This runs once on component mount and cleans up on unmount.
-     */
-    useEffect(() => {
-        // Retrieve JWT token from localStorage.
+    // НОВАЯ ФУНКЦИЯ: Функция для принудительного обновления токена и ID пользователя
+    const refreshAuthData = useCallback(() => {
         const token = localStorage.getItem("token");
-        if (token == null) {
-            console.log("JWT is null"); // Log if token is missing (connection will likely fail)
-            // Consider more robust error handling or user redirection here
+        setJwtToken(token); // Обновляем состояние токена
+
+        try {
+            const userJson = localStorage.getItem("user");
+            if (userJson) {
+                const user = JSON.parse(userJson);
+                if (typeof user.id === 'number') {
+                    setCurrentUserId(user.id);
+                } else if (typeof user.id === 'string') {
+                    setCurrentUserId(parseInt(user.id, 10));
+                } else {
+                    console.warn("User ID in localStorage is not a number or string:", user.id);
+                    setCurrentUserId(null); // Очищаем, если данные невалидны
+                }
+            } else {
+                console.warn("User object not found in localStorage. Cannot determine current user ID for notification filtering.");
+                setCurrentUserId(null); // Очищаем, если user object отсутствует
+            }
+        } catch (e) {
+            console.error("Error parsing user data from localStorage:", e);
+            setCurrentUserId(null); // Очищаем при ошибке парсинга
+        }
+        console.log("refreshAuthData called. New JWT State:", token ? "present" : "null", "New User ID State:", currentUserId);
+
+    }, [currentUserId]); // Добавил currentUserId в зависимости, чтобы console.log показывал актуальное значение при вызове. Влияния на логику нет.
+
+    // Вызываем refreshAuthData один раз при монтировании компонента.
+    // Это гарантирует, что токен и ID пользователя будут загружены при старте.
+    useEffect(() => {
+        refreshAuthData();
+    }, [refreshAuthData]); // Зависимость от refreshAuthData, чтобы гарантировать, что он будет вызван
+
+    useEffect(() => {
+        // Проверяем, что токен доступен, прежде чем пытаться подключиться
+        if (jwtToken == null) {
+            console.log("JWT is null, cannot establish WebSocket connection.");
+            // Если клиент уже активирован (например, был логин, потом логаут), деактивируем его
+            if (client.current && client.current.connected) {
+                client.current.deactivate();
+                setIsConnected(false);
+            }
+            return;
         }
 
-        // Create a new STOMP client instance.
+        // Если currentUserId еще не загружен (или стал null), ждем его
+        if (currentUserId === null) {
+            console.log("Current user ID not loaded yet, waiting to establish WebSocket connection.");
+            return;
+        }
+
+        // Деактивируем существующий клиент, если он есть, перед созданием нового.
+        // Это важно для переподключения, когда токен обновился.
+        if (client.current && client.current.connected) {
+            console.log("Deactivating existing WebSocket client for reconnection.");
+            client.current.deactivate();
+        }
+
         const stompClient = new Client({
-            // WebSocket broker URL, including the JWT token as a query parameter for authentication.
-            brokerURL: `ws://localhost:8080/ws?token=${token}`,
-            // Custom headers for connection, also including Authorization for security.
+            brokerURL: `ws://localhost:8080/ws?token=${jwtToken}`,
             connectHeaders: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${jwtToken}`,
             },
-            // Enable debug logging for STOMP client.
             debug: (str) => console.log("[STOMP]", str),
-            // Reconnection delay in milliseconds if connection is lost.
             reconnectDelay: 5000,
-            // Callback function executed when the STOMP client successfully connects.
             onConnect: () => {
                 console.log("Connected to WebSocket");
-                setIsConnected(true); // Update connection status state
+                setIsConnected(true);
 
-                // Subscribe to the private message queue for the current user.
-                // Messages sent to /app/send will be routed here by the server.
                 stompClient.subscribe(
                     "/user/queue/messages",
                     (msg: IMessage) => {
                         console.log("New message:", msg.body);
-                        // Parse the message body and add it to the messages state.
                         const messageObj: Message = JSON.parse(msg.body);
                         setMessages((prev) => [...prev, messageObj]);
                     }
                 );
 
-                // Subscribe to the connection notification queue.
-                // This queue receives updates about connections (e.g., another user accepting/rejecting a request).
                 stompClient.subscribe(
                     "/user/queue/notifications/connection",
                     (con: IMessage) => {
-                        console.log("New connection:", con.body);
-                        setConnectionNotification((prev) => [
-                            ...prev,
-                            con.body,
-                        ]);
-                        setHasUnreadConnections(true); // Set unread flag for UI
+                        console.log("New connection notification received:", con.body);
+                        try {
+                            const notificationData = JSON.parse(con.body);
+                            if (currentUserId !== null && notificationData.id === currentUserId) {
+                                console.log("Skipping connection notification for current user's own ID.");
+                                return;
+                            }
+                            setConnectionNotification((prev) => [
+                                ...prev,
+                                con.body,
+                            ]);
+                            setHasUnreadConnections(true);
+                        } catch (error) {
+                            console.error("Failed to parse connection notification JSON:", error, con.body);
+                            setConnectionNotification((prev) => [
+                                ...prev,
+                                con.body,
+                            ]);
+                            setHasUnreadConnections(true);
+                        }
                     }
                 );
 
-                // Subscribe to the connection request notification queue.
-                // This queue receives notifications when other users send connection requests to the current user.
                 stompClient.subscribe(
                     "/user/queue/notifications/connectionRequest",
                     (con: IMessage) => {
@@ -173,66 +192,78 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                             "New connection request received:",
                             con.body
                         );
-                        setConnectionRequestNotification((prev) => [
-                            ...prev,
-                            con.body,
-                        ]);
-                        setHasUnreadConnectionRequests(true); // Set unread flag for UI
+                        try {
+                            const requestData = JSON.parse(con.body);
+                            if (currentUserId !== null && requestData.id === currentUserId) {
+                                console.log("Skipping connection request notification for current user's own ID.");
+                                return;
+                            }
+                            setConnectionRequestNotification((prev) => [
+                                ...prev,
+                                con.body,
+                            ]);
+                            setHasUnreadConnectionRequests(true);
+                        } catch (error) {
+                            console.error("Failed to parse connection request notification JSON:", error, con.body);
+                            setConnectionRequestNotification((prev) => [
+                                ...prev,
+                                con.body,
+                            ]);
+                            setHasUnreadConnectionRequests(true);
+                        }
                     }
                 );
             },
-            // Callback function executed when the STOMP client disconnects.
             onDisconnect: () => {
                 console.log("Disconnected from WebSocket");
-                setIsConnected(false); // Update connection status state
+                setIsConnected(false);
             },
+            onStompError: (frame) => {
+                console.error('Broker reported error: ' + frame.headers['message']);
+                console.error('Additional details: ' + frame.body);
+                if (client.current) { // Не полагаемся на isConnected, просто пытаемся деактивировать
+                    client.current.deactivate();
+                    setIsConnected(false);
+                }
+            }
         });
 
-        // Activate the STOMP client to establish connection.
         stompClient.activate();
-        // Store the active client in the useRef for later use (e.g., sending messages).
         client.current = stompClient;
 
-        // Cleanup function for useEffect.
-        // This will be called when the component unmounts.
         return () => {
-            stompClient.deactivate(); // Disconnect the STOMP client
+            if (client.current) {
+                console.log("Deactivating WebSocket client during cleanup.");
+                client.current.deactivate();
+                setIsConnected(false);
+            }
         };
-    }, []); // Empty dependency array ensures this effect runs only once on mount
+    }, [jwtToken, currentUserId]); // Зависимости: jwtToken и currentUserId
 
-    /**
-     * Function to send a chat message to a specific receiver.
-     * @param receiverId The ID of the recipient's profile.
-     * @param message The content of the message.
-     */
-    const sendMessage = (receiverId: number, message: string) => {
-        // Check if the client is initialized and connected before sending.
+    const sendMessage = useCallback((receiverId: number, message: string) => {
         if (client.current && isConnected) {
             const payload = {
                 receiverProfileId: receiverId,
                 content: message,
             };
 
-            // Publish (send) the message to the STOMP destination.
-            // The Spring backend will process this and route it to the correct user.
             client.current.publish({
-                destination: "/app/send", // STOMP destination for sending messages
-                body: JSON.stringify(payload), // Message payload as a JSON string
+                destination: "/app/send",
+                body: JSON.stringify(payload),
             });
 
             console.log("Send message:", payload);
         } else {
-            console.warn("WebSocket not connected"); // Warn if trying to send while disconnected
+            console.warn("WebSocket not connected");
         }
-    };
+    }, [isConnected]);
 
     return (
-        // Provide the WebSocket context values to all children components.
         <WebSocketContext.Provider
             value={{
                 sendMessage,
                 isConnected,
-                client: client.current, // Expose the STOMP client instance
+                client: client.current,
                 messages,
                 connectionNotification,
                 connectionRequestNotification,
@@ -241,17 +272,14 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 markAllNotificationsAsRead,
                 markConnectionRequestsAsRead,
                 markConnectionsAsRead,
+                refreshAuthData, // Предоставляем новую функцию через контекст
             }}
         >
-            {children} {/* Render child components that consume this context */}
+            {children}
         </WebSocketContext.Provider>
     );
 };
 
-/**
- * Custom hook to easily consume the WebSocket context.
- * Throws an error if used outside of a WebSocketProvider.
- */
 export const useWebSocket = () => {
     const ctx = useContext(WebSocketContext);
     if (!ctx)
