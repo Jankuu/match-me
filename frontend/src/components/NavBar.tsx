@@ -5,7 +5,7 @@ import {
 } from "react-icons/fa";
 import { BsPeopleFill } from "react-icons/bs";
 import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
-import { useWebSocket } from "../context/WebSocketContext";
+import { useWebSocket } from "../providers/WebSocketProvider";
 import "../styles/NavBar.css";
 import "../styles/ColorPallette.css"; // Assuming --danger-color is defined here
 

@@ -3,18 +3,18 @@ import { Accordion } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../utils/apiClient';
 import MatchingSection from '../components/matchingSection/MatchingSection';
-import { useWebSocket } from '../context/WebSocketContext';
+import { useWebSocket } from '../providers/WebSocketProvider';
 
-import type { UserProfile } from '../types/UserProfile';
+import type { CardUserProfile } from '../types/CardUserProfile';
 import type { SwipeEventData } from 'react-swipeable';
 
 import "../styles/ColorPallette.css";
 
 const MatchingPage: React.FC = () => {
   // State for different categories of user profiles
-  const [userConnections, setUserConnections] = useState<UserProfile[]>([]);
-  const [userRecommendations, setUserRecommendations] = useState<UserProfile[]>([]);
-  const [connectionRequests, setConnectionRequests] = useState<UserProfile[]>([]);
+  const [userConnections, setUserConnections] = useState<CardUserProfile[]>([]);
+  const [userRecommendations, setUserRecommendations] = useState<CardUserProfile[]>([]);
+  const [connectionRequests, setConnectionRequests] = useState<CardUserProfile[]>([]);
   const navigate = useNavigate(); // Hook for programmatic navigation
 
   // Destructure WebSocket context values for notifications and marking as read
@@ -73,7 +73,7 @@ const MatchingPage: React.FC = () => {
         connection.sender?.id === currentUserId ? connection.receiver
         : connection.receiver?.id === currentUserId ? connection.sender
         : null
-      ).filter(Boolean) as UserProfile[]; // Filter out any nulls and cast to UserProfile[]
+      ).filter(Boolean) as CardUserProfile[]; // Filter out any nulls and cast to UserProfile[]
 
       setUserConnections(otherUsers);
     } catch (error) {

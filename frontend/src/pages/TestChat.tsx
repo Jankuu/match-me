@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "../styles/TestChat.css";
-import { useWebSocket } from "../context/WebSocketContext";
+import { useWebSocket } from "../providers/WebSocketProvider";
 import apiClient from "../utils/apiClient";
 import axios from "axios";
 

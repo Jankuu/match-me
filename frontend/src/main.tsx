@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
-import { WebSocketProvider } from "./context/WebSocketContext.tsx"; // Import the WebSocket context provider
+import { WebSocketProvider } from "./providers/WebSocketProvider.tsx"; // Import the WebSocket context provider
 // import 'bootstrap/dist/css/bootstrap.min.css'; // Commented out: Bootstrap default CSS (likely replaced by custom.scss)
 import "./utils/apiClient"; // Imports and executes apiClient setup (e.g., setting up Axios defaults)
 import "./index.css"; // Global custom CSS styles

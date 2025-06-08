@@ -1,4 +1,4 @@
-export interface UserInterestVectorDTO {
+export interface UserInterestVector {
     fantasy: number;
     competitive: number;
     action: number;

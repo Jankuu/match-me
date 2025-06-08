@@ -1,21 +1,21 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { FormEvent } from "react";
 import { Form, Button, Row, Col } from "react-bootstrap";
 
 import { User } from "../../types/User";
-import { Game } from "../../dto/Game";
+import { Game } from "../../types/Game";
 import GameSelector from "../formComponents/GameSelector";
 import LocationSelector from "../formComponents/LocationSelector";
 import RadiusSelector from "../formComponents/RadiusSelector";
 import PreferredGenderSelector from "../formComponents/PreferredGenderSelector";
 import Description from "../formComponents/Description";
 import ImageUpload from "../formComponents/ImageUpload";
-
 import HeightSet from "../formComponents/HeightSet";
-import { Coordinates } from "../../types/Cordinates";
-import GenderSelector from "../formComponents/GernderSelector";
+import GenderSelector from "../formComponents/GenderSelector"; // Corrected typo if any, ensure this matches your actual file name
+import useAccountForm from "../../hooks/useAccountForm"; // Import the new custom hook
 
 /**
  * Defines the props for the AccountForm component.
+ * These are the external props passed to the component.
  */
 interface AccountFormProps {
     profile: User;
@@ -27,12 +27,14 @@ interface AccountFormProps {
     currentImageFile: File | null;
     onClearProfilePicture: () => void;
     onBirthDateValidationChange: (isValid: boolean) => void;
-    onFormValidationChange: (isValid: boolean) => void; // This is crucial for isSaveDisabled
+    onFormValidationChange: (isValid: boolean) => void;
     allAvailableGames: Game[];
 }
 
 /**
  * AccountForm component.
+ * This component is responsible for rendering the user's account profile editing form.
+ * It uses the `useAccountForm` hook to manage its internal state and validation logic.
  */
 const AccountForm: React.FC<AccountFormProps> = ({
     profile,
@@ -47,190 +49,40 @@ const AccountForm: React.FC<AccountFormProps> = ({
     onFormValidationChange,
     allAvailableGames,
 }) => {
-    // --- Internal States for Form Field Validation & Specifics ---
-    const [locationString, setLocationString] = useState<string>(profile.cityName || "");
-    const [locationCoordinates, setLocationCoordinates] = useState<Coordinates | undefined>(
-        profile.lat !== null && profile.lng !== null ? { lat: profile.lat, lng: profile.lng } : undefined
-    );
-    const [locationPlaceId, setLocationPlaceId] = useState<string | undefined>(profile.googlePlaceId || undefined);
-    const [isLocationGpsUsedInternal, setIsLocationGpsUsedInternal] = useState<boolean | undefined>(profile.isGpsUsed === true);
-
-    // Validation states for required fields
-    const [isNameValid, setIsNameValid] = useState(profile.profile.name.trim().length > 0);
-    const [isBirthDateValidInternal, setIsBirthDateValidInternal] = useState(true);
-    const [isLocationValid, setIsLocationValid] = useState(true); // State for location validity
-    const [isFormValid, setIsFormValid] = useState(false); // Local state to track overall form validity
-
-    /**
-     * useEffect to synchronize internal location states with `profile` (UserDTO) changes from parent.
-     */
-    useEffect(() => {
-        setLocationString(profile.cityName || "");
-        setLocationCoordinates(profile.lat !== null && profile.lng !== null ? { lat: profile.lat, lng: profile.lng } : undefined);
-        setLocationPlaceId(profile.googlePlaceId || undefined);
-        setIsLocationGpsUsedInternal(profile.isGpsUsed === true);
-
-        const isLocOk = !(profile.cityName && (profile.lat === null || profile.lng === null));
-        setIsLocationValid(isLocOk);
-    }, [profile.cityName, profile.lat, profile.lng, profile.googlePlaceId, profile.isGpsUsed]);
-
-    /**
-     * useEffect to notify the parent about the overall form validation status.
-     */
-    useEffect(() => {
-        const overallValid =
-            isNameValid &&
-            isBirthDateValidInternal &&
-            isLocationValid &&
-            !!profile.profile.gender && // Ensure gender is selected
-            !!profile.interestedGenders?.length &&
-            (profile.profile.height !== null && profile.profile.height !== 0) &&
-            (profile.radius !== null && profile.radius !== 0);
-
-        setIsFormValid(overallValid); // Update local state
-        onFormValidationChange(overallValid); // Notify parent
-    }, [
+    // Use the custom hook to get all form-related states and handlers
+    const {
+        locationString,
         isNameValid,
         isBirthDateValidInternal,
         isLocationValid,
-        profile.profile.gender,
-        profile.interestedGenders,
-        profile.profile.height,
-        profile.radius,
+        handleLocationChange,
+        handleBirthDateChange,
+        handleNameChange,
+        handleGamesChange,
+        handleRadiusChange,
+        handleGenderChange,
+        handlePreferredGenderChange,
+        handleDescriptionChange,
+        handleHeightChange,
+        isSaveDisabled,
+    } = useAccountForm({
+        profile,
+        editing,
+        allAvailableGames,
+        onProfileChange,
+        onRootChange,
         onFormValidationChange,
-    ]);
+        onBirthDateValidationChange,
+    });
 
     /**
-     * Callback for handling location changes from `LocationSelector`.
+     * Handles the overall form submission.
+     * This simply calls the `onSave` prop passed from the parent.
      */
-    const handleLocationChange = useCallback(
-        (
-            address: string,
-            placeId: string | null,
-            coordinates: Coordinates | null,
-            isGpsUsed: boolean | null
-        ) => {
-            setLocationString(address);
-            setLocationPlaceId(placeId === null ? undefined : placeId);
-            setLocationCoordinates(coordinates === null ? undefined : coordinates);
-            setIsLocationGpsUsedInternal(isGpsUsed === true);
-
-            onRootChange("cityName", address);
-            onRootChange("googlePlaceId", placeId);
-            onRootChange("lat", coordinates ? coordinates.lat : null);
-            onRootChange("lng", coordinates ? coordinates.lng : null);
-            onRootChange("isGpsUsed", isGpsUsed === true);
-
-            const isValid = !(address.length > 0 && (!coordinates || coordinates.lat === null || coordinates.lng === null));
-            setIsLocationValid(isValid);
-        },
-        [onRootChange]
-    );
-
-    /**
-     * Callback for handling birth date changes.
-     */
-    const handleBirthDateChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const newDate = e.target.value;
-            onProfileChange("birthDate", newDate);
-
-            const birthDate = new Date(newDate);
-            const today = new Date();
-            const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-
-            const isValid = birthDate <= today && birthDate <= minDate;
-            setIsBirthDateValidInternal(isValid);
-            onBirthDateValidationChange(isValid);
-        },
-        [onProfileChange, onBirthDateValidationChange]
-    );
-
-    /**
-     * Callback for handling user name changes.
-     */
-    const handleNameChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const newName = e.target.value;
-            onProfileChange("name", newName);
-            setIsNameValid(newName.trim().length > 0);
-        },
-        [onProfileChange]
-    );
-
-    /**
-     * Callback for handling changes in game selection from GameSelector.
-     */
-    const handleGamesChange = useCallback(
-        (newSelectedGameIds: Set<number>) => {
-            const updatedGames = Array.from(newSelectedGameIds).map(id => {
-                const game = allAvailableGames.find(g => g.id === id);
-                return game || { id: id, name: `Unknown Game ${id}` };
-            });
-            onRootChange("interestedGames", updatedGames);
-        },
-        [onRootChange, allAvailableGames]
-    );
-
-    /**
-     * Callback for handling radius changes.
-     */
-    const handleRadiusChange = useCallback(
-        (newRadius: number) => {
-            onRootChange("radius", newRadius);
-        },
-        [onRootChange]
-    );
-
-    /**
-     * Callback for handling gender changes.
-     */
-    const handleGenderChange = useCallback(
-        (gender: string) => {
-            onProfileChange("gender", gender);
-        },
-        [onProfileChange]
-    );
-
-    /**
-     * Callback for handling preferred gender changes.
-     */
-    const handlePreferredGenderChange = useCallback(
-        (genders: string[]) => {
-            onRootChange("interestedGenders", genders);
-        },
-        [onRootChange]
-    );
-
-    /**
-     * Callback for handling description changes.
-     */
-    const handleDescriptionChange = useCallback(
-        (description: string) => {
-            onProfileChange("description", description);
-        },
-        [onProfileChange]
-    );
-
-    /**
-     * Callback for handling height changes.
-     */
-    const handleHeightChange = useCallback(
-        (height: number) => {
-            onProfileChange("height", height);
-        },
-        [onProfileChange]
-    );
-
-    /**
-     * Handles form submission.
-     */
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         onSave();
     };
-
-    const isSaveDisabled = !editing || !isFormValid || profile.id === null;
 
     return (
         <Form onSubmit={handleSubmit}>
@@ -251,9 +103,9 @@ const AccountForm: React.FC<AccountFormProps> = ({
                     type="text"
                     placeholder="Enter your name"
                     value={profile.profile.name}
-                    onChange={handleNameChange}
+                    onChange={handleNameChange} // Handler from hook
                     disabled={!editing}
-                    isInvalid={!isNameValid}
+                    isInvalid={!isNameValid} // Validation state from hook
                 />
                 <Form.Control.Feedback type="invalid">
                     Name is required.
@@ -265,9 +117,9 @@ const AccountForm: React.FC<AccountFormProps> = ({
                 <Form.Control
                     type="date"
                     value={profile.profile.birthDate}
-                    onChange={handleBirthDateChange}
+                    onChange={handleBirthDateChange} // Handler from hook
                     disabled={!editing}
-                    isInvalid={!isBirthDateValidInternal}
+                    isInvalid={!isBirthDateValidInternal} // Validation state from hook
                 />
                 <Form.Control.Feedback type="invalid">
                     Must be at least 18 years old and not a future date.
@@ -275,35 +127,35 @@ const AccountForm: React.FC<AccountFormProps> = ({
             </Form.Group>
 
             <GenderSelector
-                selected={profile.profile.gender || ""} // Pass the current gender from profile
-                onChange={handleGenderChange} // Use the dedicated handler
-                isEditable={editing} // Make it editable only when in editing mode
+                selected={profile.profile.gender || ""}
+                onChange={handleGenderChange} // Handler from hook
+                isEditable={editing}
             />
 
             <PreferredGenderSelector
                 selected={profile.interestedGenders || []}
-                onChange={handlePreferredGenderChange}
+                onChange={handlePreferredGenderChange} // Handler from hook
                 isEditable={editing}
             />
 
             <Form.Group className="mb-3">
                 <HeightSet
                     height={profile.profile.height || 0}
-                    setHeight={handleHeightChange}
+                    setHeight={handleHeightChange} // Handler from hook
                     isEditable={editing}
                 />
             </Form.Group>
 
             <Form.Group className="mb-3">
                 <LocationSelector
-                    value={locationString}
-                    onChange={handleLocationChange}
+                    value={locationString} // State from hook
+                    onChange={handleLocationChange} // Handler from hook
                     isEditable={editing}
-                    lat={profile.lat}
-                    lng={profile.lng}
-                    googlePlaceId={profile.googlePlaceId}
-                    isGpsUsed={profile.isGpsUsed}
-                    isInvalid={!isLocationValid}
+                    lat={profile.lat} // Passed from profile directly, as hook doesn't need to internalize it for render
+                    lng={profile.lng} // Passed from profile directly
+                    googlePlaceId={profile.googlePlaceId} // Passed from profile directly
+                    isGpsUsed={profile.isGpsUsed} // Passed from profile directly
+                    isInvalid={!isLocationValid} // Validation state from hook
                 />
                 <Form.Control.Feedback type="invalid">
                     If an address is provided, it must have valid coordinates.
@@ -313,7 +165,7 @@ const AccountForm: React.FC<AccountFormProps> = ({
             <Form.Group className="mb-3">
                 <RadiusSelector
                     radius={profile.radius || 0}
-                    setRadius={handleRadiusChange}
+                    setRadius={handleRadiusChange} // Handler from hook
                     isEditable={editing}
                 />
             </Form.Group>
@@ -324,7 +176,7 @@ const AccountForm: React.FC<AccountFormProps> = ({
                     <GameSelector
                         allGames={allAvailableGames}
                         selectedGameIds={new Set(profile.interestedGames?.map(g => g.id) || [])}
-                        onToggle={handleGamesChange}
+                        onToggle={handleGamesChange} // Handler from hook
                         disabled={!editing}
                     />
                 </div>
@@ -333,7 +185,7 @@ const AccountForm: React.FC<AccountFormProps> = ({
             <Form.Group className="mb-3">
                 <Description
                     description={profile.profile.description || ""}
-                    setDescription={handleDescriptionChange}
+                    setDescription={handleDescriptionChange} // Handler from hook
                 />
             </Form.Group>
 

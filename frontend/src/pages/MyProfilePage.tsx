@@ -5,7 +5,7 @@ import { ArrowLeft } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 
 import { User } from "../types/User"; // Corrected User type
-import { Game } from "../dto/Game"; // Corrected Game DTO
+import { Game } from "../types/Game"; // Corrected Game DTO
 import apiClient from "../utils/apiClient";
 import ProfilePicture from "../components/formComponents/ProfilePicture";
 import AccountForm from "../components/forms/AccountForm";

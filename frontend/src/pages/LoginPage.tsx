@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { getUserIdentifierFromToken, isAuthenticated } from "../utils/auth";
 import "../styles/ColorPallette.css";
 // Импортируйте useWebSocket из вашего контекста
-import { useWebSocket } from '../context/WebSocketContext'; // <-- НОВОЕ: Импорт контекста
+import { useWebSocket } from '../providers/WebSocketProvider'; // <-- НОВОЕ: Импорт контекста
 
 interface User {
     id: number;

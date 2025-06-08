@@ -4,7 +4,7 @@ import React from "react";
 import { Container, Button, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 // Импортируем useWebSocket из вашего контекста
-import { useWebSocket } from '../context/WebSocketContext'; // <-- НОВОЕ: Импорт контекста
+import { useWebSocket } from '../providers/WebSocketProvider'; // <-- НОВОЕ: Импорт контекста
 
 interface SettingsPageProps {
     onLogout: () => void;

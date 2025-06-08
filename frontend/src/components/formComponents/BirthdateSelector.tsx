@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'; // Import React, state, effect, and callback hooks
-import { Form, Alert } from 'react-bootstrap'; // Import Form and Alert components from React-Bootstrap
+import { Form } from 'react-bootstrap'; // Import Form and Alert components from React-Bootstrap
 
 /**
  * Defines the props for the BirthDateSelector component.

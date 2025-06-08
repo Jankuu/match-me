@@ -1,7 +1,7 @@
 import React from 'react';
 import { Accordion, Badge } from 'react-bootstrap';
 import SwipeableUserCard from './SwipeableUserCard';
-import { UserProfile } from '../../types/UserProfile';
+import { CardUserProfile } from '../../types/CardUserProfile';
 import { SwipeEventData } from 'react-swipeable';
 import "../../styles/ColorPallette.css";
 
@@ -26,7 +26,7 @@ import "../../styles/ColorPallette.css";
  */
 type Props = {
     title: string;
-    users: UserProfile[];
+    users: CardUserProfile[];
     cardType: 'connections' | 'recommendations' | 'requests';
     onPrimary: (e: React.MouseEvent | SwipeEventData, id: number, name: string) => void;
     onSecondary: (e: React.MouseEvent | SwipeEventData, id: number) => void;

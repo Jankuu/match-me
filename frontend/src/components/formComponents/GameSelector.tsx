@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Button, Collapse } from 'react-bootstrap';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa'; // Import icons for chevrons
-import { Game } from '../../dto/Game'; // Ensure the path is correct
+import { Game } from '../../types/Game'; // Ensure the path is correct
 
 interface GameSelectorProps {
     allGames: Game[]; // List of all available games

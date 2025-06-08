@@ -23,6 +23,7 @@ import JwtTestPage from "./pages/JwtTestPage"; // Test page for JWT (JSON Web To
 import TestChat from "./pages/TestChat"; // A test chat component ( for development/debugging)
 import { getUserIdentifierFromToken } from "./utils/auth"; // Utility function to extract user ID from JWT
 import UserProfilePage from "./pages/UserProfilePage"; // Public user profile page component
+import MessageHistoryLoader from "./components/testComponents/MessageHistoryLoader";
 
 /**
  * AppWrapper component.
@@ -182,6 +183,16 @@ function App() {
                         <Route path="/jwt-test" element={<JwtTestPage />} />
                         {/* Test Chat Page Route (development/debugging chat) */}
                         <Route path="/testchat" element={<TestChat />} />
+                        <Route path="/test-chat-history" element={
+                            <MessageHistoryLoader
+                                currentUserId={96} // Подставьте ID вашего пользователя
+                                receiverId={100} // Подставьте ID другого пользователя
+                                onMessagesLoaded={(msgs, page, total) => {
+                                    console.log(`Loaded ${msgs.length} messages for page ${page}. Total pages: ${total}`);
+                                    // Здесь можно выполнять дополнительные проверки в тестах
+                                }}
+                            />
+                        } />
                     </Routes>
                 </div>
             </div>

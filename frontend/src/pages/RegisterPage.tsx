@@ -2,7 +2,7 @@ import { useState } from "react"; // Import React's useState hook for managing c
 import { Container, Alert, Button } from "react-bootstrap"; // Import Bootstrap components for UI layout, alerts, and buttons
 import { useNavigate } from "react-router-dom"; // Import useNavigate hook from React Router for programmatic navigation
 import RegisterForm from "../components/forms/RegisterForm"; // Import the RegisterForm component, which handles the registration input fields
-import { UserRegistrationDTO } from "../dto/UserRegistrationDTO"; // Import the type definition for user registration data
+import { UserRegistration } from "../types/UserRegistration"; // Import the type definition for user registration data
 import apiClient from "../utils/apiClient"; // Import the Axios instance configured for API requests (likely with interceptors)
 import axios from "axios"; // Import the base Axios library, used here for `axios.isAxiosError` for type guarding
 
@@ -24,7 +24,7 @@ const RegisterPage = () => {
      * This asynchronous function sends the user's registration data to the backend API.
      * @param userPayload The data from the registration form, typed as UserRegistrationDTO.
      */
-    const handleSubmit = async (userPayload: UserRegistrationDTO) => {
+    const handleSubmit = async (userPayload: UserRegistration) => {
         // Clear any previous errors before a new submission attempt.
         setError("");
         // Set loading to true to indicate that an API request is in progress.

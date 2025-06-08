@@ -1,6 +1,6 @@
 // types/User.ts
 
-import { Game } from "../dto/Game"; // Assuming this is your Game type
+import { Game } from "./Game"; // Assuming this is your Game type
 
 export type User = {
     id: number;

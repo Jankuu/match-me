@@ -1,12 +1,12 @@
 import { Game } from "./Game"
-import { UserProfileDTO } from "./UserProfile.DTO";
+import { UserProfile } from "./UserProfile";
 
 
-export interface UserRegistrationDTO {
+export interface UserRegistration {
     username: string;
     email: string;
     password: string;
-    profile: UserProfileDTO;
+    profile: UserProfile;
     interestedMinAge: number;
     interestedMaxAge: number;
     interestedGenders: string[];
