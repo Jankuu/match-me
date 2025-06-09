@@ -40,8 +40,8 @@ function App() {
     const [userIdentifier, setUserIdentifier] = useState<string>(
         () => getUserIdentifierFromToken() || ""
     );
-    const [token, setToken] = useState<string | null>(
-        () => localStorage.getItem("token")
+    const [token, setToken] = useState<string | null>(() =>
+        localStorage.getItem("token")
     );
 
     const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -52,84 +52,100 @@ function App() {
         if (identifier && !userIdentifier) {
             setUserIdentifier(identifier);
         }
-    }, []); 
+    }, []);
 
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
         setToken(storedToken);
-    }, []); 
+    }, []);
 
     const layoutStyle: React.CSSProperties = {
         paddingTop: isMobile ? 0 : 68,
-        paddingBottom: isMobile ? 75 : 0, 
+        paddingBottom: isMobile ? 75 : 0,
         minHeight: "100vh",
         boxSizing: "border-box",
-      };
+    };
 
     return (
-            <div>
-                {token && !hideNavBar && <NavBar />}
-                <div className="content-container" style={layoutStyle}>
-                    <Routes>
-                        <Route
-                            path="/"
-                            element={
-                                token ? <Navigate to="/matching" /> : <Navigate to="/login" />
-                            }
-                        />
-                        <Route
-                            path="/login"
-                            element={
-                                <LoginPage
-                                    onLoginSuccess={(identifier) => {
-                                        setUserIdentifier(identifier);
-                                        setToken(localStorage.getItem("token"));
-                                        navigate("/matching");
+        <div>
+            {token && !hideNavBar && <NavBar />}
+            <div className="content-container" style={layoutStyle}>
+                <Routes>
+                    <Route
+                        path="/"
+                        element={
+                            token ? (
+                                <Navigate to="/matching" />
+                            ) : (
+                                <Navigate to="/login" />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/login"
+                        element={
+                            <LoginPage
+                                onLoginSuccess={(identifier) => {
+                                    setUserIdentifier(identifier);
+                                    setToken(localStorage.getItem("token"));
+                                    navigate("/matching");
+                                }}
+                            />
+                        }
+                    />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route
+                        path="/chat/:id/:name"
+                        element={
+                            token ? <ChatPage /> : <Navigate to="/login" />
+                        }
+                    />
+                    <Route
+                        path="/myprofile"
+                        element={
+                            token ? <MyProfilePage /> : <Navigate to="/login" />
+                        }
+                    />
+
+                    <Route
+                        path="/user_profile/id/:id"
+                        element={
+                            token ? (
+                                <UserProfilePage />
+                            ) : (
+                                <Navigate to="/login" />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/settings"
+                        element={
+                            token ? (
+                                <SettingsPage
+                                    onLogout={() => {
+                                        localStorage.removeItem("token");
+                                        localStorage.removeItem("user");
+                                        setToken(null);
+                                        setUserIdentifier("");
+                                        navigate("/login");
                                     }}
                                 />
-                            }
-                        />
-                        <Route path="/register" element={<RegisterPage />} />
-                        <Route
-                            path="/chat/:id/:name"
-                            element={token ? <ChatPage /> : <Navigate to="/login" />}
-                        />
-                        <Route
-                        path="/myprofile"
-                        element={token ? <MyProfilePage /> : <Navigate to="/login" />}
-                        />
-                        
-                        <Route
-                            path="/user_profile/id/:id"
-                            element={token ? <UserProfilePage /> : <Navigate to="/login" />}
-                        />
-                        <Route
-                            path="/settings"
-                            element={
-                                token ? (
-                                    <SettingsPage
-                                        onLogout={() => {
-                                            localStorage.removeItem("token");
-                                            localStorage.removeItem("user");
-                                            setToken(null);
-                                            setUserIdentifier("");
-                                            navigate("/login");
-                                        }}
-                                    />
-                                ) : (
-                                    <Navigate to="/login" />
-                                )
-                            }
-                        />
-                        <Route
-                            path="/matching"
-                            element={token ? <MatchingPage /> : <Navigate to="/login" />}
-                        />
-                        <Route path="/jwt-test" element={<JwtTestPage />} />
-                        <Route path="/testchat" element={<TestChat />} />
-                    </Routes>
-                </div>
+                            ) : (
+                                <Navigate to="/login" />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/matching"
+                        element={
+                            token ? <MatchingPage /> : <Navigate to="/login" />
+                        }
+                    />
+                    <Route path="/jwt-test" element={<JwtTestPage />} />
+                    <Route path="/testchat" element={<TestChat />} />
+                </Routes>
             </div>
+        </div>
     );
 }
 

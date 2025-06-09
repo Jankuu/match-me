@@ -6,10 +6,7 @@ import { WebSocketProvider } from "./context/WebSocketContext.tsx";
 // import 'bootstrap/dist/css/bootstrap.min.css';
 import "./utils/apiClient";
 import "./index.css";
-import './styles/custom.scss';
-
-
-
+import "./styles/custom.scss";
 
 (window as any).global = window;
 (window as any).process = {
@@ -19,8 +16,8 @@ import './styles/custom.scss';
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
-            <WebSocketProvider>
-                <App />
-            </WebSocketProvider>
+        <WebSocketProvider>
+            <App />
+        </WebSocketProvider>
     </StrictMode>
 );

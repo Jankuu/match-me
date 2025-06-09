@@ -11,6 +11,7 @@ import { MessageDTO } from "../types/MessageDTO";
 
 interface WebSocketContextType {
     sendMessage: (receiverId: number, message: string) => void;
+    setLoadedMessages: (loadedMessages: MessageDTO[]) => void;
     isConnected: boolean;
     client: Client | null;
     messages: MessageDTO[];
@@ -124,6 +125,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                             con.body,
                         ]);
                         setHasUnreadConnectionRequests(true); // Ensure flag is set immediately
+                        console.log(connectionRequestNotification);
                     }
                 );
             },
@@ -159,10 +161,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         }
     };
 
+    const setLoadedMessages = (loadedMessages: MessageDTO[]) => {
+        setMessages(loadedMessages);
+    };
+
     return (
         <WebSocketContext.Provider
             value={{
                 sendMessage,
+                setLoadedMessages,
                 isConnected,
                 client: client.current,
                 messages,

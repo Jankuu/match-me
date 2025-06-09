@@ -6,6 +6,7 @@ export type User = {
     email: string;
     password: string;
     profile: {
+        id: number;
         name: string;
         profilePicture: string;
         birthDate: string;

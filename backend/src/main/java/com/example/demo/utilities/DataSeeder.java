@@ -164,13 +164,13 @@ public class DataSeeder implements CommandLineRunner {
             UserProfile profile = new UserProfile();
             UserInterestVector interestVector = new UserInterestVector();
 
-            user.setUsername(generateRandomString(5, 10));
+            profile.setName(generateRandomString(5, 15));
+            user.setUsername("username "+ profile.getName());
 
             //user.setPassword(generateRandomString(8, 16));
 
             user.setPassword(passwordEncoder.encode("pw"));
 
-            profile.setName(generateRandomString(5, 15));
             profile.setBirthDate(generateRandomLocalDate());
             profile.setGender(generateRandomGender());
             profile.setHeight(generateRandomInt(150, 200));

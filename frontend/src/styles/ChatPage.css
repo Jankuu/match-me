@@ -40,9 +40,9 @@
     right: 0;
     z-index: 10;
     display: flex;
-    background-color: #157A6E;
+    background-color: #157a6e;
     padding: 0.5rem 1rem;
-    border-top: 1px solid #77B28C;
+    border-top: 1px solid #77b28c;
     bottom: 68px; /* по умолчанию — над NavBar */
 }
 
@@ -51,4 +51,36 @@
     .chat-input {
         bottom: 0;
     }
+}
+
+.messageContainer {
+    position: relative;
+    border-radius: 100px;
+    padding: 5px;
+    margin: 0;
+    padding: 10px;
+}
+.myMessage {
+    text-align: end;
+    background-color: #77b28c;
+    padding-right: 15px;
+}
+.myMessage .timeStamp {
+    right: 10px;
+}
+.otherMessage {
+    padding-left: 15px;
+    background-color: rgb(222, 224, 215);
+    text-align: start;
+}
+.otherMessage .timeStamp {
+    left: 10px;
+}
+.timeStamp {
+    color: rgb(77, 77, 77);
+    position: absolute;
+    margin: 3px;
+    font-size: 10px;
+    padding: 0;
+    top: 0;
 }
