@@ -132,6 +132,9 @@ public class ConnectionsService {
         Connection request = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElse(null);
         if (request != null) {
             receiver.getConnectionRequests().remove(request);
+            sender.getConnectionRequests().remove(request);
+            receiver.getConnections().remove(request);
+            sender.getConnections().remove(request);
             connectionRepository.delete(request);
             return new ConnectionDTO(request);
         }
