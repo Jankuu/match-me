@@ -3,7 +3,7 @@ import { Card, Button, Row, Col, Image } from 'react-bootstrap';
 import { FaComment, FaTrashAlt } from 'react-icons/fa';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../utils/apiClient';
+import apiClient from '../../utils/apiClient';
 
 type User = {
   id: number;

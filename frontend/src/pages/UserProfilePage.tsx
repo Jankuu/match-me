@@ -4,7 +4,7 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Container, Card } from 'react-bootstrap';
 import { ArrowLeft } from 'react-bootstrap-icons';
 import apiClient from '../utils/apiClient';
-import { UserProfile } from '../types/UserProfile'; // Ensure this path to your UserProfile type is correct
+import { CardUserProfile } from '../types/CardUserProfile'; // Ensure this path to your UserProfile type is correct
 
 // UserProfile Type (updated to be optional/nullable)
 // It's crucial that this type is consistently defined in your src/types/UserProfile.ts
@@ -55,10 +55,10 @@ const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
 
   // Attempt to get profile data from the navigation state
-  const profileFromState = location.state?.profile as UserProfile | undefined;
+  const profileFromState = location.state?.profile as CardUserProfile | undefined;
 
   // State to store the current user's profile data
-  const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
+  const [currentProfile, setCurrentProfile] = useState<CardUserProfile | null>(null);
   // State to manage loading status
   const [isLoading, setIsLoading] = useState(true);
   // State to store any error messages

@@ -1,6 +1,6 @@
-// RegisterForm.tsx
-import React, { useState, useEffect, useCallback } from "react"; // Added useCallback
-import { Button, Form, InputGroup, Spinner } from "react-bootstrap";
+import React, { FormEvent } from "react";
+import { Button, Form, Spinner } from "react-bootstrap";
+
 import NameInput from "../formComponents/NameInput";
 import EmailInput from "../formComponents/EmailInput";
 import PasswordInput from "../formComponents/PasswordInput";
@@ -8,180 +8,102 @@ import AgeRangeSelector from "../formComponents/AgeRangeSelector";
 import PreferredGenderSelector from "../formComponents/PreferredGenderSelector";
 import ImageUpload from "../formComponents/ImageUpload";
 import LocationSelector from "../formComponents/LocationSelector";
-import GenderSelector from "../formComponents/GenderSelection";
 import HeightSet from "../formComponents/HeightSet";
 import Description from "../formComponents/Description";
-import { UserRegistrationDTO } from "../../dto/UserRegistrationDTO";
 import UsernameInput from "../formComponents/UsernameInput";
-import { Game } from "../../dto/Game"; // Ensure this import is correct
-import axios from "axios";
-import "../../styles/GameSelector.css";
 import BirthDateSelector from "../formComponents/BirthdateSelector";
 import GameSelector from "../formComponents/GameSelector";
 import RadiusSelector from "../formComponents/RadiusSelector";
+import GenderSelector from "../formComponents/GenderSelector";
 
+import { UserRegistration } from "../../types/UserRegistration"; // Ensure this path is correct
+import useRegistrationForm from "../../hooks/useRegistrationForm"; // Import the new custom hook
+
+import "../../styles/GameSelector.css"; // Keep any necessary styles
+
+/**
+ * Props for the RegisterForm component.
+ * @param onSubmit A callback function that takes UserRegistrationDTO and is called when the form is submitted.
+ * @param loading A boolean indicating if the submission process is ongoing, used to disable the form.
+ */
 type Props = {
-    onSubmit: (data: UserRegistrationDTO) => void;
+    onSubmit: (data: UserRegistration) => void;
     loading: boolean;
 };
 
+/**
+ * RegisterForm component.
+ * This component renders the entire user registration form. It delegates all
+ * form state management, validation, and data preparation to the `useRegistrationForm` hook,
+ * focusing purely on the UI presentation.
+ */
 const RegisterForm = ({ onSubmit, loading }: Props) => {
-    // ... (all your existing state variables)
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [repeatedEmail, setRepeatedEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [repeatedPassword, setRepeatedPassword] = useState("");
+    // Use the custom hook to get all form-related states, setters, and handlers
+    const {
+        // Account Details
+        username, setUsername,
+        email, setEmail,
+        repeatedEmail, setRepeatedEmail,
+        password, setPassword,
+        repeatedPassword, setRepeatedPassword,
 
-    const [name, setName] = useState<string>("");
-    const [image, setImage] = useState<File | null>(null);
-    const [birthDateUi, setBirthDateUi] = useState<string>("");
-    const [gender, setGender] = useState("man");
-    const [height, setHeight] = useState<number>(150);
-    const [description, setDescription] = useState<string>("");
+        // Profile Details
+        name, setName,
+        image, setImage,
+        birthDateUi, setBirthDateUi,
+        gender, setGender,
+        height, setHeight,
+        description, setDescription,
 
-    const [ages, setAges] = useState<[number, number]>([18, 120]);
-    const [preferredGendersArray, setPreferredGendersArray] = useState<string[]>(["man", "woman"]);
+        // Preferences
+        preferedAgerange, setpreferedAgeRange,
+        preferredGenders, setPreferredGenders,
 
-    const [location, setLocation] = useState("");
-    const [placeId, setPlaceId] = useState<string | undefined>(undefined);
-    const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | undefined>(undefined);
-    const [isGpsUsed, setIsGpsUsed] = useState(false);
-    const [radius, setRadius] = useState<number>(5000);
+        // Location
+        locationCityName,
+        googlePlaceId,
+        locationCoordinates,
+        isGpsUsed,
+        radius, setRadius,
+        handleLocationChange, // Handler for location
 
-    const [age, setAge] = useState<number | null>(null);
+        // Games
+        games,
+        selectedGameIdsForSelector,
+        handleGamesChange,
 
-    const [usernameValid, setUsernameValid] = useState(false);
-    const [nameValid, setNameValid] = useState(false);
+        // Validation States & Derived Values
+        usernameValid, setUsernameValid,
+        nameValid, setNameValid,
+        isBirthDateValid, setIsBirthDateValid,
+        isLocationValid,
+        isPasswordValid, passwordMatch,
+        isEmailValid, emailMatch,
+        isFormValid, // Overall form validity
 
-    const isPasswordValid = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password);
-    const passwordMatch = password.length > 0 && repeatedPassword === password;
+        // Submission handler from the hook
+        prepareAndSubmit,
+    } = useRegistrationForm();
 
-    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    const emailMatch = email.length > 0 && repeatedEmail === email;
-
-    const [games, setGames] = useState<Game[]>([]);
-    const [selectedGames, setSelectedGames] = useState<Set<Game>>(new Set()); // This stores Game objects
-
-    const [isBirthDateValid, setIsBirthDateValid] = useState(false);
-
-    useEffect(() => {
-        axios
-            .get<Game[]>("http://localhost:8080/games")
-            .then((response) => {
-                setGames(response.data);
-            })
-            .catch((error) => {
-                console.error("Error fetching games:", error);
-            });
-    }, []);
-
-    // Function to toggle selection of a game
-    // Memoize this function to prevent unnecessary re-renders of GameSelector if possible
-    const toggleGame = useCallback((game: Game) => {
-        setSelectedGames((prev) => {
-            const newSet = new Set(prev);
-            // We need to check if the game with the same ID already exists in the set
-            // because Set.has() checks for object reference equality.
-            let gameExistsInSet = false;
-            for (let item of newSet) { //error here wil be fixed but code works
-                if (item.id === game.id) {
-                    gameExistsInSet = true;
-                    break;
-                }
-            }
-
-            if (gameExistsInSet) {
-                // If game is already selected, remove it by ID
-                const filteredSet = new Set<Game>();
-                newSet.forEach(item => {
-                    if (item.id !== game.id) {
-                        filteredSet.add(item);
-                    }
-                });
-                return filteredSet;
-            } else {
-                // If game is not selected, add it
-                newSet.add(game);
-            }
-            return newSet;
-        });
-    }, []); // Empty dependency array as setSelectedGames is stable
-
-    // Derived state for GameSelector: a Set of game IDs
-    const selectedGameIdsForSelector = React.useMemo(() => {
-        return new Set(Array.from(selectedGames).map(game => game.id));
-    }, [selectedGames]);
-
-
-    const isFormValid =
-        (((isEmailValid && emailMatch) || usernameValid) ||
-        ((isEmailValid && emailMatch) && usernameValid)) &&
-        (passwordMatch && isPasswordValid);
-
-    const readImageAsBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const result = reader.result as string;
-                const base64 = result.split(",")[1];
-                resolve(base64);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
+    /**
+     * Handles the form submission event.
+     * Calls the `prepareAndSubmit` function from the hook, passing the parent's `onSubmit` callback.
+     */
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-
-        let base64Image: string | undefined = undefined;
-        if (image) {
-            try {
-                base64Image = await readImageAsBase64(image);
-            } catch (error) {
-                console.error("Failed to read image", error);
-                return;
-            }
-        }
-
-        const userPayload: UserRegistrationDTO = {
-            username,
-            email,
-            password,
-            profile: {
-                name: name,
-                profilePicture: base64Image,
-                birthDate: birthDateUi,
-                gender,
-                height,
-                description,
-            },
-            interestedMinAge: ages[0],
-            interestedMaxAge: ages[1],
-            interestedGenders: preferredGendersArray,
-            interestedGames: Array.from(selectedGames.values()), // Still send Game objects to DTO
-
-            isGpsUser: isGpsUsed,
-            cityName: location,
-            googlePlaceId: placeId,
-            lat: coordinates?.lat,
-            lng: coordinates?.lng,
-            radius: radius,
-        };
-
-        onSubmit(userPayload);
+        await prepareAndSubmit(onSubmit);
     };
 
     return (
         <Form onSubmit={handleSubmit}>
-            {/* ... (your existing form components) */}
+            {/* Account Details */}
             <EmailInput
                 email={email}
                 repeatedEmail={repeatedEmail}
                 setEmail={setEmail}
                 setRepeatedEmail={setRepeatedEmail}
                 loading={loading}
+                // isInvalid={!isEmailValid || !emailMatch} // Pass validation status
             />
             <PasswordInput
                 password={password}
@@ -189,59 +111,46 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 setPassword={setPassword}
                 setRepeatedPassword={setRepeatedPassword}
                 loading={loading}
+                // isInvalid={!isPasswordValid || !passwordMatch} // Pass validation status
             />
             <UsernameInput
                 value={username}
                 onChange={setUsername}
-                onValidate={setUsernameValid}
+                onValidate={setUsernameValid} // Receives validation from UsernameInput
                 disabled={loading}
             />
+
+            {/* Profile Details */}
             <BirthDateSelector
                 birthDate={birthDateUi}
                 onChange={setBirthDateUi}
-                onValidate={setIsBirthDateValid}
-                required={true}
+                onValidate={setIsBirthDateValid} // Receives validation from BirthDateSelector
+                required={true} // Mark as required for clarity, though actual validation is internal
                 minAge={18}
                 maxAge={120}
+                // isInvalid={!isBirthDateValid} // Pass validation status
             />
             <NameInput
                 value={name}
                 onChange={setName}
-                onValidate={setNameValid}
+                onValidate={setNameValid} // Receives validation from NameInput
                 disabled={loading}
+                // isInvalid={!nameValid} // Pass validation status
             />
             <AgeRangeSelector
-                userAge={age}
-                onChange={setAges}
+                userAge={null} // Not directly used in registration, maybe remove? Or pass a derived age from birthDateUi
+                onChange={setpreferedAgeRange}
+                // selectedRange={preferedAgerange} // Pass current selected range
             />
             <GenderSelector
                 onChange={setGender}
                 selected={gender}
-                isEditable={true}
+                isEditable={!loading}
             />
             <HeightSet
                 height={height}
                 setHeight={setHeight}
-                isEditable={true}
-            />
-            <LocationSelector
-                value={location}
-                onChange={(value, placeId, coords, gpsUsed) => {
-                    setLocation(value);
-                    setPlaceId(placeId);
-                    setCoordinates(coords);
-                    setIsGpsUsed(gpsUsed || false);
-                }}
-            />
-            <RadiusSelector
-                radius={radius}
-                setRadius={(value) => setRadius(value)}
-                isEditable={true}
-            />
-            <PreferredGenderSelector
-                onChange={setPreferredGendersArray}
-                selected={preferredGendersArray}
-                isEditable={true}
+                isEditable={!loading}
             />
             <Description
                 description={description}
@@ -251,22 +160,47 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 image={image}
                 setImage={setImage}
                 displayed={true}
-                disabled={false}
-                onClearImage={function (): void {
-                    // Implement this if needed for registration form to clear image.
-                    // Or remove it if this prop is not relevant here.
-                    // For now, it will throw an error if called.
-                }}
-                currentProfilePicture={undefined}
+                disabled={loading}
+                onClearImage={() => setImage(null)}
+                currentProfilePicture={undefined} // No current picture for registration
             />
 
-            {/* Game selector component */}
-            <GameSelector
-                games={games}
-                selectedGameIds={selectedGameIdsForSelector} // Pass the Set of IDs here
-                onToggle={toggleGame}
-                disabled={false}
+            {/* Location and Preferences */}
+            <LocationSelector
+                value={locationCityName}
+                onChange={handleLocationChange}
+                lat={locationCoordinates?.lat || null}
+                lng={locationCoordinates?.lng || null}
+                googlePlaceId={googlePlaceId}
+                isGpsUsed={isGpsUsed}
+                isEditable={!loading}
+                isInvalid={!isLocationValid} // Pass validation status
             />
+
+            <RadiusSelector
+                radius={radius}
+                setRadius={setRadius}
+                isEditable={!loading}
+            />
+
+            <PreferredGenderSelector
+                onChange={setPreferredGenders}
+                selected={preferredGenders}
+                isEditable={!loading}
+            />
+
+            <Form.Group className="mb-3">
+                <Form.Label>Interested Games</Form.Label>
+                <div className="mb-2">
+                    <GameSelector
+                        allGames={games}
+                        selectedGameIds={selectedGameIdsForSelector}
+                        onToggle={handleGamesChange}
+                        disabled={loading}
+                    />
+                </div>
+            </Form.Group>
+
 
             <Button
                 variant="success"

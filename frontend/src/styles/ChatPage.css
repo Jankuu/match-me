@@ -1,54 +1,154 @@
+/* styles/ChatPage.css */
+
+/*
+   The :root variables are now defined globally, so we don't need them here.
+   The base html, body, #root overflow is handled globally.
+*/
+
+/*
+   Main chat page container.
+   It now takes 100% of the available height *within its parent container*
+   which already has the appropriate padding.
+*/
 .chat-page {
-    position: fixed;
-    top: 68px; /* Высота navbar */
-    bottom: 0;
-    left: 0;
-    right: 0;
     display: flex;
-    flex-direction: column;
-    z-index: 1;
+    flex-direction: column; /* Stack children vertically */
+    height: 100%; /* Take 100% of the height of its parent (which is padded) */
+    overflow: hidden; /* Important: Prevents the chat page itself from scrolling */
+    background-color: var(--bs-light); /* Background color for the chat area */
+    position: relative; /* Provides context for z-index and potential absolute children */
+    width: 100%; /* Ensure it spans full width */
+    /* top: 0; left: 0; - These are no longer needed here if parent is handling flow */
 }
 
-/* для мобильных — NavBar снизу */
-@media (max-width: 767px) {
-    .chat-page {
-        top: 0;
-        bottom: 60px; /* высота NavBar */
-    }
-}
-
-.chat-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* важный момент */
-}
-
-.chat-messages {
-    flex: 1;
-    overflow-y: auto;
+/*
+   Chat Header styles.
+   No changes needed.
+*/
+.chat-header {
+    flex-shrink: 0;
     padding: 1rem;
+    background-color: var(--bs-primary);
+    color: white;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chat-header .btn {
+    background-color: transparent;
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+}
+
+/*
+   Chat Body styles.
+   No changes needed.
+*/
+.chat-body {
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding-bottom: 1rem;
+    overflow: hidden;
 }
 
-.chat-input {
-    position: fixed;
-    left: 0;
-    right: 0;
-    z-index: 10;
+/*
+   Chat Messages List styles.
+   No changes needed.
+*/
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto; /* **CRUCIAL:** Enables vertical scrolling for messages */
+    padding: 10px;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
     display: flex;
-    background-color: #157A6E;
-    padding: 0.5rem 1rem;
-    border-top: 1px solid #77B28C;
-    bottom: 68px; /* по умолчанию — над NavBar */
+    flex-direction: column;
+    scroll-behavior: smooth;
 }
 
-/* Широкий экран: input внизу, а NavBar — сверху */
-@media (min-width: 768px) {
-    .chat-input {
-        bottom: 0;
-    }
+/*
+   Message Bubbles: Styling for individual messages.
+   No changes needed.
+*/
+.message-bubble {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 15px;
+    margin-bottom: 8px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.1);
+}
+
+.message-bubble.mine {
+    align-self: flex-end;
+    background-color: var(--bs-primary);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.message-bubble.theirs {
+    align-self: flex-start;
+    background-color: var(--bs-secondary);
+    color: black;
+    border-bottom-left-radius: 5px;
+}
+
+.sender-name {
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-bottom: 2px;
+    color: var(--bs-dark);
+}
+
+.message-content {
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+.message-timestamp {
+    font-size: 0.7em;
+    margin-top: 4px;
+    text-align: right;
+}
+
+.message-bubble.mine .message-timestamp {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.message-bubble.theirs .message-timestamp {
+    color: rgba(0, 0, 0, 0.5);
+    text-align: left;
+}
+
+/*
+   Chat Input Area styles.
+   No changes needed.
+*/
+.chat-input {
+    flex-shrink: 0;
+    z-index: 10;
+    background-color: var(--bs-light);
+    border-top: 1px solid var(--bs-gray-300);
+    padding: 10px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.chat-input .form-control {
+    min-height: calc(1.5em + .75rem + 2px);
+    max-height: 100px;
+    overflow-y: auto;
+    resize: none;
+}
+
+.chat-input .btn {
+    margin-left: 10px;
+    padding: .375rem .75rem;
+    align-self: flex-end;
 }

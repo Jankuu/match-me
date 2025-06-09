@@ -1,13 +1,83 @@
+/* src/index.css (or your main App.css file) */
+
 :root {
-    /* --bs-primary: #A71D31; */
-    /* --bs-secondary: #D5BF86; */
-    /* --bs-success: #3F0D12; */
-    /* --bs-info: #8D775F; */
-    /* --bs-warning: #F1F0CC; */
-    /* --bs-danger: #C1121F; */
-    /* --bs-light: #F8F9FA; */
-    /* --bs-dark: #121212; */
-  
-    /* --bs-body-bg: #F1F0CC;
-    --bs-body-color: #3F0D12; */
+  --navbar-height: 75px; /* Confirmed height for your mobile bottom navbar */
+  --desktop-navbar-height: 60px; /* Guessing a height for your top desktop navbar, adjust if needed */
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Crucial: Prevents main body scroll */
+}
+
+/* We need to ensure #root or your main app container handles the fixed navbar.
+ This padding will push content down (or up) to avoid being hidden by the fixed navbar.
+*/
+#root { /* Or the main container div wrapping your Routes/Layout */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensure it takes at least full viewport height */
+  overflow: hidden; /* Prevent this container from scrolling itself */
+}
+
+/* Default padding for content to make space for the bottom navbar on mobile.
+ This applies to the main content area that is NOT the navbar.
+*/
+#root > .app-content { /* Assuming you have a div for your main app content */
+  flex-grow: 1; /* Allow content to fill space */
+  padding-bottom: var(--navbar-height); /* Make space for the bottom navbar */
+  overflow-y: auto; /* Allow the content area itself to scroll if needed */
+}
+
+/* Media query for desktop/larger screens (min-width: 768px) */
+@media (min-width: 768px) {
+  #root > .app-content {
+      padding-top: var(--desktop-navbar-height); /* Make space for the top navbar */
+      padding-bottom: 0; /* No bottom padding needed on desktop */
   }
+}
+
+/*
+ Your .nav-wrapper CSS (from your previous message)
+ Needs height and correct top/bottom positioning for desktop/mobile.
+*/
+.nav-wrapper {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background-color: #C2C5BB;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  height: var(--navbar-height); /* Default to mobile height */
+}
+
+.nav-icons {
+  padding: 0.5rem 1rem;
+}
+
+@media (max-width: 767px) {
+  .nav-wrapper {
+      bottom: 0; /* Mobile: bottom fixed */
+      top: auto;
+  }
+  /* Mobile-specific nav-icons styling */
+  .nav-icons {
+      flex-direction: row;
+  }
+}
+
+@media (min-width: 768px) {
+  .nav-wrapper {
+      top: 0; /* Desktop: top fixed */
+      bottom: auto;
+      height: var(--desktop-navbar-height); /* Adjust height for desktop navbar */
+      border-bottom: 1px solid #157A6E;
+  }
+  /* Desktop-specific nav-icons styling */
+  .nav-icons {
+      flex-direction: row;
+  }
+}

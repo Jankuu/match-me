@@ -1,76 +1,56 @@
-import { useEffect, useState } from "react";
-import { useWebSocket } from "../context/WebSocketContext";
-import { Container, Button, Form } from "react-bootstrap";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "react-bootstrap-icons";
-import '../styles/ChatPage.css';
+import React from "react";
+import { Container } from "react-bootstrap";
+import { useParams } from "react-router-dom";
+import ChatMessageList from "../components/chatComponents/ChatMessageList";
+import ChatInput from "../components/chatComponents/ChatInput";
+import ChatHeader from "../components/chatComponents/ChatHeader"; // New import
+import useChatLogic from "../hooks/useChatLogic"; // New import
+import "../styles/ChatPage.css";
 
-const ChatPage = () => {
+const ChatPage: React.FC = () => {
     const { id, name } = useParams<{ id: string; name: string }>();
 
     const receiverId = Number(id);
     const receiverName = name || "unknown";
-    const currentUsername = JSON.parse(localStorage.getItem("user") || "{}")?.username || "me";
-  
-    const { sendMessage, messages, isConnected } = useWebSocket();
-  
-    const [text, setText] = useState("");
-    const navigate = useNavigate();
-  
-    const handleSend = () => {
-      if (isConnected && text.trim()) {
-        sendMessage(receiverId, text);
-        setText("");
-      }
-    };
 
-    useEffect(() => {
-        const el = document.querySelector(".chat-messages");
-        if (el) el.scrollTop = el.scrollHeight;
-      }, [messages]);
+    const userData = JSON.parse(localStorage.getItem("user") || "{}");
+    const currentUserId = Number(userData?.id || userData?.profile?.id);
+    const currentUsername = userData?.username || "You"; // Current username is not used in this file but was in the original
+
+    // Use the custom hook to get all chat logic and state
+    const {
+        chatMessages,
+        text,
+        setText,
+        handleSend,
+        isLoading,
+        messagesContainerRef,
+        isConnected,
+    } = useChatLogic({ receiverId, currentUserId });
 
     return (
-        <div className="chat-page">
-            <div className="chat-header px-3 pt-3">
-                <Button onClick={() => navigate("/matching")} className="d-flex align-items-center">
-                    <ArrowLeft size={20} className="me-1" />
-                </Button>
-            </div>
+        <div className="chat-page d-flex flex-column vh-100">
+            {/* Chat Header */}
+            <ChatHeader receiverName={receiverName} />
 
+            {/* Chat Body - Messages Container */}
             <Container className="chat-body pt-2 flex-grow-1 d-flex flex-column">
-                <h3 className="text-center mb-3">Chat with {receiverName}</h3>
-
-                <div className="chat-messages flex-grow-1">
-          {messages.length === 0 ? (
-            <div className="text-muted text-center">No messages</div>
-          ) : (
-            messages.map((msg, i) => {
-              const match = msg.match(/^@(\S+)\s(.+)/);
-              const senderUsername = match ? match[1] : "unknown";
-              const content = match ? match[2] : msg;
-
-              const isMine = senderUsername === currentUsername;
-
-              return (
-                <div key={i} className={`message-bubble ${isMine ? "mine" : "theirs"}`}>
-                  {!isMine && <div className="sender-name">{senderUsername}</div>}
-                  <div className="message-content">{content}</div>
-                </div>
-              );
-            })
-          )}
-        </div>
+                <ChatMessageList
+                    chatMessages={chatMessages}
+                    currentUserId={currentUserId}
+                    receiverName={receiverName}
+                    isLoading={isLoading}
+                    messagesContainerRef={messagesContainerRef}
+                />
             </Container>
 
-            <div className="chat-input d-flex px-3 py-2 border-top">
-                <Form.Control
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    placeholder="Type your message"
-                    className="me-2"
-                />
-                <Button onClick={handleSend}>Send</Button>
-            </div>
+            {/* Chat Input Area */}
+            <ChatInput
+                text={text}
+                setText={setText}
+                handleSend={handleSend}
+                isConnected={isConnected}
+            />
         </div>
     );
 };

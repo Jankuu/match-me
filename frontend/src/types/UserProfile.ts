@@ -1,11 +1,8 @@
-//for cards only
-export type UserProfile = {
-    id: number;
+export interface UserProfile {
     name: string;
-    profilePicture?: string;
-    birthDate?: string;
-    gender?: 'man' | 'woman' | string;
-    height?: number;
-    description?: string;
-  };
-  
+    profilePicture: any; // 
+    birthDate: string; // 
+    gender: string;    //
+    height: number;
+    description: string;
+}
