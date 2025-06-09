@@ -104,11 +104,11 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
      * Memoized to prevent unnecessary re-creations.
      */
     const handleLocationChange = useCallback(
-        (address: string, placeIdResult: string | null, coordsResult: Coordinates | null, gpsUsedResult: boolean | null) => {
+        (address: string, placeIdResult: string | null, coordsResult: Coordinates | null, gpsUserResult: boolean | null) => {
             setLocationCityName(address);
             setGooglePlaceId(placeIdResult);
             setLocationCoordinates(coordsResult);
-            setIsGpsUser(gpsUsedResult);
+            setIsGpsUser(gpsUserResult);
 
             // Location is valid if:
             // 1. An address is provided AND coordinates/placeId are also provided.
@@ -136,14 +136,14 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
     // which should be defined based on your specific requirements.
     const isFormValid = useMemo(() =>
         (usernameValid || (isEmailValid && emailMatch)) && // Either username valid OR (email valid AND email matches)
-        (passwordMatch && isPasswordValid) && // Password matches AND is strong
-        name.trim().length > 0 && // Name is required
-        isBirthDateValid && // Birth date valid (age check)
-        gender.trim().length > 0 && // Gender is selected
-        height > 0 && // Height is set
-        isLocationValid && // Location is valid
-        radius > 0 && // Radius is set
-        preferredGenders.length > 0 // At least one preferred gender is selected
+        (passwordMatch && isPasswordValid) // Password matches AND is strong
+        // name.trim().length > 0 && // Name is required
+        // isBirthDateValid && // Birth date valid (age check)
+        // gender.trim().length > 0 && // Gender is selected
+        // height > 0 && // Height is set
+        // isLocationValid && // Location is valid
+        // radius > 0 && // Radius is set
+        // preferredGenders.length > 0 // At least one preferred gender is selected
     , [
         usernameValid, isEmailValid, emailMatch, passwordMatch, isPasswordValid,
         name, isBirthDateValid, gender, height, isLocationValid, radius, preferredGenders
@@ -249,7 +249,7 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
         locationCityName, setLocationCityName, // Added setLocationCityName
         googlePlaceId, setGooglePlaceId, // Added setGooglePlaceId
         locationCoordinates, setLocationCoordinates, // Added setLocationCoordinates
-        isGpsUser, setIsGpsUser, // Added setIsGpsUsed
+        isGpsUser, setIsGpsUser, // Added setIsGpsUser
         radius, setRadius,
         handleLocationChange, // <--- THIS WAS THE MISSING PIECE!
 

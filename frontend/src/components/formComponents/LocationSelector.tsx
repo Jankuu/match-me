@@ -10,7 +10,7 @@ interface LocationSelectorProps {
     lat: number | null; // Current latitude (maps to User.lat)
     lng: number | null; // Current longitude (maps to User.lng)
     googlePlaceId: string | null; // Current Google Place ID (maps to User.googlePlaceId)
-    isGpsUser: boolean | null; // Is GPS used (maps to User.isGpsUsed)
+    isGpsUser: boolean | null; // Is GPS used (maps to User.isGpsUser)
     onChange: (
         address: string,
         placeId: string | null,         // Explicitly string | null
@@ -22,7 +22,7 @@ interface LocationSelectorProps {
 }
 
 const LocationSelector: React.FC<LocationSelectorProps> = ({
-    value, lat, lng, googlePlaceId, isGpsUser: isGpsUsed, onChange, isEditable = true, isInvalid
+    value, lat, lng, googlePlaceId, isGpsUser, onChange, isEditable = true, isInvalid
 }) => {
     const [inputValue, setInputValue] = useState(value);
     const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -48,7 +48,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
     // Synchronize internal state with external prop changes (e.g., when profile loads)
     useEffect(() => {
         setInputValue(value);
-    }, [value, lat, lng, googlePlaceId, isGpsUsed]);
+    }, [value, lat, lng, googlePlaceId, isGpsUser]);
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const newInputValue = e.target.value;

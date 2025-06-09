@@ -125,7 +125,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 birthDate={birthDateUi}
                 onChange={setBirthDateUi}
                 onValidate={setIsBirthDateValid} // Receives validation from BirthDateSelector
-                required={true} // Mark as required for clarity, though actual validation is internal
+                required={false} // Mark as required for clarity, though actual validation is internal
                 minAge={18}
                 maxAge={120}
                 // isInvalid={!isBirthDateValid} // Pass validation status

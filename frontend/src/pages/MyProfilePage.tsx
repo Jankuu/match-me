@@ -87,7 +87,7 @@ const MyProfilePage = () => {
                 fetchedUser.interestVector = fetchedUser.interestVector || { fantasy: 0, competitive: 0, action: 0, story: 0, complex: 0 }; // Ensure interestVector is always an object
 
                 // Location data at root level
-                fetchedUser.isGpsUsed = fetchedUser.isGpsUsed === true; // Ensure boolean
+                fetchedUser.isGpsUser = fetchedUser.isGpsUser === true; // Ensure boolean
                 fetchedUser.cityName = fetchedUser.cityName || null;
                 fetchedUser.googlePlaceId = fetchedUser.googlePlaceId || null;
                 fetchedUser.lat = fetchedUser.lat !== null && fetchedUser.lat !== undefined ? fetchedUser.lat : null;
@@ -114,7 +114,7 @@ const MyProfilePage = () => {
                     fetchedUser.interestedGames = fetchedUser.interestedGames || [];
                     fetchedUser.interestVector = fetchedUser.interestVector || { fantasy: 0, competitive: 0, action: 0, story: 0, complex: 0 };
 
-                    fetchedUser.isGpsUsed = fetchedUser.isGpsUsed === true;
+                    fetchedUser.isGpsUser = fetchedUser.isGpsUser === true;
                     fetchedUser.cityName = fetchedUser.cityName || null;
                     fetchedUser.googlePlaceId = fetchedUser.googlePlaceId || null;
                     fetchedUser.lat = fetchedUser.lat !== null && fetchedUser.lat !== undefined ? fetchedUser.lat : null;
@@ -267,7 +267,7 @@ const MyProfilePage = () => {
             googlePlaceId: draftUser.googlePlaceId || null,
             lat: draftUser.lat !== null && draftUser.lat !== undefined ? draftUser.lat : null,
             lng: draftUser.lng !== null && draftUser.lng !== undefined ? draftUser.lng : null,
-            isGpsUsed: draftUser.isGpsUsed === true, // Ensure boolean true/false
+            isGpsUser: draftUser.isGpsUser === true, // Ensure boolean true/false
             radius: draftUser.radius !== null && draftUser.radius !== undefined ? draftUser.radius : null,
             // Ensure other root-level fields are passed correctly
             interestedGames: draftUser.interestedGames || [],
@@ -374,7 +374,7 @@ const MyProfilePage = () => {
                     interestedGenders: user.interestedGenders || [],
                     interestedGames: user.interestedGames || [],
                     interestVector: user.interestVector || { fantasy: 0, competitive: 0, action: 0, story: 0, complex: 0 },
-                    isGpsUsed: user.isGpsUsed === true,
+                    isGpsUser: user.isGpsUser === true,
                     cityName: user.cityName || null,
                     googlePlaceId: user.googlePlaceId || null,
                     lat: user.lat !== null && user.lat !== undefined ? user.lat : null,
