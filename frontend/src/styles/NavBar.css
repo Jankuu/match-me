@@ -4,7 +4,7 @@
     right: 0;
     width: 100%;
     background-color: #C2C5BB;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); */
     z-index: 9999;
     height: var(--navbar-height);
 }
@@ -27,7 +27,6 @@
     .nav-wrapper {
         top: 0; /* Desktop: top fixed */
         bottom: auto;
-        border-bottom: 1px solid #157A6E;
     }
     .nav-icons {
         flex-direction: row;
