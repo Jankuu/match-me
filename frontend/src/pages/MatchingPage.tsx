@@ -198,25 +198,10 @@ const MatchingPage: React.FC = () => {
       await apiClient.post(`/connections/reject?senderProfileId=${senderId}`);
       fetchConnectionRequests(); // Refresh requests after rejecting
       fetchRecommendations(); // Optionally refresh recommendations if rejected users can reappear
+      fetchUserConnections();
     } catch (error) {
       console.error("Error rejecting request:", error);
       // Handle error
-    }
-  };
-
-  /**
-   * Handles removing an existing connection.
-   */
-  const handleRemoveConnection = async (e: React.MouseEvent | SwipeEventData, connectedUserId: number) => {
-    try {
-      // Assuming an API endpoint for removing connections, e.g., /connections/remove
-      await apiClient.post(`/connections/remove?connectedUserId=${connectedUserId}`);
-      fetchUserConnections(); // Refresh the connections list
-      // Optionally refresh recommendations if removing a connection could lead to new recommendations
-      fetchRecommendations();
-    } catch (error) {
-      console.error("Error removing connection:", error);
-      // Handle error (e.g., show a toast notification)
     }
   };
 
@@ -230,7 +215,7 @@ const MatchingPage: React.FC = () => {
           users={userConnections}
           cardType="connections"
           onPrimary={handleChatClick} // Primary action: go to chat
-          onSecondary={handleRemoveConnection} // Secondary action: remove connection
+          onSecondary={handleRejectRequest} // Secondary action: remove connection
           onCardClick={handleCardClick} // Action for clicking the card (view profile)
           hasUnreadRequests={hasUnreadConnections || hasUnreadMessages} // Indicator for unread connections
           currentUserId={currentUserId} // NEW: Pass currentUserId

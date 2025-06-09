@@ -139,6 +139,11 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
             }
             return prevMessages; // Return previous state if no change occurred
         });
+
+        // From Sten
+        const setLoadedMessages = (loadedMessages: ChatMessage[]) => {
+            setChatMessages(loadedMessages);
+        };
         
         // After processing the message, mark messages in this chat as read.
         // This is important for real-time read status updates.
@@ -243,6 +248,21 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
      * or when the current user/receiver changes.
      * It also registers the WebSocket message callback and marks messages as read.
      */
+    useEffect(() => {
+        const fetchChatLog = async () => {
+            try {
+                const res = await apiClient.get(
+                    `/messages?otherUserProfileId=${receiverId}&page=${0}&size=${10}`
+                );
+                console.log(res.data.content);
+                setChatMessages(res.data.content);
+            } catch (error) {
+                console.error("Failed to fetch messages", error);
+            }
+        };
+        fetchChatLog();
+    }, []);
+
     useEffect(() => {
         if (!currentUserId || !receiverId) return; // Ensure valid IDs before proceeding
 

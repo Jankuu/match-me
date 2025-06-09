@@ -154,7 +154,7 @@ const AccountForm: React.FC<AccountFormProps> = ({
                     lat={profile.lat} // Passed from profile directly, as hook doesn't need to internalize it for render
                     lng={profile.lng} // Passed from profile directly
                     googlePlaceId={profile.googlePlaceId} // Passed from profile directly
-                    isGpsUsed={profile.isGpsUsed} // Passed from profile directly
+                    isGpsUser={profile.isGpsUser} // Passed from profile directly
                     isInvalid={!isLocationValid} // Validation state from hook
                 />
                 <Form.Control.Feedback type="invalid">

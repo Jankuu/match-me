@@ -63,7 +63,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         locationCityName,
         googlePlaceId,
         locationCoordinates,
-        isGpsUsed,
+        isGpsUser,
         radius, setRadius,
         handleLocationChange, // Handler for location
 
@@ -172,7 +172,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 lat={locationCoordinates?.lat || null}
                 lng={locationCoordinates?.lng || null}
                 googlePlaceId={googlePlaceId}
-                isGpsUsed={isGpsUsed}
+                isGpsUser={isGpsUser}
                 isEditable={!loading}
                 isInvalid={!isLocationValid} // Pass validation status
             />

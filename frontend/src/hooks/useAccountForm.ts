@@ -40,7 +40,7 @@ const useAccountForm = ({
         profile.lat !== null && profile.lng !== null ? { lat: profile.lat, lng: profile.lng } : undefined
     );
     const [locationPlaceId, setLocationPlaceId] = useState<string | undefined>(profile.googlePlaceId || undefined);
-    const [isLocationGpsUsedInternal, setIsLocationGpsUsedInternal] = useState<boolean | undefined>(profile.isGpsUsed === true);
+    const [isLocationGpsUsedInternal, setIsLocationGpsUsedInternal] = useState<boolean | undefined>(profile.isGpsUser === true);
 
     // Validation states for required fields, initialized based on current profile data
     const [isNameValid, setIsNameValid] = useState(profile.profile.name.trim().length > 0);
@@ -56,12 +56,12 @@ const useAccountForm = ({
         setLocationString(profile.cityName || "");
         setLocationCoordinates(profile.lat !== null && profile.lng !== null ? { lat: profile.lat, lng: profile.lng } : undefined);
         setLocationPlaceId(profile.googlePlaceId || undefined);
-        setIsLocationGpsUsedInternal(profile.isGpsUsed === true);
+        setIsLocationGpsUsedInternal(profile.isGpsUser === true);
 
         // Re-validate location based on incoming profile data
         const isLocOk = !(profile.cityName && (profile.lat === null || profile.lng === null));
         setIsLocationValid(isLocOk);
-    }, [profile.cityName, profile.lat, profile.lng, profile.googlePlaceId, profile.isGpsUsed]);
+    }, [profile.cityName, profile.lat, profile.lng, profile.googlePlaceId, profile.isGpsUser]);
 
     /**
      * useEffect: Re-evaluate overall form validity whenever relevant dependencies change.
@@ -100,20 +100,20 @@ const useAccountForm = ({
             address: string,
             placeId: string | null,
             coordinates: Coordinates | null,
-            isGpsUsed: boolean | null
+            isGpsUser: boolean | null
         ) => {
             // Update internal states used for rendering LocationSelector and its feedback
             setLocationString(address);
             setLocationPlaceId(placeId === null ? undefined : placeId);
             setLocationCoordinates(coordinates === null ? undefined : coordinates);
-            setIsLocationGpsUsedInternal(isGpsUsed === true);
+            setIsLocationGpsUsedInternal(isGpsUser === true);
 
             // Notify parent about changes to root-level User properties
             onRootChange("cityName", address);
             onRootChange("googlePlaceId", placeId);
             onRootChange("lat", coordinates ? coordinates.lat : null);
             onRootChange("lng", coordinates ? coordinates.lng : null);
-            onRootChange("isGpsUsed", isGpsUsed === true);
+            onRootChange("isGpsUser", isGpsUser === true);
 
             // Validate location: if an address is provided, coordinates must be present
             const isValid = !(address.length > 0 && (!coordinates || coordinates.lat === null || coordinates.lng === null));

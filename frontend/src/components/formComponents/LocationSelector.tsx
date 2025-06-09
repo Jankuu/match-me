@@ -10,19 +10,19 @@ interface LocationSelectorProps {
     lat: number | null; // Current latitude (maps to User.lat)
     lng: number | null; // Current longitude (maps to User.lng)
     googlePlaceId: string | null; // Current Google Place ID (maps to User.googlePlaceId)
-    isGpsUsed: boolean | null; // Is GPS used (maps to User.isGpsUsed)
+    isGpsUser: boolean | null; // Is GPS used (maps to User.isGpsUsed)
     onChange: (
         address: string,
         placeId: string | null,         // Explicitly string | null
         coordinates: Coordinates | null, // Explicitly Coordinates | null
-        isGpsUsed: boolean | null        // Explicitly boolean | null
+        isGpsUser: boolean | null        // Explicitly boolean | null
     ) => void;
     isEditable?: boolean;
     isInvalid?: boolean; // For validation feedback
 }
 
 const LocationSelector: React.FC<LocationSelectorProps> = ({
-    value, lat, lng, googlePlaceId, isGpsUsed, onChange, isEditable = true, isInvalid
+    value, lat, lng, googlePlaceId, isGpsUser: isGpsUsed, onChange, isEditable = true, isInvalid
 }) => {
     const [inputValue, setInputValue] = useState(value);
     const [suggestions, setSuggestions] = useState<any[]>([]);
