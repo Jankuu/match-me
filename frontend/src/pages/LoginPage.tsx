@@ -157,18 +157,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     Sign up
                 </Button>
             </Form>
-            <div className="mt-4 text-center">
-                <small className="text-muted">For developers:</small>
-                <br />
-                <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={() => navigate("/jwt-test")}
-                    className="mt-1"
-                >
-                    JWT Authentication Test Page
-                </Button>
-            </div>
         </Container>
     );
 };

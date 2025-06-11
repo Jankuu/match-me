@@ -9,11 +9,8 @@ import com.example.demo.exceptions.DuplicateResourceException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;
 import com.example.demo.repositories.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
+import com.example.demo.utilities.GeometryUtils;
 import org.locationtech.jts.geom.Point;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +28,6 @@ public class UserService {
     private final ConnectionsService connectionsService;
     private final PasswordEncoder passwordEncoder;
     private final LocationService locationService;
-    private final GeometryFactory geometryFactory = new GeometryFactory();
 
     public UserService(
             UserRepository userRepository,
@@ -150,14 +146,6 @@ public class UserService {
 
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("Could not find user by username", username));
-    }
-
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Could not find user by email", email));
-    }
-
-    public User getUserByProfile(UserProfile profile) {
-        return userRepository.findByProfile(profile).orElseThrow(() -> new ResourceNotFoundException("Could not find user by profile", profile));
     }
 
     public User getUserByProfileId(Long profileId) {
@@ -287,8 +275,7 @@ public class UserService {
         user.setIsGpsUser(isGpsUser);
 
         if (dto.getLat() != null && dto.getLng() != null) {
-            Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
-            point.setSRID(4326);
+            Point point = GeometryUtils.createPoint(dto.getLng(), dto.getLat());
             user.setLocation(point);
         }
 
@@ -318,8 +305,7 @@ public class UserService {
         if (dto.getRadius() != null) user.setRadius(dto.getRadius());
 
         if (dto.getLat() != null && dto.getLng() != null) {
-            Point point = geometryFactory.createPoint(new Coordinate(dto.getLng(), dto.getLat()));
-            point.setSRID(4326);
+            Point point = GeometryUtils.createPoint(dto.getLng(), dto.getLat());
             user.setLocation(point);
         }
 

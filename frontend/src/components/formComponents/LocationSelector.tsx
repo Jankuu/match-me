@@ -88,7 +88,20 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
                 if (status === window.google.maps.GeocoderStatus.OK && results && results[0]) {
                     const location = results[0].geometry.location;
                     const coords: Coordinates = { lat: location.lat(), lng: location.lng() };
-                    onChange(suggestion.description, suggestion.place_id, coords, false);
+                    const components = results[0].address_components;
+
+                    const locality = components.find((c: any) => c.types.includes('locality'));
+                    const country = components.find((c: any) => c.types.includes('country'));
+
+                    let cityName = '';
+                    if (locality && country) {
+                        cityName = `${locality.long_name}, ${country.long_name}`;
+                    } else {
+                        cityName = locality?.long_name || results[0].formatted_address;
+                    }
+
+                    onChange(cityName, suggestion.place_id, coords, false);
+                    setInputValue(cityName);
                 } else {
                     setError('Error getting coordinates for this location.');
                     onChange(suggestion.description, null, null, false); // Pass null for placeId and coords on error
@@ -109,10 +122,17 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
                     if (geocoder) {
                         geocoder.geocode({ 'location': coords }, (results, status) => {
                             if (status === window.google.maps.GeocoderStatus.OK && results && results[0]) {
-                                const cityComponent = results[0].address_components.find((comp: any) =>
-                                    comp.types.includes('locality') || comp.types.includes('administrative_area_level_1') || comp.types.includes('country')
-                                );
-                                const cityName = cityComponent ? cityComponent.long_name : results[0].formatted_address;
+                                const components = results[0].address_components;
+
+                                const locality = components.find((c: any) => c.types.includes('locality'));
+                                const country = components.find((c: any) => c.types.includes('country'));
+
+                                let cityName = '';
+                                if (locality && country) {
+                                    cityName = `${locality.long_name}, ${country.long_name}`;
+                                } else {
+                                    cityName = results[0].formatted_address;
+                                }
                                 onChange(cityName, results[0].place_id, coords, true);
                                 setInputValue(cityName);
                                 setSuggestions([]);
