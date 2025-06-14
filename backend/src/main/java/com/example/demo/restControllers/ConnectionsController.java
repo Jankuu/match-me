@@ -65,9 +65,9 @@ public class ConnectionsController {
     }
 
     @PostMapping("/reject")
-    public ConnectionDTO rejectRequest(@RequestParam Long senderProfileId) {
+    public ConnectionDTO rejectRequest(@RequestParam Long otherProfileId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
-        return connectionsService.rejectRequest(currentUsername, senderProfileId);
+        return connectionsService.rejectRequest(currentUsername, otherProfileId);
     }
 }

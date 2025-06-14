@@ -119,26 +119,39 @@ public class ConnectionsService {
         return new ConnectionDTO(request);
     }
 
-    public ConnectionDTO rejectRequest(String receiverUsername, Long senderProfileId) {
-        User receiver = userService.getUserByUsername(receiverUsername);
-        User sender = userService.getUserByProfileId(senderProfileId);
+    public ConnectionDTO rejectRequest(String currentUsername, Long otherProfileId) {
+        User currentUser = userService.getUserByUsername(currentUsername);
+        User otherUser = userService.getUserByProfileId(otherProfileId);
 
-        receiver.getRejectedUsers().add(sender);
-        sender.getRejectedUsers().add(receiver);
+        currentUser.getRejectedUsers().add(otherUser);
+        otherUser.getRejectedUsers().add(currentUser);
 
-        userRepository.save(receiver);
-        userRepository.save(sender);
+        userRepository.save(currentUser);
+        userRepository.save(otherUser);
 
-        Connection request = connectionRepository.findConnectionByReceiverAndSender(receiver.getProfile(), sender.getProfile()).orElse(null);
-        if (request != null) {
-            receiver.getConnectionRequests().remove(request);
-            sender.getConnectionRequests().remove(request);
-            receiver.getConnections().remove(request);
-            sender.getConnections().remove(request);
-            connectionRepository.delete(request);
-            return new ConnectionDTO(request);
+        Connection connection = connectionRepository.findConnectionBetweenUsers(currentUser.getProfile(), otherUser.getProfile()).orElse(null);
+
+        if (connection != null) {
+            if (currentUser.getConnections().contains(connection)){
+                messagingTemplate.convertAndSendToUser(
+                        currentUser.getProfile().getId().toString(),
+                        "/queue/notifications/disconnect",
+                        "disconnect"
+                );
+                messagingTemplate.convertAndSendToUser(
+                        otherUser.getProfile().getId().toString(),
+                        "/queue/notifications/disconnect",
+                      "disconnect"
+                );
+            }
+            currentUser.getConnectionRequests().remove(connection);
+            otherUser.getConnectionRequests().remove(connection);
+            currentUser.getConnections().remove(connection);
+            otherUser.getConnections().remove(connection);
+            connectionRepository.delete(connection);
+            return new ConnectionDTO(connection);
         }
-        return new ConnectionDTO(null, new UserProfileDTO(receiver.getProfile()), new UserProfileDTO(sender.getProfile()), null);
+        return new ConnectionDTO(null, new UserProfileDTO(currentUser.getProfile()), new UserProfileDTO(otherUser.getProfile()), null);
     }
 
     // DELETE
