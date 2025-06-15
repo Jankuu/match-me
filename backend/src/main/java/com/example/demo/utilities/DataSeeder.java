@@ -4,9 +4,11 @@ import com.example.demo.entities.Game;
 import com.example.demo.entities.User;
 import com.example.demo.entities.UserInterestVector;
 import com.example.demo.entities.UserProfile;
+import com.example.demo.entities.City;
 import com.example.demo.repositories.ConnectionRepository;
 import com.example.demo.repositories.GameRepository;
 import com.example.demo.repositories.UserRepository;
+import com.example.demo.services.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +29,36 @@ public class DataSeeder implements CommandLineRunner {
     private final ConnectionRepository connectionRepository;
     private final GameRepository gameRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LocationService locationService;
+
+    // ----- Estonia location data -----
+    private static class CityInfo {
+        final String name;
+        final String googlePlaceId;
+        final double lat;
+        final double lng;
+
+        CityInfo(String name, String googlePlaceId, double lat, double lng) {
+            this.name = name;
+            this.googlePlaceId = googlePlaceId;
+            this.lat = lat;
+            this.lng = lng;
+        }
+    }
+
+    private static final List<CityInfo> ESTONIAN_CITIES = List.of(
+            new CityInfo("Tallinn, Estonia", "ChIJvxZW35mUkkYRcGL8GG2zAAQ",24.7536 ,59.4370 ),
+            new CityInfo("Tartu, Estonia", "ChIJ9z1d1dg260YREG38GG2zAAQ",  26.7290, 58.3776),
+            new CityInfo("Narva, Estonia", "ChIJh7Bmi9c3lEYR9CF9TV8qSrk",28.1887, 59.3794 ),
+            new CityInfo("Pärnu, Estonia", "ChIJoSQnAt787EYRkGn8GG2zAAQ",24.4971, 58.3859 ),
+            new CityInfo("Viljandi, Estonia", "ChIJWYLCyZOY7EYRIG_8GG2zAAQ",25.5916, 58.3633 ),
+            new CityInfo("Rakvere, Estonia", "ChIJK-mD0dJ1k0YRYGf8GG2zAAQ",26.3556 ,59.3460 ),
+            new CityInfo("Kohtla-Järve, Estonia", "ChIJVVaUB4BwlEYRYHD8GG2zAAU",27.2731 ,59.3988 ),
+            new CityInfo("Haapsalu, Estonia", "ChIJjQO0nnSn8kYRMGb8GG2zAAQ",23.5408 ,58.9448 ),
+            new CityInfo("Kuressaare, Estonia", "ChIJTxXJ6QJt8kYRyAwBrnVaYhY",22.4868 ,58.2528 ),
+            new CityInfo("Valga, Estonia", "ChIJtVY6dOGj60YREG78GG2zAAQ",26.0470, 57.7765 ),
+            new CityInfo("Paide, Estonia", "ChIJh90R5ZM2k0YRAi1LYfREeQE",25.5614, 58.8857 )
+    );
 
     private static String generateRandomString(int min, int max) {
         int length = generateRandomInt(min, max);
@@ -145,7 +177,7 @@ public class DataSeeder implements CommandLineRunner {
                 new Game("Spore", 95, 0, 50, 0, 10),
                 new Game("Tiny Tina's Wonderlands", 80, 0, 5, 15, 10),
                 new Game("Tom Clancy's Rainbow Six Siege", 5, 80, 90, 5, 90),
-                new Game("Assassin’s Creed Shadows", 40, 0, 50, 65, 30),
+                new Game("Assassin's Creed Shadows", 40, 0, 50, 65, 30),
                 new Game("Rocket League", 80, 80, 50, 0, 80),
                 new Game("Elden Ring", 100, 5, 80, 95, 90),
                 new Game("Fall Guys", 70, 90, 5, 5, 90),
@@ -188,15 +220,22 @@ public class DataSeeder implements CommandLineRunner {
             interestVector.setComplex(generateRandomInt(0, 100));
             user.setInterestVector(interestVector);
 
-            int randGPS = generateRandomInt(0, 1);
-            if (randGPS == 1) {
+            // ----- location assignment within Estonia -----
+            int randGpsUser = generateRandomInt(0, 1); // 0 -> city based, 1 -> GPS based
+            if (randGpsUser == 1) {
                 user.setIsGpsUser(true);
-                user.setLocation(GeometryUtils.createPoint(
-                        generateRandomDouble(-1, 1),
-                        generateRandomDouble(-1, 1)));
-                user.setRadius(generateRandomInt(20000, 100000));
+                // Random point roughly within Estonia
+                double lat = generateRandomDouble(57.3, 59.75);
+                double lng = generateRandomDouble(21.7, 28.2);
+                user.setLocation(GeometryUtils.createPoint(lng, lat));
+                user.setRadius(generateRandomInt(10000,150000)); // 10–150 km
             } else {
                 user.setIsGpsUser(false);
+                CityInfo cityInfo = ESTONIAN_CITIES.get(generateRandomInt(0, ESTONIAN_CITIES.size() - 1));
+                City city = locationService.findOrAddCity(cityInfo.name, cityInfo.googlePlaceId, cityInfo.lat, cityInfo.lng);
+                user.setCity(city);
+                user.setLocation(city.getLocation());
+                user.setRadius(5000);
             }
 
             users.add(user);
@@ -232,16 +271,14 @@ public class DataSeeder implements CommandLineRunner {
         interestVector.setComplex(generateRandomInt(0, 100));
         user.setInterestVector(interestVector);
 
-        int randGPS = generateRandomInt(0, 1);
-        if (randGPS == 1) {
-            user.setIsGpsUser(true);
-            user.setLocation(GeometryUtils.createPoint(
-                    generateRandomDouble(-1, 1),
-                    generateRandomDouble(-1, 1)));
-            user.setRadius(generateRandomInt(20000, 100000));
-        } else {
-            user.setIsGpsUser(false);
-        }
+        // Give the debugging user a fixed city (Tallinn) for predictable tests
+        CityInfo cityInfo = ESTONIAN_CITIES.get(0); // Tallinn
+        City city = locationService.findOrAddCity(cityInfo.name, cityInfo.googlePlaceId, cityInfo.lat, cityInfo.lng);
+        user.setIsGpsUser(false);
+        user.setCity(city);
+        profile.setLocation(cityInfo.name);
+        user.setLocation(null);
+        user.setRadius(null);
         return user;
     }
 }

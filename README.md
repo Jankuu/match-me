@@ -1,43 +1,25 @@
 # match-me
 
-A full-stack matchmaking and chat application.
-
-## Overview
-
-**match-me** is a web application that allows users to register, log in, find matches, chat in real time, and manage their profiles. The project is split into a React frontend and a Spring Boot backend, communicating via REST APIs and WebSockets.
-
----
+A full-stack matchmaking and chat application aimed at gamers.
 
 ## Features
 - User registration and authentication (JWT-based)
-- User profile management
-- Matchmaking system
+- Profile creation with interests and preferences.
+- Matchmaking logic based on biographical data, users' played video games, and location.
 - Real-time chat between matched users
-- Responsive design for mobile and desktop
-- Settings and user preferences
-
----
 
 ## Tech Stack
 
 ### Frontend
-- [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- [Vite](https://vitejs.dev/) (build tool)
-- [React Router](https://reactrouter.com/) (routing)
-- [Bootstrap](https://getbootstrap.com/) & [React Bootstrap](https://react-bootstrap.github.io/) (UI)
-- [Axios](https://axios-http.com/) (HTTP requests)
-- [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) (real-time chat)
+- React + TypeScript + Vite
+- React Router, Bootstrap, Axios
+- WebSockets for real-time chat
 
 ### Backend
-- [Spring Boot](https://spring.io/projects/spring-boot) (v3.4.4)
-- [Spring Data JPA](https://spring.io/projects/spring-data-jpa) (database access)
-- [Spring Security](https://spring.io/projects/spring-security) (authentication)
-- [JWT](https://jwt.io/) (token-based auth)
-- [WebSocket](https://spring.io/guides/gs/messaging-stomp-websocket/) (real-time communication)
-- [PostgreSQL](https://www.postgresql.org/) (database)
-- [Hibernate Spatial](https://hibernate.org/spatial/) (geolocation)
-
----
+- Spring Boot (v3.4.4)
+- Spring Data JPA, Spring Security
+- JWT, WebSocket
+- PostgreSQL with Hibernate Spatial
 
 ## Directory Structure
 
@@ -57,7 +39,6 @@ match-me/
 │           ├── validators/         # Input validation
 │           ├── exceptions/         # Custom exception handling
 │           ├── constraints/        # Custom constraints
-│           ├── projections/        # JPA projections
 │           ├── utilities/          # Utility classes
 │           └── DemoApplication.java
 ├── frontend/     # React frontend
@@ -67,47 +48,44 @@ match-me/
 │       ├── hooks/                  # Custom React hooks
 │       ├── utils/                  # Utility functions
 │       ├── providers/              # Context providers
-│       ├── styles/                 # CSS/SCSS files
+│       ├── styles/                 # CSS files
 │       ├── types/                  # TypeScript type definitions
 │       ├── public/                 # Static assets
 │       ├── App.tsx                 # Main app logic and routing
 │       ├── main.tsx                # Entry point
-│       ├── App.css                 # Global styles
-│       └── vite-env.d.ts           # Vite environment types
+│       └── App.css                 # Global styles
 └── README.md
 ```
-
----
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v18+ recommended)
+- Node.js (v18+)
 - Java 21
 - Maven
-- PostgreSQL (running and accessible)
+- PostgreSQL
 
 ### Backend Setup
-1. **Configure Database:**
-   - Set your PostgreSQL credentials and database URL in `backend/src/main/resources/application.properties` (create if missing).
-2. **Install dependencies & build:**
+1. Configure database in `backend/src/main/resources/application.properties`:
+   ```
+   spring.datasource.url=jdbc:postgresql://localhost:5432/match_me
+   spring.datasource.username=postgres
+   spring.datasource.password=your_password
+   ```
+2. Run the backend:
    ```sh
    cd backend
-   mvn clean install
-   ```
-3. **Run the backend:**
-   ```sh
    mvn spring-boot:run
    ```
    The backend will start on [http://localhost:8080](http://localhost:8080).
 
 ### Frontend Setup
-1. **Install dependencies:**
+1. Install dependencies:
    ```sh
    cd frontend
    npm install
    ```
-2. **Run the frontend:**
+2. Run the frontend:
    ```sh
    npm run dev
    ```
@@ -123,19 +101,11 @@ match-me/
 
 ---
 
-## Development
-- **Frontend:** Edit files in `frontend/src/` and use Vite's hot reload.
-- **Backend:** Edit files in `backend/src/main/java/` and restart the Spring Boot server.
-
----
-
-## License
-This project is for educational purposes. Add your license here if needed.
 
 ## Environment Variables
 
 ### Backend
-- Create a file `backend/src/main/resources/application.properties` (or `application.yml`) with the following variables:
+- Create a file `backend/src/main/resources/application.properties` with the following variables:
   ```
   spring.datasource.url=jdbc:postgresql://localhost:5432/your_database_name
   spring.datasource.username=your_username
@@ -143,38 +113,7 @@ This project is for educational purposes. Add your license here if needed.
   spring.jpa.hibernate.ddl-auto=update
   spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
   server.port=8080
+  
+  jwt.secret=put-whatever-you-want-here-for-jwt-encryption
   ```
-
-### Frontend
-- Create a `.env` file in the `frontend/` directory with the following variables:
-  ```
-  VITE_API_URL=http://localhost:8080
-  VITE_WS_URL=ws://localhost:8080/ws
-  ```
-
-## API Documentation
-
-### Backend API Endpoints
-
-- **Authentication:**
-  - `POST /api/auth/register` - Register a new user
-  - `POST /api/auth/login` - Log in and receive a JWT token
-
-- **User Management:**
-  - `GET /api/users/me` - Get current user profile
-  - `PUT /api/users/me` - Update current user profile
-  - `GET /api/users/{id}` - Get user profile by ID
-
-- **Matching:**
-  - `GET /api/matches` - Get potential matches
-  - `POST /api/matches/{id}/like` - Like a user
-  - `POST /api/matches/{id}/dislike` - Dislike a user
-
-- **Chat:**
-  - `GET /api/chats` - Get user's chat history
-  - `GET /api/chats/{id}/messages` - Get messages for a specific chat
-  - `POST /api/chats/{id}/messages` - Send a message in a chat
-
-- **WebSocket:**
-  - `/ws` - WebSocket endpoint for real-time chat
 
