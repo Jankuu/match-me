@@ -44,7 +44,7 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
     const [locationCityName, setLocationCityName] = useState<string>("");
     const [googlePlaceId, setGooglePlaceId] = useState<string | null>(null);
     const [locationCoordinates, setLocationCoordinates] = useState<Coordinates | null>(null);
-    const [isGpsUsed, setIsGpsUsed] = useState<boolean | null>(null);
+    const [isGpsUser, setIsGpsUser] = useState<boolean | null>(null);
     const [radius, setRadius] = useState<number>(5000); // Default search radius
 
     // --- Auxiliary State for Validation / Derived Values ---
@@ -104,11 +104,11 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
      * Memoized to prevent unnecessary re-creations.
      */
     const handleLocationChange = useCallback(
-        (address: string, placeIdResult: string | null, coordsResult: Coordinates | null, gpsUsedResult: boolean | null) => {
+        (address: string, placeIdResult: string | null, coordsResult: Coordinates | null, gpsUserResult: boolean | null) => {
             setLocationCityName(address);
             setGooglePlaceId(placeIdResult);
             setLocationCoordinates(coordsResult);
-            setIsGpsUsed(gpsUsedResult);
+            setIsGpsUser(gpsUserResult);
 
             // Location is valid if:
             // 1. An address is provided AND coordinates/placeId are also provided.
@@ -136,14 +136,14 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
     // which should be defined based on your specific requirements.
     const isFormValid = useMemo(() =>
         (usernameValid || (isEmailValid && emailMatch)) && // Either username valid OR (email valid AND email matches)
-        (passwordMatch && isPasswordValid) && // Password matches AND is strong
-        name.trim().length > 0 && // Name is required
-        isBirthDateValid && // Birth date valid (age check)
-        gender.trim().length > 0 && // Gender is selected
-        height > 0 && // Height is set
-        isLocationValid && // Location is valid
-        radius > 0 && // Radius is set
-        preferredGenders.length > 0 // At least one preferred gender is selected
+        (passwordMatch && isPasswordValid) // Password matches AND is strong
+        // name.trim().length > 0 && // Name is required
+        // isBirthDateValid && // Birth date valid (age check)
+        // gender.trim().length > 0 && // Gender is selected
+        // height > 0 && // Height is set
+        // isLocationValid && // Location is valid
+        // radius > 0 && // Radius is set
+        // preferredGenders.length > 0 // At least one preferred gender is selected
     , [
         usernameValid, isEmailValid, emailMatch, passwordMatch, isPasswordValid,
         name, isBirthDateValid, gender, height, isLocationValid, radius, preferredGenders
@@ -207,7 +207,7 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
             interestedGenders: preferredGenders,
             interestedGames: Array.from(selectedGames.values()), // Convert Set<Game> to Game[] for DTO
 
-            isGpsUser: isGpsUsed === true, // Ensure boolean type
+            isGpsUser: isGpsUser === true, // Ensure boolean type
             cityName: locationCityName,
             googlePlaceId: googlePlaceId || undefined, // Use undefined if null
             lat: locationCoordinates?.lat || undefined, // Use undefined if null or coordinates are null
@@ -219,7 +219,7 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
         onSubmitCallback(userPayload);
     }, [
         username, email, password, name, image, birthDateUi, gender, height, description,
-        preferedAgerange, preferredGenders, selectedGames, isGpsUsed,
+        preferedAgerange, preferredGenders, selectedGames, isGpsUser,
         locationCityName, googlePlaceId, locationCoordinates, radius,
         readImageAsBase64 // Dependency for the helper function
     ]);
@@ -249,7 +249,7 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
         locationCityName, setLocationCityName, // Added setLocationCityName
         googlePlaceId, setGooglePlaceId, // Added setGooglePlaceId
         locationCoordinates, setLocationCoordinates, // Added setLocationCoordinates
-        isGpsUsed, setIsGpsUsed, // Added setIsGpsUsed
+        isGpsUser, setIsGpsUser, // Added setIsGpsUser
         radius, setRadius,
         handleLocationChange, // <--- THIS WAS THE MISSING PIECE!
 

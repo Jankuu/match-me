@@ -36,7 +36,7 @@ export type User = {
     };
 
     // Location details directly on User (matching backend UserDTO)
-    isGpsUsed: boolean | null; // Can be null from backend, manage as boolean
+    isGpsUser: boolean | null; // Can be null from backend, manage as boolean
     cityName: string | null; // Your backend has this
     googlePlaceId: string | null;
     lat: number | null;

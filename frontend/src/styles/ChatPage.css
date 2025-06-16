@@ -133,8 +133,8 @@
 .chat-input {
     flex-shrink: 0;
     z-index: 10;
-    background-color: var(--bs-light);
-    border-top: 1px solid var(--bs-gray-300);
+    background-color: #C2C5BB;
+    /* border-top: 1px solid var(--bs-gray-300); */
     padding: 10px;
     display: flex;
     align-items: flex-end;

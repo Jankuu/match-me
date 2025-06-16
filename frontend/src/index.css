@@ -2,7 +2,7 @@
 
 :root {
   --navbar-height: 75px; /* Confirmed height for your mobile bottom navbar */
-  --desktop-navbar-height: 60px; /* Guessing a height for your top desktop navbar, adjust if needed */
+  --desktop-navbar-height: 75px; /* Guessing a height for your top desktop navbar, adjust if needed */
 }
 
 html, body, #root {
