@@ -136,12 +136,12 @@ public class ConnectionsService {
                 messagingTemplate.convertAndSendToUser(
                         currentUser.getProfile().getId().toString(),
                         "/queue/notifications/disconnect",
-                        "disconnect"
+                        otherUser.getProfile().getId().toString()
                 );
                 messagingTemplate.convertAndSendToUser(
                         otherUser.getProfile().getId().toString(),
                         "/queue/notifications/disconnect",
-                      "disconnect"
+                        currentUser.getProfile().getId().toString()
                 );
             }
             currentUser.getConnectionRequests().remove(connection);

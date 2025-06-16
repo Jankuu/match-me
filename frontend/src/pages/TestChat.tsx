@@ -14,8 +14,6 @@ type Game = {
 };
 
 const TestChat = () => {
-    const { messages, sendMessage } = useWebSocket();
-
     const [id, setId] = useState<number>(0);
     const [response, setResponse] = useState<string>("");
     const [message, setMessage] = useState<string>("");
@@ -73,7 +71,6 @@ const TestChat = () => {
 
     const handleSendMessage = async () => {
         if (receiverProfileId === undefined) return;
-        sendMessage(receiverProfileId, message);
     };
 
     const handleChangeReceiver = () => {
@@ -160,15 +157,6 @@ const TestChat = () => {
                 onChange={(e) => setMessage(e.target.value)}
             />
             <button onClick={handleSendMessage}>Send</button>
-
-            {messages.map((msg, index) => (
-                <div className="chatMessageContainer" key={index}>
-                    <p>Sender: {msg.senderProfileId}</p>
-                    <p>Message: {msg.content}</p>
-                    <p>Receiver: {msg.receiverProfileId}</p>
-                    <p>Read: {msg.hasReceiverRead ? "true" : "false"}</p>
-                </div>
-            ))}
         </div>
     );
 };
