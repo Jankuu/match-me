@@ -19,7 +19,6 @@ import { useState, useEffect } from "react"; // React hooks for state and side e
 import SettingsPage from "./pages/SettingsPage"; // Settings page component
 import MatchingPage from "./pages/MatchingPage"; // User matching page component
 import MyProfilePage from "./pages/MyProfilePage"; // User's own profile page component
-import JwtTestPage from "./pages/JwtTestPage"; // Test page for JWT (JSON Web Token) functionality
 import TestChat from "./pages/TestChat"; // A test chat component ( for development/debugging)
 import { getUserIdentifierFromToken } from "./utils/auth"; // Utility function to extract user ID from JWT
 import UserProfilePage from "./pages/UserProfilePage"; // Public user profile page component
@@ -179,8 +178,6 @@ function App() {
                             path="/matching"
                             element={token ? <MatchingPage /> : <Navigate to="/login" />}
                         />
-                        {/* JWT Test Page Route (development/testing JWT functionality) */}
-                        <Route path="/jwt-test" element={<JwtTestPage />} />
                         {/* Test Chat Page Route (development/debugging chat) */}
                         <Route path="/testchat" element={<TestChat />} />
                         <Route path="/test-chat-history" element={

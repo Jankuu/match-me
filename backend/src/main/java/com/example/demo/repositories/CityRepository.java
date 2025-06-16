@@ -10,6 +10,4 @@ import java.util.Optional;
 public interface CityRepository extends JpaRepository<City, Long> {
     Optional<City> findByGooglePlaceId(String googlePlaceId);
     Optional<City> findByNameIgnoreCase(String name);
-
-    Optional<City> findByName(String name);
 }
