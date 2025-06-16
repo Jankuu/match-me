@@ -159,7 +159,7 @@ public class DataSeeder implements CommandLineRunner {
     private void generateRandomUsers() {
         List<User> users = new ArrayList<>();
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 20; i++) {
             User user = new User();
             UserProfile profile = new UserProfile();
             UserInterestVector interestVector = new UserInterestVector();
@@ -177,17 +177,34 @@ public class DataSeeder implements CommandLineRunner {
             profile.setDescription(generateRandomString(100, 300));
             user.setProfile(profile);
 
-            user.setInterestedMinAge(generateRandomInt(18, 19));
-            user.setInterestedMaxAge(generateRandomInt(99, 100));
-            user.setInterestedGenders(generateRandomGenders());
+            user.setInterestedMinAge(18);
+            user.setInterestedMaxAge(100);
 
-            interestVector.setFantasy(generateRandomInt(0, 100));
+            String[] randGenders = new String[2];
+            randGenders[0] = "man";
+            randGenders[1] = "woman";
+
+            //user.setInterestedGenders(generateRandomGenders());
+            user.setInterestedGenders(randGenders);
+
+            interestVector.setFantasy(i*5);
+            interestVector.setCompetitive(i*5);
+            interestVector.setAction(i*5);
+            interestVector.setStory(i*5);
+            interestVector.setComplex(i*5);
+
+         /*   interestVector.setFantasy(generateRandomInt(0, 100));
             interestVector.setCompetitive(generateRandomInt(0, 100));
             interestVector.setAction(generateRandomInt(0, 100));
             interestVector.setStory(generateRandomInt(0, 100));
-            interestVector.setComplex(generateRandomInt(0, 100));
+            interestVector.setComplex(generateRandomInt(0, 100));*/
             user.setInterestVector(interestVector);
 
+            user.setIsGpsUser(true);
+            user.setLocation(GeometryUtils.createPoint(0,0));
+            user.setRadius(100000);
+
+            /*
             int randGPS = generateRandomInt(0, 1);
             if (randGPS == 1) {
                 user.setIsGpsUser(true);
@@ -197,11 +214,11 @@ public class DataSeeder implements CommandLineRunner {
                 user.setRadius(generateRandomInt(20000, 100000));
             } else {
                 user.setIsGpsUser(false);
-            }
+            }*/
 
             users.add(user);
         }
-        users.add(getDebuggingUser());
+        //users.add(getDebuggingUser());
 
         userRepository.saveAll(users);
     }

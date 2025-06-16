@@ -48,7 +48,7 @@ const MatchingPage: React.FC = () => {
     const currentUserId = userData?.id || userData?.profile?.id;
 
     useEffect(() => {
-        if (client != null)
+        if (client != null) {
             client.subscribe(
                 "/user/queue/notifications/disconnect",
                 (req: IMessage) => {
@@ -69,6 +69,7 @@ const MatchingPage: React.FC = () => {
                     fetchConnectionRequests();
                 }
             );
+        }
     }, [client]);
 
     // Fetch initial data when currentUserId is available
