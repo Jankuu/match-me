@@ -4,8 +4,6 @@ import apiClient from '../utils/apiClient';
 import { ChatMessage } from '../types/ChatMessage';
 
 const INITIAL_LOAD_COUNT = 10;
-// Порог, выше которого автопрокрутка отключается.
-// Например, если пользователь прокрутил на 100px вверх от самого низа, автопрокрутка отключается.
 const SCROLL_DEACTIVATION_THRESHOLD = 100; 
 
 interface UseChatLogicProps {
@@ -18,27 +16,23 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
 
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [text, setText] = useState<string>('');
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState<number | null>(null);
+    const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false);
 
     const messagesContainerRef = useRef<HTMLDivElement>(null);
-
     const isInitialLoadCompleteRef = useRef<boolean>(false);
-    const hasScrolledUpToTopRef = useRef<boolean>(false); 
-    // Новый реф для отслеживания, отключена ли автопрокрутка
+    const hasScrolledUpToTopRef = useRef<boolean>(false);
     const isAutoScrollDisabledRef = useRef<boolean>(false);
 
     const generateTempId = (): string => `temp-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
     const handleIncomingMessage = useCallback((incomingMessage: ChatMessage) => {
-        console.log('WebSocket: Incoming message received:', incomingMessage);
-
         const isMessageRelevant =
             (incomingMessage.senderProfileId === receiverId && incomingMessage.receiverProfileId === currentUserId) ||
             (incomingMessage.senderProfileId === currentUserId && incomingMessage.receiverProfileId === receiverId);
 
-        if (!isMessageRelevant) {
-            console.log('WebSocket: Message not relevant to this chat, ignoring.');
-            return;
-        }
+        if (!isMessageRelevant) return;
 
         setChatMessages((prevMessages) => {
             let updatedMessages = [...prevMessages];
@@ -78,8 +72,7 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
             }
 
             if (messageAddedOrUpdated) {
-                const sorted = updatedMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-                return sorted;
+                return updatedMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
             }
             return prevMessages;
         });
@@ -87,23 +80,61 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
         markMessagesAsReadForUser(receiverId);
     }, [receiverId, currentUserId, markMessagesAsReadForUser]);
 
-    useEffect(() => {
-        console.log('useEffect: Initial chat setup triggered.');
-        if (!currentUserId || !receiverId) {
-            console.log('useEffect: Missing currentUserId or receiverId. Aborting initial setup.');
-            return;
+    function mergeMessagesWithoutDuplicates(existing: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
+        const existingIds = new Set(existing.map(m => m.id ?? m.tempId));
+        const filteredIncoming = incoming.filter(m => !existingIds.has(m.id ?? m.tempId));
+        return [...filteredIncoming, ...existing].sort(
+            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+    }
+
+    const loadOlderMessages = async () => {
+        if (isLoadingOlderMessages || (totalPages !== null && currentPage + 1 >= totalPages)) return;
+
+        setIsLoadingOlderMessages(true);
+        try {
+            const nextPage = currentPage + 1;
+            const prevScrollHeight = messagesContainerRef.current?.scrollHeight || 0;
+
+            const response = await apiClient.get<{ content: ChatMessage[], totalPages: number, number: number }>(`/messages`, {
+                params: {
+                    otherUserProfileId: receiverId,
+                    page: nextPage,
+                    size: INITIAL_LOAD_COUNT,
+                },
+            });
+
+            const newMessages = response.data.content;
+            setTotalPages(response.data.totalPages);
+            setCurrentPage(nextPage);
+
+            setChatMessages((prevMessages) =>
+                mergeMessagesWithoutDuplicates(prevMessages, newMessages)
+            );
+
+            setTimeout(() => {
+                if (messagesContainerRef.current) {
+                    const newScrollHeight = messagesContainerRef.current.scrollHeight;
+                    messagesContainerRef.current.scrollTop = newScrollHeight - prevScrollHeight;
+                }
+            }, 50);
+        } catch (error) {
+            console.error("loadOlderMessages: Error loading older messages:", error);
+        } finally {
+            setIsLoadingOlderMessages(false);
         }
+    };
+
+    useEffect(() => {
+        if (!currentUserId || !receiverId) return;
 
         setChatMessages([]);
         isInitialLoadCompleteRef.current = false;
         hasScrolledUpToTopRef.current = false;
-        isAutoScrollDisabledRef.current = false; // Сбрасываем флаг автоскролла при инициализации чата
-        console.log('useEffect: Chat states reset.');
+        isAutoScrollDisabledRef.current = false;
 
         const loadInitialMessages = async () => {
-            console.log('loadInitialMessages: Starting initial message load.');
             try {
-                console.log(`loadInitialMessages: Fetching initial ${INITIAL_LOAD_COUNT} messages from page 0.`);
                 const response = await apiClient.get<{ content: ChatMessage[], totalPages: number, number: number }>(`/messages`, {
                     params: {
                         otherUserProfileId: receiverId,
@@ -111,20 +142,18 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
                         size: INITIAL_LOAD_COUNT,
                     },
                 });
-                
+
                 const fetchedMessages = response.data.content;
                 setChatMessages(fetchedMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
-                console.log(`loadInitialMessages: Initial messages set: chatMessages.length=${fetchedMessages.length}`);
+                setCurrentPage(0);
+                setTotalPages(response.data.totalPages);
 
                 setTimeout(() => {
                     if (messagesContainerRef.current) {
                         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-                        console.log('loadInitialMessages: Scrolled to bottom after initial load.');
                     }
                     isInitialLoadCompleteRef.current = true;
-                    console.log('loadInitialMessages: isInitialLoadCompleteRef set to true.');
                 }, 100);
-                
             } catch (error) {
                 console.error('loadInitialMessages: Error during initial history load:', error);
                 setChatMessages([]);
@@ -133,77 +162,52 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
 
         loadInitialMessages();
 
-        console.log('useEffect: Registering WebSocket message callback.');
         const cleanupCallback = registerMessageCallback(receiverId, handleIncomingMessage);
-        console.log('useEffect: Marking messages as read for receiver:', receiverId);
         markMessagesAsReadForUser(receiverId);
 
         return () => {
-            console.log('useEffect: Cleanup function running.');
             cleanupCallback();
             markMessagesAsReadForUser(receiverId);
-            console.log('useEffect: WebSocket callback unregistered and messages marked read on unmount.');
         };
     }, [receiverId, currentUserId, registerMessageCallback, markMessagesAsReadForUser, handleIncomingMessage]);
 
-    /**
-     * Хук эффекта для автоматической прокрутки до низа контейнера сообщений
-     * при изменении `chatMessages` (то есть, при появлении нового сообщения).
-     * Отключается, если пользователь прокрутил вверх выше заданного порога.
-     */
     useEffect(() => {
-        // Автоматическая прокрутка вниз срабатывает только после завершения первой загрузки
-        // И только если автопрокрутка не отключена пользователем
         if (messagesContainerRef.current && isInitialLoadCompleteRef.current && !isAutoScrollDisabledRef.current) {
-            console.log('useEffect [chatMessages]: Auto-scrolling due to new message (autoscroll enabled).');
-            // Небольшая задержка, чтобы дать DOM обновиться
             setTimeout(() => {
                 if (messagesContainerRef.current) {
                     messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
                 }
             }, 0);
-        } else if (isAutoScrollDisabledRef.current) {
-            console.log('useEffect [chatMessages]: Auto-scrolling is disabled because user scrolled up.');
         }
     }, [chatMessages]);
 
-    /**
-     * Хук эффекта для обработки событий прокрутки на контейнере сообщений.
-     * Определяет, когда отключать/включать автопрокрутку и логирует достижение верха.
-     */
     useEffect(() => {
         const handleScroll = () => {
             if (messagesContainerRef.current) {
                 const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
-                
-                // Расстояние от низа контейнера до текущей позиции скролла
                 const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
 
-                // Логика включения/отключения автопрокрутки
                 if (distanceFromBottom > SCROLL_DEACTIVATION_THRESHOLD) {
-                    // Если пользователь прокрутил выше порога, отключаем автопрокрутку
                     if (!isAutoScrollDisabledRef.current) {
                         isAutoScrollDisabledRef.current = true;
                         console.log(`Scroll Event: Auto-scrolling DISABLED. User scrolled up to ${distanceFromBottom}px from bottom.`);
                     }
                 } else {
-                    // Если пользователь прокрутил достаточно близко к низу, включаем автопрокрутку
                     if (isAutoScrollDisabledRef.current) {
                         isAutoScrollDisabledRef.current = false;
                         console.log(`Scroll Event: Auto-scrolling ENABLED. User scrolled back within ${SCROLL_DEACTIVATION_THRESHOLD}px of bottom.`);
                     }
                 }
 
-                // Логика срабатывания лога при достижении самого верха (не зависит от автопрокрутки)
-                if (scrollTop <= 5) {
+                if (isInitialLoadCompleteRef.current && scrollTop <= 5) {
                     if (!hasScrolledUpToTopRef.current) {
-                        console.log('Scroll Event: User scrolled to the very top! (No more messages to load here)');
                         hasScrolledUpToTopRef.current = true;
+                        loadOlderMessages();
+                        console.log('Scroll Event: User scrolled to the very top!');
                     }
                 } else {
                     if (hasScrolledUpToTopRef.current) {
                         hasScrolledUpToTopRef.current = false;
-                        // console.log('Scroll Event: User scrolled away from the top.'); // Опциональный лог
                     }
                 }
             }
@@ -211,21 +215,17 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
 
         const container = messagesContainerRef.current;
         if (container) {
-            console.log('useEffect [scroll listener]: Adding scroll event listener.');
             container.addEventListener('scroll', handleScroll);
         }
         return () => {
             if (container) {
-                console.log('useEffect [scroll listener]: Removing scroll event listener.');
                 container.removeEventListener('scroll', handleScroll);
             }
         };
-    }, []);
+    }, [loadOlderMessages]);
 
     const handleSend = useCallback(() => {
-        console.log('handleSend: Attempting to send message.');
         if (isConnected && text.trim() && currentUserId !== null) {
-            console.log('handleSend: Conditions met for sending message.');
             const tempMessage: ChatMessage = {
                 id: null,
                 tempId: generateTempId(),
@@ -238,19 +238,11 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
 
             setChatMessages((prev) => {
                 const newMessages = [...prev, tempMessage];
-                const sorted = newMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-                console.log('handleSend: Optimistic message added. New count:', sorted.length);
-                return sorted;
+                return newMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
             });
 
             sendMessage(receiverId, text.trim());
             setText('');
-            console.log('handleSend: Message sent via WebSocket, input cleared.');
-        } else {
-            console.warn('handleSend: Cannot send message. Reasons:');
-            if (!isConnected) console.warn('- WebSocket not connected.');
-            if (!text.trim()) console.warn('- Message is empty.');
-            if (currentUserId === null) console.warn('- Current user ID is null.');
         }
     }, [isConnected, text, currentUserId, receiverId, sendMessage]);
 

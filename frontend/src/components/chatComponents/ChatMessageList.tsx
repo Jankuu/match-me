@@ -65,7 +65,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
                     return (
                         <div
                             // Use server ID if available, otherwise use tempId for key
-                            key={msg.id !== null && msg.id !== undefined ? msg.id : msg.tempId}
+                            key={`${msg.id ?? msg.tempId}-${msg.timestamp}`}
                             className={`message-bubble ${isMine ? "mine" : "theirs"}`}
                         >
                             {!isMine && (
