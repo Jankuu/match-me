@@ -1,6 +1,8 @@
 package com.example.demo.socketControllers;
 
 import com.example.demo.dTOs.MessageDTO;
+import com.example.demo.entities.Connection;
+import com.example.demo.services.ConnectionsService;
 import com.example.demo.services.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -15,12 +17,14 @@ import java.time.LocalDateTime;
 @Controller
 public class SocketController {
     private final MessageService messageService;
+    private final ConnectionsService connectionsService;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    public SocketController(MessageService messageService) {
+    public SocketController(MessageService messageService, ConnectionsService connectionsService) {
         this.messageService = messageService;
+        this.connectionsService = connectionsService;
     }
 
     @MessageMapping("/send")
@@ -43,6 +47,7 @@ public class SocketController {
                 messageDTO
         );
 
+        connectionsService.updateConnectionActivityTime(senderProfileId, messageDTO.getReceiverProfileId());
         messageService.saveMessage(messageDTO);
     }
 
