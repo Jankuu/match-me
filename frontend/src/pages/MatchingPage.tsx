@@ -49,6 +49,9 @@ const MatchingPage: React.FC = () => {
 
     useEffect(() => {
         if (disconnectedChatUsers.length > 0) {
+            fetchUserConnections();
+            fetchRecommendations();
+            fetchConnectionRequests();
             // Iterate over disconnected users
             disconnectedChatUsers.forEach(disconnectedUserId => {
                 const location = window.location.pathname;
