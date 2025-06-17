@@ -36,6 +36,7 @@ interface WebSocketContextType {
     markAllNotificationsAsRead: () => void;
     markConnectionRequestsAsRead: () => void;
     markConnectionsAsRead: () => void;
+    lastMessageTimestamp: number;
 
     // Unread message counts per user and global flag
     unreadMessages: UnreadMessagesMap;
@@ -98,6 +99,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         disconnectedChatUsers, // Make sure this is destructured
         handleChatDisconnectNotification, // This was already destructured
         clearDisconnectedChatUser, // <--- MAKE SURE THIS IS DESTRUCTURED
+        lastMessageTimestamp,
     } = useNotificationManagement();
 
     // 4. Use the WebSocket connection hook, passing necessary auth data and notification handlers
@@ -132,6 +134,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 refreshAuthData,
                 hasUnreadMessages,
                 clearDisconnectedChatUser, // <--- ADD THIS LINE TO THE VALUE OBJECT
+                lastMessageTimestamp,
             }}
         >
             {children}

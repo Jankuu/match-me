@@ -33,8 +33,9 @@ const MatchingPage: React.FC = () => {
         markConnectionsAsRead,
         connectionRequestNotification, // Notification for new connection requests
         connectionNotification, // Notification for new established connections
-        unreadMessages, // NEW: Get unread messages map
-        disconnectedChatUsers
+        unreadMessages, // Get unread messages map
+        disconnectedChatUsers,
+        lastMessageTimestamp,
     } = useWebSocket();
 
     // State to control which accordion section is active (open)
@@ -93,7 +94,7 @@ const MatchingPage: React.FC = () => {
         if (connectionNotification.length > 0) {
             fetchUserConnections();
         }
-    }, [connectionNotification]); // Dependency on connectionNotification
+    }, [connectionNotification,  lastMessageTimestamp]); // Dependency on connectionNotification
 
     /**
      * Fetches the current user's established connections.

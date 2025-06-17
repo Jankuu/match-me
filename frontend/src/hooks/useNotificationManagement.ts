@@ -23,6 +23,9 @@ const useNotificationManagement = () => {
         }
     });
 
+    const [lastMessageTimestamp, setLastMessageTimestamp] = useState<number>(Date.now()); 
+
+
     const hasUnreadMessages = useMemo(() => Object.values(unreadMessages).some(count => count > 0), [unreadMessages]);
     const hasUnreadConnections = unreadConnections;
     const hasUnreadConnectionRequests = unreadConnectionRequests;
@@ -50,12 +53,11 @@ const useNotificationManagement = () => {
     ) => {
         console.log("Handling chat message in useNotificationManagement:", message);
 
-        // --- NEW: Filter out messages sent by the current user ---
+        // --- Filter out messages sent by the current user ---
         if (currentUserId !== null && message.senderProfileId === currentUserId) {
             console.log(`[NotificationMgr] Ignoring message from myself (senderId: ${message.senderProfileId}).`);
             return; // Exit early, do not process this message for notifications
         }
-        // --- END NEW CHECK ---
 
         // If a chat with this sender is currently open, dispatch the message directly
         if (messageCallbacksRef.current[message.senderProfileId]) {
@@ -73,6 +75,7 @@ const useNotificationManagement = () => {
                 return newUnreadMessages;
             });
         }
+        setLastMessageTimestamp(Date.now());
     }, []);
 
     const handleChatDisconnectNotification = useCallback((disconnectedUserId: number) => {
@@ -132,6 +135,7 @@ const useNotificationManagement = () => {
         handleChatMessage,
         handleChatDisconnectNotification,
         clearDisconnectedChatUser,
+        lastMessageTimestamp,
     };
 };
 
