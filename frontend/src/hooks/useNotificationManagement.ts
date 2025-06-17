@@ -1,17 +1,16 @@
 // src/hooks/useNotificationManagement.ts
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChatMessage } from '../types/ChatMessage'; // Assuming ChatMessage type
-import type { Client } from "@stomp/stompjs"; // Added Client for messageCallbacksRef type
+// import type { Client } from "@stomp/stompjs"; // Removed: This import is not needed here and can cause circular dependency issues
 
 interface UnreadMessagesMap {
     [userId: number]: number; // Maps user ID to unread count
 }
 
 const useNotificationManagement = () => {
-    // ... (existing states) ...
     const [connectionNotification, setConnectionNotification] = useState<string[]>([]);
     const [connectionRequestNotification, setConnectionRequestNotification] = useState<string[]>([]);
-    const [disconnectedChatUsers, setDisconnectedChatUsers] = useState<number[]>([]); // NEW: State for disconnected chat users
+    const [disconnectedChatUsers, setDisconnectedChatUsers] = useState<number[]>([]);
 
     const [unreadConnectionRequests, setUnreadConnectionRequests] = useState(false);
     const [unreadConnections, setUnreadConnections] = useState(false);
@@ -25,14 +24,10 @@ const useNotificationManagement = () => {
         }
     });
 
-    // ... (existing hasUnreadMessages, hasUnreadConnections, hasUnreadConnectionRequests, mark functions) ...
-
     const hasUnreadMessages = useMemo(() => Object.values(unreadMessages).some(count => count > 0), [unreadMessages]);
-
     const hasUnreadConnections = unreadConnections;
     const hasUnreadConnectionRequests = unreadConnectionRequests;
 
-    // Handlers for incoming WebSocket messages
     const handleConnectionNotification = useCallback((body: string, currentUserId: number | null) => {
         console.log("Handling connection notification in useNotificationManagement:", body);
         setConnectionNotification(prev => [...prev, body]);
@@ -55,12 +50,11 @@ const useNotificationManagement = () => {
         messageCallbacksRef: React.MutableRefObject<{ [userId: number]: (message: ChatMessage) => void }>
     ) => {
         console.log("Handling chat message in useNotificationManagement:", message);
-        // Check if there's an active callback for this sender (i.e., chat window is open)
         if (messageCallbacksRef.current[message.senderProfileId]) {
-            // If the chat is open, dispatch the message directly to the chat component
+            console.log(`[NotificationMgr] Chat with ${message.senderProfileId} is OPEN. Dispatching to chat component.`);
             messageCallbacksRef.current[message.senderProfileId](message);
         } else {
-            // If chat is not open, increment unread count for that user
+            console.log(`[NotificationMgr] Chat with ${message.senderProfileId} is CLOSED. Incrementing unread count.`);
             setUnreadMessages(prev => {
                 const newUnreadMessages = {
                     ...prev,
@@ -72,7 +66,6 @@ const useNotificationManagement = () => {
         }
     }, []);
 
-    // NEW: Handler for chat disconnect notifications
     const handleChatDisconnectNotification = useCallback((disconnectedUserId: number) => {
         console.log(`Handling chat disconnect notification for user ID: ${disconnectedUserId}`);
         setDisconnectedChatUsers(prev => {
@@ -83,13 +76,13 @@ const useNotificationManagement = () => {
         });
     }, []);
 
-
-    // Functions to mark notifications as read
     const markAllNotificationsAsRead = useCallback(() => {
         setConnectionRequestNotification([]);
         setConnectionNotification([]);
         setUnreadConnectionRequests(false);
         setUnreadConnections(false);
+        setUnreadMessages({}); // Also clear unread messages map
+        localStorage.removeItem('unreadMessages'); // Clear from local storage
     }, []);
 
     const markConnectionRequestsAsRead = useCallback(() => {
@@ -103,7 +96,7 @@ const useNotificationManagement = () => {
     const markMessagesAsReadForUser = useCallback((userId: number) => {
         setUnreadMessages(prev => {
             const newUnreadMessages = { ...prev };
-            delete newUnreadMessages[userId]; // Remove the entry for this user
+            delete newUnreadMessages[userId];
             localStorage.setItem('unreadMessages', JSON.stringify(newUnreadMessages));
             return newUnreadMessages;
         });
@@ -116,7 +109,7 @@ const useNotificationManagement = () => {
     return {
         connectionNotification,
         connectionRequestNotification,
-        disconnectedChatUsers, // NEW: Expose disconnected chat users
+        disconnectedChatUsers,
         hasUnreadConnections,
         hasUnreadConnectionRequests,
         unreadMessages,
@@ -128,8 +121,8 @@ const useNotificationManagement = () => {
         handleConnectionNotification,
         handleConnectionRequestNotification,
         handleChatMessage,
-        handleChatDisconnectNotification, // NEW: Expose the handler
-        clearDisconnectedChatUser,
+        handleChatDisconnectNotification,
+        clearDisconnectedChatUser, // This is correctly exposed
     };
 };
 
