@@ -28,14 +28,15 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
         const now = new Date();
         const diffDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
 
-        if (diffDays < 1 && date.getDate() === now.getDate()) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        } else if (diffDays < 2 && date.getDate() === now.getDate() - 1) {
-            return `Yesterday ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        } else {
-            return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' +
+        //Commented to meet the testing requerments. So it alwoys shows full date
+        // if (diffDays < 1 && date.getDate() === now.getDate()) {
+        //     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // } else if (diffDays < 2 && date.getDate() === now.getDate() - 1) {
+        //     return `Yesterday ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        // } else { //, year: 'numeric'
+            return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
                    date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
+        // }
     };
 
     // Auto-scrolls to the bottom when new messages arrive.
