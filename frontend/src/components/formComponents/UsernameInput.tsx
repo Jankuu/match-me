@@ -23,12 +23,12 @@ type Props = {
  */
 const UsernameInput = ({ value, onChange, onValidate, disabled }: Props) => {
     // Determine if the username is long enough (i.e., not empty after trimming whitespace).
-    const isLongEnough = value.trim().length > 0;
+    // const isLongEnough = value.trim().length > 0;
     // 'structureValid' is currently always true, which means there are no regex or specific format rules applied yet.
     // This could be a placeholder for future, more complex username validation rules.
     const structureValid = true;
     // Overall validation status: the username is valid if it's long enough and meets structural requirements.
-    const nameValid = isLongEnough && structureValid;
+    const nameValid = structureValid;
 
     /**
      * useEffect hook to notify the parent component about the validation status.
@@ -58,7 +58,7 @@ const UsernameInput = ({ value, onChange, onValidate, disabled }: Props) => {
                     disabled={disabled} // Disables input if 'disabled' prop is true
                     // Sets Bootstrap's 'isInvalid' class for visual feedback if value is empty.
                     // This mirrors the 'isLongEnough' check for displaying error.
-                    isInvalid={value.length < 1}
+                    isInvalid={value.length < 0}
                 />
                 <InputGroup.Text>
                     {/* Conditional rendering for validation icons */}
@@ -73,11 +73,7 @@ const UsernameInput = ({ value, onChange, onValidate, disabled }: Props) => {
             </InputGroup>
 
             {/* Conditional rendering for validation feedback text */}
-            {value.length < 1 && ( // Show message if username is empty
-                <Form.Text className="text-danger d-block">
-                    Username must be more than 1 character long. {/* Error message */}
-                </Form.Text>
-            )}
+            
         </Form.Group>
     );
 };

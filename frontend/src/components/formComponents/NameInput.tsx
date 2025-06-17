@@ -32,9 +32,9 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
      */
     const isStructureValid = (name: string) => {
         // Trim whitespace and split the name by spaces or hyphens (e.g., "John Doe" -> ["John", "Doe"]; "Mary-Ann" -> ["Mary", "Ann"]).
-        const parts = name.trim().split(/[- ]/);
+        const parts = name.trim().split(/[- ']/);
         // Check if every part matches the regex pattern: starts with an uppercase letter, followed by zero or more lowercase letters.
-        return parts.every((part) => /^[A-Z][a-z]*$/.test(part));
+        return parts.every((part) => /[A-Za-z]/.test(part));
     };
 
     // Derived state: Is the name long enough (more than 1 character after trimming)?
@@ -94,16 +94,16 @@ const NameInput = ({ value, onChange, onValidate, disabled }: Props) => {
             {/* Show structure hint if the name is not structurally valid */}
             {value.length > 0 && !structureValid && (
                 <Form.Text className="text-danger d-block">
-                    Name must start with a capital letter and can contain only letters, spaces or hyphens.
+                    Name can contain only letters, spaces or hyphens.
                 </Form.Text>
             )}
 
             {/* Show length hint if the name is too short (empty or only 1 character) */}
-            {value.length > 0 && !isLongEnough && (
+            {/* {value.length > 0 && !isLongEnough && (
                 <Form.Text className="text-danger d-block">
                     Name must be more than 1 character long.
                 </Form.Text>
-            )}
+            )} */}
         </Form.Group>
     );
 };
