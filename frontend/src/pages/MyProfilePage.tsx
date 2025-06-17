@@ -73,6 +73,7 @@ const MyProfilePage = () => {
                 // Ensure profile picture has the data URL prefix for proper display.
                 fetchedUser.profile.profilePicture = ensureDataUrlPrefix(fetchedUser.profile.profilePicture);
                 // Ensure other fields have consistent defaults/types if they can be null/undefined from backend
+                fetchedUser.email = fetchedUser.email || '';
                 fetchedUser.profile.name = fetchedUser.profile.name || '';
                 fetchedUser.profile.birthDate = fetchedUser.profile.birthDate || '';
                 fetchedUser.profile.gender = fetchedUser.profile.gender || '';

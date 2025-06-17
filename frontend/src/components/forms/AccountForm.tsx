@@ -76,7 +76,7 @@ const AccountForm: React.FC<AccountFormProps> = ({
         onFormValidationChange,
         onBirthDateValidationChange,
     });
-    const emailField = profile.email;
+    const emailOrUsernameField = profile.email || profile.username;
 
     /**
      * Handles the overall form submission.
@@ -89,6 +89,18 @@ const AccountForm: React.FC<AccountFormProps> = ({
 
     return (
         <Form onSubmit={handleSubmit}>
+
+            <Form.Group className="mb-3" controlId="formEmailOrUsername">
+                <Form.Label>Email / Username</Form.Label>
+                <Form.Control
+                    value={emailOrUsernameField}
+                    disabled={true}
+                />
+                <Form.Text className="text-muted">
+                    Cannot be changed.
+                </Form.Text>
+            </Form.Group>
+
             <Form.Group className="mb-3">
                 <ImageUpload
                     image={currentImageFile}
@@ -98,18 +110,6 @@ const AccountForm: React.FC<AccountFormProps> = ({
                     onClearImage={onClearProfilePicture}
                     currentProfilePicture={profile.profile.profilePicture}
                 />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formEmail">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                    type="email"
-                    value={emailField}
-                    disabled={true}
-                />
-                <Form.Text className="text-muted">
-                   Cannot be changed.
-                </Form.Text>
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="formName">
