@@ -199,8 +199,6 @@ public class DataSeeder implements CommandLineRunner {
             profile.setName(generateRandomString(5, 15));
             user.setUsername("username "+ profile.getName());
 
-            //user.setPassword(generateRandomString(8, 16));
-
             user.setPassword(passwordEncoder.encode("pw"));
 
             profile.setBirthDate(generateRandomLocalDate());

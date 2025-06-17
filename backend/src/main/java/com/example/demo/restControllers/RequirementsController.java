@@ -42,7 +42,7 @@ public class RequirementsController {
         if (thisUser == otherUser) {
             ReqUser reqUser = new ReqUser();
             reqUser.name = thisUser.getProfile().getName();
-            reqUser.profilePictureLink = "http://localhost:8080/req/users/" + id + "/picture";
+            reqUser.profileLink = "http://localhost:8080/req/users/" + id + "/profile";
             return ResponseEntity.ok().body(reqUser);
         } else {
             return ResponseEntity.notFound().build();
@@ -138,7 +138,7 @@ public class RequirementsController {
 
     public static class ReqUser {
         public String name;
-        public String profilePictureLink;
+        public String profileLink;
     }
 
     public static class Bio {

@@ -29,5 +29,5 @@ public class Connection {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private UserProfile sender;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime lastActivity;
 }

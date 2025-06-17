@@ -4,6 +4,7 @@ import com.example.demo.dTOs.ConnectionDTO;
 import com.example.demo.dTOs.UserProfileDTO;
 import com.example.demo.entities.Connection;
 import com.example.demo.entities.User;
+import com.example.demo.entities.UserProfile;
 import com.example.demo.exceptions.ConnectionAlreadyExistsException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.repositories.ConnectionRepository;
@@ -11,6 +12,7 @@ import com.example.demo.repositories.UserRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -39,7 +41,7 @@ public class ConnectionsService {
         User user = userService.getUserByUsername(username);
         return user.getConnectionRequests()
                 .stream()
-                .sorted(Comparator.comparing(Connection::getCreatedAt).reversed())
+                .sorted(Comparator.comparing(Connection::getLastActivity).reversed())
                 .map(ConnectionDTO::new)
                 .toList();
     }
@@ -48,7 +50,7 @@ public class ConnectionsService {
         User user = userService.getUserByUsername(username);
         return user.getConnections()
                 .stream()
-                .sorted(Comparator.comparing(Connection::getCreatedAt).reversed())
+                .sorted(Comparator.comparing(Connection::getLastActivity).reversed())
                 .map(ConnectionDTO::new)
                 .toList();
     }
@@ -71,6 +73,7 @@ public class ConnectionsService {
         Connection request = new Connection();
         request.setSender(sender.getProfile());
         request.setReceiver(receiver.getProfile());
+        request.setLastActivity(LocalDateTime.now());
         connectionRepository.save(request);
 
         receiver.getConnectionRequests().add(request);
@@ -99,6 +102,7 @@ public class ConnectionsService {
             throw new ConnectionAlreadyExistsException("Connection between users already exists.", request);
         }
 
+        request.setLastActivity(LocalDateTime.now());
         receiver.getConnectionRequests().remove(request);
         receiver.getConnections().add(request);
         sender.getConnections().add(request);
@@ -132,7 +136,7 @@ public class ConnectionsService {
         Connection connection = connectionRepository.findConnectionBetweenUsers(currentUser.getProfile(), otherUser.getProfile()).orElse(null);
 
         if (connection != null) {
-            if (currentUser.getConnections().contains(connection)){
+            if (currentUser.getConnections().contains(connection)) {
                 messagingTemplate.convertAndSendToUser(
                         currentUser.getProfile().getId().toString(),
                         "/queue/notifications/disconnect",
@@ -152,6 +156,16 @@ public class ConnectionsService {
             return new ConnectionDTO(connection);
         }
         return new ConnectionDTO(null, new UserProfileDTO(currentUser.getProfile()), new UserProfileDTO(otherUser.getProfile()), null);
+    }
+
+    public void updateConnectionActivityTime(Long profileId1, Long profileId2) {
+        UserProfile userProfile1 = userService.getUserByProfileId(profileId1).getProfile();
+        UserProfile userProfile2 = userService.getUserByProfileId(profileId2).getProfile();
+
+        Connection connection = connectionRepository.findConnectionBetweenUsers(userProfile1, userProfile2).orElseThrow(() -> new ResourceNotFoundException("Could not find connection between userProfiles", userProfile1 + " AND " + userProfile2));
+
+        connection.setLastActivity(LocalDateTime.now());
+        connectionRepository.save(connection);
     }
 
     // DELETE
