@@ -56,7 +56,7 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
         description, setDescription,
 
         // Preferences
-        preferedAgerange, setpreferedAgeRange,
+        preferredAgeRange, setPreferredAgeRange,
         preferredGenders, setPreferredGenders,
 
         // Location
@@ -138,9 +138,9 @@ const RegisterForm = ({ onSubmit, loading }: Props) => {
                 // isInvalid={!nameValid} // Pass validation status
             />
             <AgeRangeSelector
-                userAge={null} // Not directly used in registration, maybe remove? Or pass a derived age from birthDateUi
-                onChange={setpreferedAgeRange}
-                // selectedRange={preferedAgerange} // Pass current selected range
+                onChange={setPreferredAgeRange}
+                selectedRange={preferredAgeRange} // Pass current selected range
+                isEditable={!loading}
             />
             <GenderSelector
                 onChange={setGender}

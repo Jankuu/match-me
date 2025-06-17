@@ -1,4 +1,4 @@
-import React, { FormEvent } from "react";
+import React, { FormEvent, useEffect } from "react";
 import { Form, Button, Row, Col } from "react-bootstrap";
 
 import { User } from "../../types/User";
@@ -12,6 +12,7 @@ import ImageUpload from "../formComponents/ImageUpload";
 import HeightSet from "../formComponents/HeightSet";
 import GenderSelector from "../formComponents/GenderSelector"; // Corrected typo if any, ensure this matches your actual file name
 import useAccountForm from "../../hooks/useAccountForm"; // Import the new custom hook
+import AgeRangeSelector from "../formComponents/AgeRangeSelector.tsx";
 
 /**
  * Defines the props for the AccountForm component.
@@ -64,6 +65,7 @@ const AccountForm: React.FC<AccountFormProps> = ({
         handlePreferredGenderChange,
         handleDescriptionChange,
         handleHeightChange,
+        handleAgeRangeChange,
         isSaveDisabled,
     } = useAccountForm({
         profile,
@@ -74,6 +76,7 @@ const AccountForm: React.FC<AccountFormProps> = ({
         onFormValidationChange,
         onBirthDateValidationChange,
     });
+    const emailField = profile.email;
 
     /**
      * Handles the overall form submission.
@@ -95,6 +98,18 @@ const AccountForm: React.FC<AccountFormProps> = ({
                     onClearImage={onClearProfilePicture}
                     currentProfilePicture={profile.profile.profilePicture}
                 />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formEmail">
+                <Form.Label>Email</Form.Label>
+                <Form.Control
+                    type="email"
+                    value={emailField}
+                    disabled={true}
+                />
+                <Form.Text className="text-muted">
+                   Cannot be changed.
+                </Form.Text>
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="formName">
@@ -135,6 +150,12 @@ const AccountForm: React.FC<AccountFormProps> = ({
             <PreferredGenderSelector
                 selected={profile.interestedGenders || []}
                 onChange={handlePreferredGenderChange} // Handler from hook
+                isEditable={editing}
+            />
+            <AgeRangeSelector
+                onChange={handleAgeRangeChange} // Handler from hook
+                selectedRange={profile.interestedMinAge !== null && profile.interestedMaxAge !== null ?
+                    [profile.interestedMinAge, profile.interestedMaxAge] : undefined}
                 isEditable={editing}
             />
 

@@ -229,6 +229,18 @@ const useAccountForm = ({
     );
 
     /**
+     * Callback: Handles changes to the age range from `AgeRangeSelector`.
+     * Updates the root-level interestedMinAge and interestedMaxAge.
+     */
+    const handleAgeRangeChange = useCallback(
+        (range: [number, number]) => {
+            onRootChange("interestedMinAge", range[0]); // Notify parent about root.interestedMinAge change
+            onRootChange("interestedMaxAge", range[1]); // Notify parent about root.interestedMaxAge change
+        },
+        [onRootChange] // Dependency
+    );
+
+    /**
      * Memoized value: Determines if the Save Changes button should be disabled.
      * The button is disabled if:
      * - The form is not in editing mode.
@@ -261,6 +273,7 @@ const useAccountForm = ({
         handlePreferredGenderChange,
         handleDescriptionChange,
         handleHeightChange,
+        handleAgeRangeChange,
 
         // Derived values for UI
         isSaveDisabled,

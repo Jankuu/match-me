@@ -8,62 +8,59 @@ const MAX = 120;
 
 /**
  * Defines the props for the AgeRangeSelector component.
- * @property {number | null} userAge - The age of the current user. If provided, the slider will initialize around this age.
  * @property {(range: [number, number]) => void} onChange - Callback function to update the selected age range in the parent component.
+ * @property {[number, number] | undefined} selectedRange - The currently selected age range. If provided, this will be used for initialization.
+ * @property {boolean} [isEditable=true] - Whether the component is editable.
  */
 type AgeRangeSliderProps = {
-    userAge: number | null;
     onChange: (range: [number, number]) => void;
+    selectedRange?: [number, number];
+    isEditable?: boolean;
 };
 
 /**
  * AgeRangeSelector component.
  * This component provides a dual-thumb range slider to select a desired age range.
- * It can optionally initialize the range based on the `userAge` prop.
+ * It can optionally initialize the range based on the `selectedRange` prop.
  */
-const AgeRangeSelector: React.FC<AgeRangeSliderProps> = ({ userAge, onChange }) => {
+const AgeRangeSelector: React.FC<AgeRangeSliderProps> = ({ 
+    onChange, 
+    selectedRange, 
+    isEditable = true 
+}) => {
     // State to hold the current selected range values for the slider.
     // Initialized to the full MIN-MAX range.
-    const [values, setValues] = useState<[number, number]>([MIN, MAX]);
+    const [values, setValues] = useState<[number, number]>(
+        selectedRange || [MIN, MAX]
+    );
 
     /**
-     * useEffect hook to initialize the slider's range based on `userAge`.
-     * This effect runs only when `userAge` changes.
-     * It sets the range to `userAge - 2` to `userAge + 2`, clamped within MIN and MAX.
+     * useEffect hook to initialize the slider's range based on `selectedRange`.
+     * This effect runs when `selectedRange` changes.
+     * If `selectedRange` is provided, it will use that. Otherwise, it will use the default range.
      */
     useEffect(() => {
-        if (userAge) { // Check if userAge is provided (not null)
-            // Clamp userAge within the allowed MIN-MAX range
-            if (userAge > MAX) {
-                userAge = MAX;
-            } else if (userAge < MIN) {
-                userAge = MIN;
-            }
-
-            // Calculate the lower and upper bounds for the initial range,
-            // ensuring they don't go below MIN or above MAX.
-            const lower = Math.max(MIN, userAge - 2);
-            const upper = Math.min(MAX, userAge + 2);
-
-            // Update the local state with the new range
-            setValues([lower, upper]);
-            // Notify the parent component of the initial range
-            onChange([lower, upper]);
+        if (selectedRange) {
+            // If selectedRange is provided, use it directly
+            setValues(selectedRange);
+            // No need to call onChange here as it would trigger unnecessary updates
         } else {
-            // Update the local state with the default range
+            // If no selectedRange is provided, use the default range
             setValues([MIN, MAX]);
             // Notify the parent component of the initial range
             onChange([MIN, MAX]);
         }
-        // Dependencies: userAge. `onChange` is also a dependency for completeness,
-        // though it's typically stable in parent components like RegisterForm.
-    }, [userAge, onChange]);
+        // Dependencies: selectedRange, onChange
+    }, [selectedRange, onChange]);
 
     /**
      * Handler for when the slider's values change.
      * @param vals An array of numbers representing the current positions of the slider thumbs.
      */
     const handleChange = (vals: number[]) => {
+        // If the component is not editable, don't update the values
+        if (!isEditable) return;
+
         // Cast the array to a tuple to match the expected type for `values` and `onChange`.
         const newRange: [number, number] = [vals[0], vals[1]];
         // Update the local state
@@ -105,11 +102,13 @@ const AgeRangeSelector: React.FC<AgeRangeSliderProps> = ({ userAge, onChange }) 
                                     width: "100%",
                                     background: getTrackBackground({
                                         values,
-                                        colors: ["#ccc", "#198754", "#ccc"], // Gray before, green between, gray after thumbs
+                                        colors: ["#ccc", isEditable ? "#198754" : "#6c757d", "#ccc"], // Gray before, green/gray between, gray after thumbs
                                         min: MIN,
                                         max: MAX
                                     }),
-                                    borderRadius: "4px"
+                                    borderRadius: "4px",
+                                    opacity: isEditable ? 1 : 0.7, // Reduce opacity when not editable
+                                    cursor: isEditable ? "pointer" : "not-allowed" // Change cursor when not editable
                                 }}
                             >
                                 {children} {/* Render the thumbs and other track elements */}
@@ -128,11 +127,13 @@ const AgeRangeSelector: React.FC<AgeRangeSliderProps> = ({ userAge, onChange }) 
                                     height: "20px",
                                     width: "20px",
                                     borderRadius: "50%",
-                                    backgroundColor: "#198754", // Green color for the thumb
+                                    backgroundColor: isEditable ? "#198754" : "#6c757d", // Green color for editable, gray for non-editable
                                     display: "flex",
                                     justifyContent: "center",
                                     alignItems: "center",
                                     boxShadow: "0 0 2px rgba(0,0,0,0.5)",
+                                    opacity: isEditable ? 1 : 0.7, // Reduce opacity when not editable
+                                    cursor: isEditable ? "grab" : "not-allowed", // Change cursor when not editable
                                     ...props.style // Preserve original style from props
                                 }}
                             >

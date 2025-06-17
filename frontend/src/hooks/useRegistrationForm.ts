@@ -34,7 +34,7 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
     const [description, setDescription] = useState<string>("");
 
     // --- User Preferences for Matching States ---
-    const [preferedAgerange, setpreferedAgeRange] = useState<[number, number]>([18, 120]); // Default age range
+    const [preferredAgeRange, setpreferredAgeRange] = useState<[number, number]>([18, 120]); // Default age range
     const [preferredGenders, setPreferredGenders] = useState<string[]>([
         "man",
         "woman",
@@ -202,8 +202,8 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
                 height,
                 description,
             },
-            interestedMinAge: preferedAgerange[0],
-            interestedMaxAge: preferedAgerange[1],
+            interestedMinAge: preferredAgeRange[0],
+            interestedMaxAge: preferredAgeRange[1],
             interestedGenders: preferredGenders,
             interestedGames: Array.from(selectedGames.values()), // Convert Set<Game> to Game[] for DTO
 
@@ -219,7 +219,7 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
         onSubmitCallback(userPayload);
     }, [
         username, email, password, name, image, birthDateUi, gender, height, description,
-        preferedAgerange, preferredGenders, selectedGames, isGpsUser,
+        preferredAgeRange, preferredGenders, selectedGames, isGpsUser,
         locationCityName, googlePlaceId, locationCoordinates, radius,
         readImageAsBase64 // Dependency for the helper function
     ]);
@@ -242,7 +242,7 @@ const useRegistrationForm = ({}: UseRegistrationFormProps = {}) => {
         description, setDescription,
 
         // Preferences
-        preferedAgerange, setpreferedAgeRange,
+        preferredAgeRange: preferredAgeRange, setPreferredAgeRange: setpreferredAgeRange,
         preferredGenders, setPreferredGenders,
 
         // Location
