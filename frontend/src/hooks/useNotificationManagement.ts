@@ -1,7 +1,6 @@
 // src/hooks/useNotificationManagement.ts
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { ChatMessage } from '../types/ChatMessage'; // Assuming ChatMessage type
-// import type { Client } from "@stomp/stompjs"; // Removed: This import is not needed here and can cause circular dependency issues
+import { ChatMessage } from '../types/ChatMessage';
 
 interface UnreadMessagesMap {
     [userId: number]: number; // Maps user ID to unread count
@@ -46,14 +45,24 @@ const useNotificationManagement = () => {
 
     const handleChatMessage = useCallback((
         message: ChatMessage,
-        currentUserId: number | null,
+        currentUserId: number | null, // The current user's ID
         messageCallbacksRef: React.MutableRefObject<{ [userId: number]: (message: ChatMessage) => void }>
     ) => {
         console.log("Handling chat message in useNotificationManagement:", message);
+
+        // --- NEW: Filter out messages sent by the current user ---
+        if (currentUserId !== null && message.senderProfileId === currentUserId) {
+            console.log(`[NotificationMgr] Ignoring message from myself (senderId: ${message.senderProfileId}).`);
+            return; // Exit early, do not process this message for notifications
+        }
+        // --- END NEW CHECK ---
+
+        // If a chat with this sender is currently open, dispatch the message directly
         if (messageCallbacksRef.current[message.senderProfileId]) {
             console.log(`[NotificationMgr] Chat with ${message.senderProfileId} is OPEN. Dispatching to chat component.`);
             messageCallbacksRef.current[message.senderProfileId](message);
         } else {
+            // If the chat is not open, increment the unread count for that user
             console.log(`[NotificationMgr] Chat with ${message.senderProfileId} is CLOSED. Incrementing unread count.`);
             setUnreadMessages(prev => {
                 const newUnreadMessages = {
@@ -122,7 +131,7 @@ const useNotificationManagement = () => {
         handleConnectionRequestNotification,
         handleChatMessage,
         handleChatDisconnectNotification,
-        clearDisconnectedChatUser, // This is correctly exposed
+        clearDisconnectedChatUser,
     };
 };
 
