@@ -3,8 +3,7 @@
 import React from "react";
 import { Container, Button, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-// Импортируем useWebSocket из вашего контекста
-import { useWebSocket } from '../providers/WebSocketProvider'; // <-- НОВОЕ: Импорт контекста
+import { useWebSocket } from '../providers/WebSocketProvider';
 
 interface SettingsPageProps {
     onLogout: () => void;
@@ -12,19 +11,28 @@ interface SettingsPageProps {
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ onLogout }) => {
     const navigate = useNavigate();
-    // НОВОЕ: Получаем refreshAuthData из контекста WebSocket
-    const { refreshAuthData } = useWebSocket();
+    // Destructure refreshAuthData AND markAllNotificationsAsRead from the WebSocket context
+    const { refreshAuthData, markAllNotificationsAsRead } = useWebSocket(); // <-- UPDATED: Added markAllNotificationsAsRead
 
     const handleLogout = () => {
+        // Clear authentication tokens and user data from local storage
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        localStorage.removeItem("unreadMessages"); // It's a good idea to clear this too on logout
 
-        // ОЧЕНЬ ВАЖНО: Сообщаем WebSocketProvider, что данные аутентификации обновились (токен удален).
-        // Это приведет к деактивации WebSocket-соединения.
-        refreshAuthData(); // <-- ВЫЗЫВАЕМ ЭТУ ФУНКЦИЮ!
+        // 1. Inform WebSocketProvider that auth data has changed (token removed).
+        // This will lead to the deactivation of the WebSocket connection.
+        refreshAuthData();
 
-        onLogout(); // inform parent component (if it needs to update global auth state)
-        navigate("/"); // Redirect to home or login page
+        // 2. Clear all unread notifications within the application's state.
+        // This ensures the notification badges are reset for a fresh start.
+        markAllNotificationsAsRead(); // <-- NEW: Call this function to clear all notifications
+
+        // 3. Inform parent component about logout (if needed for global state updates)
+        onLogout();
+
+        // 4. Redirect to the home or login page
+        navigate("/");
     };
 
     return (

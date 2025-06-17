@@ -1,7 +1,7 @@
 // src/hooks/useWebSocketConnection.ts
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Client, IMessage } from "@stomp/stompjs";
-import { ChatMessage } from '../types/ChatMessage'; // Assuming ChatMessage type is available
+import { Client, IMessage, StompHeaders } from "@stomp/stompjs";
+import { ChatMessage } from '../types/ChatMessage';
 
 /**
  * Defines the parameters for the useWebSocketConnection hook.
@@ -9,10 +9,10 @@ import { ChatMessage } from '../types/ChatMessage'; // Assuming ChatMessage type
 interface UseWebSocketConnectionProps {
     jwtToken: string | null;
     currentUserId: number | null;
-    // Handlers for different types of incoming messages/notifications
     onChatMessage: (message: ChatMessage, currentUserId: number | null, messageCallbacksRef: React.MutableRefObject<{ [userId: number]: (message: ChatMessage) => void }>) => void;
     onConnectionNotification: (body: string, currentUserId: number | null) => void;
     onConnectionRequestNotification: (body: string, currentUserId: number | null) => void;
+    onChatDisconnectNotification: (disconnectedUserId: number) => void; // NEW: Callback for chat disconnects
     messageCallbacksRef: React.MutableRefObject<{ [userId: number]: (message: ChatMessage) => void }>;
 }
 
@@ -28,45 +28,40 @@ const useWebSocketConnection = ({
     onChatMessage,
     onConnectionNotification,
     onConnectionRequestNotification,
+    onChatDisconnectNotification, // NEW
     messageCallbacksRef,
 }: UseWebSocketConnectionProps) => {
     const client = useRef<Client | null>(null);
     const [isConnected, setIsConnected] = useState(false);
 
-    /**
-     * Main effect for establishing and managing the WebSocket connection.
-     * Reacts to changes in jwtToken or currentUserId.
-     */
     useEffect(() => {
-        // If no token or user ID, connection cannot be established or is invalid
-        if (!jwtToken) {
-            console.log("JWT is null, cannot establish WebSocket connection.");
+        if (!jwtToken || currentUserId === null) {
+            console.log("Waiting for JWT or current user ID to establish WebSocket connection.");
             if (client.current && client.current.connected) {
+                console.log("Deactivating WebSocket client due to missing JWT or current user ID.");
                 client.current.deactivate();
                 setIsConnected(false);
             }
-            return; // Exit if no token
+            return;
         }
 
-        if (currentUserId === null) {
-            console.log("Current user ID not loaded yet, waiting to establish WebSocket connection.");
-            return; // Exit if user ID is null
-        }
-
-        // If an existing client is connected, deactivate it for reconnection
         if (client.current && client.current.connected) {
-            console.log("Deactivating existing WebSocket client for reconnection.");
+            console.log("WebSocket client already connected with valid auth. Skipping re-activation.");
+            return;
+        }
+
+        if (client.current) {
+            console.log("Cleaning up previous WebSocket client instance.");
             client.current.deactivate();
         }
 
-        // Initialize STOMP client
         const stompClient = new Client({
-            brokerURL: `ws://localhost:8080/ws?token=${jwtToken}`, // Your WebSocket endpoint
+            brokerURL: `ws://localhost:8080/ws?token=${jwtToken}`,
             connectHeaders: {
-                Authorization: `Bearer ${jwtToken}`, // Include JWT for authentication
-            },
-            debug: (str) => console.log("[STOMP]", str), // Enable STOMP debug logs
-            reconnectDelay: 5000, // Attempt to reconnect every 5 seconds
+                Authorization: `Bearer ${jwtToken}`,
+            } as StompHeaders,
+            debug: (str) => console.log("[STOMP]", str),
+            reconnectDelay: 5000,
             onConnect: () => {
                 console.log("Connected to WebSocket");
                 setIsConnected(true);
@@ -80,7 +75,7 @@ const useWebSocketConnection = ({
                         console.log("New message received:", msg.body);
                         try {
                             const messageObj: ChatMessage = JSON.parse(msg.body);
-                            onChatMessage(messageObj, currentUserId, messageCallbacksRef); // Dispatch to handler
+                            onChatMessage(messageObj, currentUserId, messageCallbacksRef);
                         } catch (error) {
                             console.error("Failed to parse chat message JSON:", error, msg.body);
                         }
@@ -92,7 +87,7 @@ const useWebSocketConnection = ({
                     "/user/queue/notifications/connection",
                     (con: IMessage) => {
                         console.log("New connection notification received:", con.body);
-                        onConnectionNotification(con.body, currentUserId); // Dispatch to handler
+                        onConnectionNotification(con.body, currentUserId);
                     }
                 );
 
@@ -101,7 +96,25 @@ const useWebSocketConnection = ({
                     "/user/queue/notifications/connectionRequest",
                     (req: IMessage) => {
                         console.log("New connection request received:", req.body);
-                        onConnectionRequestNotification(req.body, currentUserId); // Dispatch to handler
+                        onConnectionRequestNotification(req.body, currentUserId);
+                    }
+                );
+
+                // 4. NEW: Subscribe to disconnect notifications
+                stompClient.subscribe(
+                    "/user/queue/notifications/disconnect",
+                    (req: IMessage) => {
+                        console.log("Disconnect notification received:", req.body);
+                        try {
+                            const disconnectedUserId = parseInt(req.body, 10);
+                            if (!isNaN(disconnectedUserId)) {
+                                onChatDisconnectNotification(disconnectedUserId); // Dispatch to handler
+                            } else {
+                                console.warn("Received non-numeric disconnected user ID:", req.body);
+                            }
+                        } catch (error) {
+                            console.error("Failed to process disconnect notification:", error, req.body);
+                        }
                     }
                 );
             },
@@ -112,7 +125,6 @@ const useWebSocketConnection = ({
             onStompError: (frame) => {
                 console.error('Broker reported error: ' + frame.headers['message']);
                 console.error('Additional details: ' + frame.body);
-                // On STOMP error, deactivate to attempt a clean reconnect cycle
                 if (client.current) {
                     client.current.deactivate();
                     setIsConnected(false);
@@ -124,11 +136,9 @@ const useWebSocketConnection = ({
             }
         });
 
-        // Activate the STOMP client to establish the connection
         stompClient.activate();
-        client.current = stompClient; // Store the client instance in a ref
+        client.current = stompClient;
 
-        // Cleanup function for when the component unmounts or dependencies change
         return () => {
             if (client.current && client.current.connected) {
                 console.log("Deactivating WebSocket client during cleanup.");
@@ -137,20 +147,15 @@ const useWebSocketConnection = ({
             }
         };
     }, [
-        jwtToken,           // Reconnect if token changes (login/logout)
-        currentUserId,      // Reconnect if user ID changes
-        onChatMessage,      // Stable callback from parent hook
-        onConnectionNotification, // Stable callback from parent hook
-        onConnectionRequestNotification, // Stable callback from parent hook
-        messageCallbacksRef // Stable ref from parent hook
+        jwtToken,
+        currentUserId,
+        onChatMessage,
+        onConnectionNotification,
+        onConnectionRequestNotification,
+        onChatDisconnectNotification, // NEW dependency
+        messageCallbacksRef
     ]);
 
-    /**
-     * Sends a message via the WebSocket connection.
-     * Memoized for stable reference.
-     * @param receiverId The ID of the recipient.
-     * @param content The message content string.
-     */
     const sendMessage = useCallback((receiverId: number, content: string) => {
         if (client.current && isConnected && currentUserId !== null) {
             const payload = {
@@ -160,7 +165,7 @@ const useWebSocketConnection = ({
             };
 
             client.current.publish({
-                destination: "/app/send", // Your backend message sending endpoint
+                destination: "/app/send",
                 body: JSON.stringify(payload),
             });
 
@@ -168,7 +173,7 @@ const useWebSocketConnection = ({
         } else {
             console.warn("WebSocket not connected or current user ID not available. Cannot send message.");
         }
-    }, [isConnected, currentUserId]); // Dependencies: connection status and sender ID
+    }, [isConnected, currentUserId]);
 
     return { client: client.current, isConnected, sendMessage };
 };

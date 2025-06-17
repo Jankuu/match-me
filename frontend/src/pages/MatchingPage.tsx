@@ -9,7 +9,6 @@ import type { CardUserProfile } from "../types/CardUserProfile";
 import type { SwipeEventData } from "react-swipeable";
 
 import "../styles/ColorPallette.css";
-import { IMessage } from "@stomp/stompjs";
 
 const MatchingPage: React.FC = () => {
     // State for different categories of user profiles
@@ -35,6 +34,7 @@ const MatchingPage: React.FC = () => {
         connectionRequestNotification, // Notification for new connection requests
         connectionNotification, // Notification for new established connections
         unreadMessages, // NEW: Get unread messages map
+        disconnectedChatUsers
     } = useWebSocket();
 
     // State to control which accordion section is active (open)
@@ -48,30 +48,26 @@ const MatchingPage: React.FC = () => {
     const currentUserId = userData?.id || userData?.profile?.id;
 
     useEffect(() => {
-        if (client != null) {
-            console.log("SUBSCRIBE TO DISCONNECT");
-            client.subscribe(
-                "/user/queue/notifications/disconnect",
-                (req: IMessage) => {
-                    console.log("disconnect", req.body);
+        if (disconnectedChatUsers.length > 0) {
+            // Iterate over disconnected users
+            disconnectedChatUsers.forEach(disconnectedUserId => {
+                const location = window.location.pathname;
+                const match = matchPath("/chat/:id/:username", location);
 
-                    // Get current location
-                    const location = window.location.pathname;
-
-                    // Try to match the pattern /chat/:id/:username with current path
-                    const match = matchPath("/chat/:id/:username", location);
-
-                    if (match && match.params.id === req.body) {
-                        // Only navigate if on the matching chat page and id matches req.body
-                        navigate("/matching");
-                    }
-                    fetchUserConnections();
-                    fetchRecommendations();
-                    fetchConnectionRequests();
+                if (match && parseInt(match.params.id!, 10) === disconnectedUserId) {
+                    console.log(`Navigating from chat with ${disconnectedUserId} due to disconnect.`);
+                    navigate("/matching");
                 }
-            );
+            });
+
+            // After processing, you might want to clear this state or handle it based on your notification UX
+            // For now, it's a simple loop. If you want to clear processed notifications,
+            // useNotificationManagement would need a method to clear `disconnectedChatUsers`.
+            // For this example, it stays in the array until the component unmounts or
+            // useNotificationManagement is updated to clear them.
+            // A more robust approach would be to clear them in useNotificationManagement after they are consumed.
         }
-    }, [client]);
+    }, [disconnectedChatUsers, navigate]); // Add navigate to dependencies
 
     // Fetch initial data when currentUserId is available
     useEffect(() => {

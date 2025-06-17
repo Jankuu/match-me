@@ -3,9 +3,9 @@
 import React, {
     createContext,
     useContext,
-    useRef, // Keep useRef for messageCallbacks
+    useRef,
 } from "react";
-import { Client } from "@stomp/stompjs"; // Only Client type needed directly here
+import { Client } from "@stomp/stompjs";
 import { ChatMessage } from "../types/ChatMessage";
 
 // Import the new custom hooks
@@ -30,6 +30,7 @@ interface WebSocketContextType {
     // Notification states and actions
     connectionNotification: string[];
     connectionRequestNotification: string[];
+    disconnectedChatUsers: number[]; // This was already here from previous step
     hasUnreadConnections: boolean;
     hasUnreadConnectionRequests: boolean;
     markAllNotificationsAsRead: () => void;
@@ -46,6 +47,9 @@ interface WebSocketContextType {
 
     // Auth data refresh (e.g., after login/logout)
     refreshAuthData: () => void;
+
+    // NEW: Function to clear a specific disconnected user from the list
+    clearDisconnectedChatUser: (userId: number) => void; // <--- ADD THIS LINE
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
@@ -91,6 +95,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         handleConnectionNotification, // Passed to useWebSocketConnection
         handleConnectionRequestNotification, // Passed to useWebSocketConnection
         handleChatMessage, // Passed to useWebSocketConnection
+        disconnectedChatUsers, // Make sure this is destructured
+        handleChatDisconnectNotification, // This was already destructured
+        clearDisconnectedChatUser, // <--- MAKE SURE THIS IS DESTRUCTURED
     } = useNotificationManagement();
 
     // 4. Use the WebSocket connection hook, passing necessary auth data and notification handlers
@@ -100,6 +107,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         onChatMessage: handleChatMessage, // Pass the handler from useNotificationManagement
         onConnectionNotification: handleConnectionNotification, // Pass the handler from useNotificationManagement
         onConnectionRequestNotification: handleConnectionRequestNotification, // Pass the handler from useNotificationManagement
+        onChatDisconnectNotification: handleChatDisconnectNotification, // Pass the handler for disconnects
         messageCallbacksRef: messageCallbacks, // Pass the ref for message dispatching
     });
 
@@ -112,6 +120,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 client, // The STOMP client instance from the connection hook
                 connectionNotification,
                 connectionRequestNotification,
+                disconnectedChatUsers,
                 hasUnreadConnections,
                 hasUnreadConnectionRequests,
                 markAllNotificationsAsRead,
@@ -122,6 +131,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
                 registerMessageCallback,
                 refreshAuthData,
                 hasUnreadMessages,
+                clearDisconnectedChatUser, // <--- ADD THIS LINE TO THE VALUE OBJECT
             }}
         >
             {children}
