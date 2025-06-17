@@ -4,7 +4,7 @@ import apiClient from '../utils/apiClient';
 import { ChatMessage } from '../types/ChatMessage';
 
 const INITIAL_LOAD_COUNT = 10;
-const SCROLL_DEACTIVATION_THRESHOLD = 100; 
+const SCROLL_DEACTIVATION_THRESHOLD = 100;
 
 interface UseChatLogicProps {
     receiverId: number;
@@ -24,6 +24,9 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
     const isInitialLoadCompleteRef = useRef<boolean>(false);
     const hasScrolledUpToTopRef = useRef<boolean>(false);
     const isAutoScrollDisabledRef = useRef<boolean>(false);
+
+    // Блокировка загрузки старых сообщений первые 2 секунды после инициализации
+    const isLoadOlderBlockedRef = useRef<boolean>(true);
 
     const generateTempId = (): string => `temp-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
@@ -133,6 +136,9 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
         hasScrolledUpToTopRef.current = false;
         isAutoScrollDisabledRef.current = false;
 
+        // Заблокировать загрузку старых сообщений на старте
+        isLoadOlderBlockedRef.current = true;
+
         const loadInitialMessages = async () => {
             try {
                 const response = await apiClient.get<{ content: ChatMessage[], totalPages: number, number: number }>(`/messages`, {
@@ -153,6 +159,11 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
                         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
                     }
                     isInitialLoadCompleteRef.current = true;
+
+                    // Снять блокировку через 2 секунды
+                    setTimeout(() => {
+                        isLoadOlderBlockedRef.current = false;
+                    }, 2000);
                 }, 100);
             } catch (error) {
                 console.error('loadInitialMessages: Error during initial history load:', error);
@@ -201,6 +212,12 @@ const useChatLogic = ({ receiverId, currentUserId }: UseChatLogicProps) => {
 
                 if (isInitialLoadCompleteRef.current && scrollTop <= 5) {
                     if (!hasScrolledUpToTopRef.current) {
+                        // Проверяем блокировку загрузки старых сообщений
+                        if (isLoadOlderBlockedRef.current) {
+                            console.log('Load older messages blocked for first 2 seconds');
+                            return;
+                        }
+
                         hasScrolledUpToTopRef.current = true;
                         loadOlderMessages();
                         console.log('Scroll Event: User scrolled to the very top!');
